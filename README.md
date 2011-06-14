@@ -1,11 +1,11 @@
 Molt (Python Project Creator)
 =============================
 
-This project contains a script called "molt" for creating new Python
+This project contains a Python script called "molt" for creating new Python
 projects, complete with plumbing and stubs for documentation, unit tests,
-doc tests, and logging.  The script is not yet usable.
+doc tests, and logging.
 
-Comments and suggestions are welcome.
+The script is not yet usable.  Comments and suggestions are welcome.
 
 Chris Jerdonek
 
