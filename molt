@@ -44,7 +44,12 @@ DEBUG_OPTION = "-v"
 
 
 class Error(Exception):
-    """Base class for exceptions in this module."""
+    """Base class for exceptions defined in this project."""
+    pass
+
+
+class UsageError(Error):
+    """Exception class for command-line syntax errors."""
     pass
 
 
@@ -70,18 +75,6 @@ def do_program_body(args):
     print "Program body..."
 
 
-def exit_with_error(message):
-    """Display an error message, and exit the program."""
-    # Skip to the beginning of the next line, e.g. in case we are in
-    # the middle of the password prompt.
-    print
-
-    _log.error("""%s
-
-Pass -h or --help for help documentation and available options.""" % message)
-    exit(1)
-
-
 def main(sys_argv):
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
@@ -91,11 +84,16 @@ def main(sys_argv):
     configure_logging(logging.DEBUG if DEBUG_OPTION in args else None)
 
     try:
-        do_program_body(args)
-    except KeyboardInterrupt, err:
-        exit_with_error("Script aborted by user.")
+        try:
+            do_program_body(args)
+        except Error as err:
+            _log.error(err)
+            raise
+    except UsageError as err:
+        print "\nPass -h or --help for help documentation and available options."
+        return 2
     except Error, err:
-        exit_with_error(err.message)
+        return 1
 
 
 if __name__ == "__main__":
