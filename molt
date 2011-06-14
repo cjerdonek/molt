@@ -43,16 +43,6 @@ _log = logging.getLogger("molt")
 DEBUG_OPTION = "-v"
 
 
-class Error(Exception):
-    """Base class for exceptions defined in this project."""
-    pass
-
-
-class UsageError(Error):
-    """Exception class for command-line syntax errors."""
-    pass
-
-
 def configure_logging(logging_level=None):
     if logging_level is None:
         logging_level = logging.INFO
@@ -68,6 +58,16 @@ def configure_logging(logging_level=None):
     logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
+
+
+class Error(Exception):
+    """Base class for exceptions defined in this project."""
+    pass
+
+
+class UsageError(Error):
+    """Exception class for command-line syntax errors."""
+    pass
 
 
 def do_program_body(args):
