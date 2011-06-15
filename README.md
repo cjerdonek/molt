@@ -10,8 +10,8 @@ Examples
 
 This a temporary test of a doctest failure:
 
->>> 1 + 1
-3
+    >>> 1 + 1
+    3
 
 The script is not yet usable.  Comments and suggestions are welcome.
 
