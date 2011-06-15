@@ -5,6 +5,14 @@ This project contains a Python script called "molt" for creating new Python
 projects, complete with plumbing and stubs for documentation, unit tests,
 doc tests, and logging.
 
+Examples
+--------
+
+This a temporary test of a doctest failure:
+
+>>> 1 + 1
+3
+
 The script is not yet usable.  Comments and suggestions are welcome.
 
 Chris Jerdonek

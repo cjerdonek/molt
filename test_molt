@@ -33,6 +33,7 @@ Runs all unit tests and doc tests in the project.
 
 """
 
+import doctest
 import glob
 import logging
 import os
@@ -41,6 +42,7 @@ import unittest
 
 
 LIBRARY_PACKAGE_NAME = 'molt_lib'
+README_PATH = 'README.md'
 TEST_MODULE_PATTERN = '*_unittest.py'
 
 
@@ -154,18 +156,21 @@ def find_test_module_names(package_name, pattern):
     return module_names
 
 
-# TODO: add running doc tests.
-def main(sys_argv):
-    """Run all unit tests."""
-    configure_test_logging()
+# TODO: run the doc tests in all modules.
+def run_doc_tests():
+    """Run the doc tests."""
+    doctest.testfile(README_PATH)
 
+
+def run_unit_tests(library_package_name, test_module_pattern):
+    """Run the unit tests."""
     # Test discovery was not added to unittest until Python 2.7:
     #
     #   http://docs.python.org/library/unittest.html#test-discovery
     #
     # We use our own test discovery method here to support test discovery
     # in Python 2.6 and earlier.
-    module_names = find_test_module_names(LIBRARY_PACKAGE_NAME, TEST_MODULE_PATTERN)
+    module_names = find_test_module_names(library_package_name, test_module_pattern)
 
     # unittest.TestLoader's constructor, which is called directly by
     # unittest.main(), does not permit the defaultTest parameter to be
@@ -173,6 +178,17 @@ def main(sys_argv):
     # instead using the argv parameter.
     argv = [''] + module_names
     unittest.main(testLoader=TestLoader(), module=None, argv=argv)
+
+
+def main(sys_argv):
+    """Run all unit tests."""
+    configure_test_logging()
+
+    # TODO: Log the beginning of the doc tests and unit tests.
+    # TODO: The script's exit status should reflect whether or not
+    # both the doc tests and unit tests passed.
+    run_doc_tests()
+    run_unit_tests(LIBRARY_PACKAGE_NAME, TEST_MODULE_PATTERN)
 
 
 if __name__ == "__main__":
