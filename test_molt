@@ -35,6 +35,8 @@ Runs all unit tests and doc tests in the project.
 
 import unittest
 
+# TODO: add code to detect all *_unittest modules.
+# TODO: add code to run doc tests.
 from molt_lib.main_unittest import *
 
 
