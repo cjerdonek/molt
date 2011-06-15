@@ -32,9 +32,18 @@ Unit tests for the main module.
 
 """
 
+import logging
 import unittest
 
 import main
+
+
+class MockLogging(object):
+
+    """Mock logging for testing purposes."""
+
+    def configure_logging(self, logging_level):
+        self.level = logging_level
 
 
 class MainTestCase(unittest.TestCase):
@@ -42,10 +51,18 @@ class MainTestCase(unittest.TestCase):
     """Test the main() function."""
 
     # TODO: test cases for UsageError and Exception.
-    # TODO: suppress logging somehow.
+    # TODO: prevent the 'No handlers could be found for logger "molt"'
+    # message from showing up.
+
+    def setUp(self):
+        self.logging = MockLogging()
 
     def test_error(self):
         def raise_error(sys_argv):
             raise main.Error("test")
 
-        self.assertEquals(main.main([], raise_error), 1)
+        result = main.main([], configure_logging=self.logging.configure_logging,
+                           process_args=raise_error)
+        self.assertEquals(result, 1)
+        self.assertEquals(self.logging.level, logging.INFO)
+

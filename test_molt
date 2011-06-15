@@ -42,9 +42,6 @@ import unittest
 LIBRARY_PACKAGE_NAME = 'molt_lib'
 TEST_MODULE_PATTERN = '*_unittest.py'
 
-# TODO: Fix the issue whereby logging gets configured additionally
-# in every test.
-
 
 class TestLoader(unittest.TestLoader):
 

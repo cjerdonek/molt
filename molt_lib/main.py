@@ -41,10 +41,9 @@ _log = logging.getLogger("molt")
 DEBUG_OPTION = "-v"
 
 
-def configure_logging(logging_level=None):
-    if logging_level is None:
-        logging_level = logging.INFO
-
+# TODO: make this testable.
+def configure_logging(logging_level):
+    """Configure logging."""
     logger = logging.getLogger()  # the root logger.
 
     stream = sys.stderr
@@ -73,7 +72,7 @@ def do_program_body(sys_argv):
     print "Program body..."
 
 
-def main(sys_argv, process_args=do_program_body):
+def main(sys_argv, configure_logging=configure_logging, process_args=do_program_body):
     """
     Execute this script's main function, and return the exit status.
 
@@ -91,7 +90,7 @@ def main(sys_argv, process_args=do_program_body):
     args = sys_argv[1:]
 
     # Configure logging prior to parsing options.
-    configure_logging(logging.DEBUG if DEBUG_OPTION in args else None)
+    configure_logging(logging.DEBUG if DEBUG_OPTION in args else logging.INFO)
 
     try:
         try:
