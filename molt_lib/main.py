@@ -42,16 +42,19 @@ DEBUG_OPTION = "-v"
 
 
 # TODO: make this testable.
-def configure_logging(logging_level):
+def configure_logging(logging_level, sys_stderr=None):
     """Configure logging."""
+    if sys_stderr is None:
+        sys_stderr = sys.stderr
+
     logger = logging.getLogger()  # the root logger.
 
-    stream = sys.stderr
+    logger.setLevel(logging_level)
+
+    stream = sys_stderr
     handler = logging.StreamHandler(stream)
     formatter = logging.Formatter("[%(levelname)s] %(message)s")
     handler.setFormatter(formatter)
-
-    logger.setLevel(logging_level)
     logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")

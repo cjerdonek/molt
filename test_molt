@@ -34,6 +34,7 @@ Runs all unit tests and doc tests in the project.
 """
 
 import glob
+import logging
 import os
 import sys
 import unittest
@@ -82,6 +83,26 @@ ERROR: AttributeError while loading unit tests from--
             suites.append(suite)
 
         return self.suiteClass(suites)
+
+
+def configure_test_logging():
+    """
+    Configure a "black hole" log handler for testing purposes.
+
+    This method adds a log handler to the root logger to prevent the
+    following message from being written while running tests:
+
+      'No handlers could be found for logger...'
+
+    It also prevents the handler from displaying any log messages by
+    configuring it to write to os.devnull instead of sys.stderr.
+
+    """
+    logger = logging.getLogger()  # the root logger.
+
+    stream = open(os.devnull,"w")
+    handler = logging.StreamHandler(stream)
+    logger.addHandler(handler)
 
 
 def path_to_module_name(path):
@@ -136,6 +157,8 @@ def find_test_module_names(package_name, pattern):
 # TODO: add running doc tests.
 def main(sys_argv):
     """Run all unit tests."""
+    configure_test_logging()
+
     # Test discovery was not added to unittest until Python 2.7:
     #
     #   http://docs.python.org/library/unittest.html#test-discovery
