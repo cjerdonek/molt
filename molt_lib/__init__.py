@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
 # Copyright (C) 2011 Chris Jerdonek. All rights reserved.
@@ -28,24 +27,3 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""
-A script for creating new Python projects.
-
-See the project's README for details.
-
-"""
-
-# This file should not contain any application code.
-
-import sys
-
-import molt_lib.main
-
-
-def main(sys_argv):
-    return molt_lib.main.main(sys_argv)
-
-
-if __name__ == "__main__":
-    result = main(sys.argv)
-    sys.exit(result)
