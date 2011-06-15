@@ -43,6 +43,7 @@ import molt_lib.main
 
 
 def main(sys_argv):
+    """Execute this script, and return the resulting exit status."""
     return molt_lib.main.main(sys_argv)
 
 

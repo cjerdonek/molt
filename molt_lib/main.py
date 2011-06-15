@@ -68,7 +68,7 @@ class UsageError(Error):
     pass
 
 
-def do_program_body(args):
+def do_program_body(sys_argv):
     # TODO
     print "Program body..."
 
