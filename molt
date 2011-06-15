@@ -75,7 +75,19 @@ def do_program_body(args):
     print "Program body..."
 
 
-def main(sys_argv):
+def molt_main(sys_argv, process_args=do_program_body):
+    """
+    Execute this script's main function, and return the exit status.
+
+    Args:
+
+      process_args: the function called within this method's try-except
+        block and that accepts sys.argv as a single parameter.
+        This parameter is exposed only for unit testing purposes.  It
+        allows the function's exception handling logic to be tested
+        more easily.
+
+    """
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
     args = sys_argv[1:]
@@ -85,7 +97,7 @@ def main(sys_argv):
 
     try:
         try:
-            do_program_body(args)
+            process_args(sys_argv)
         except Error as err:
             _log.error(err)
             raise
@@ -96,7 +108,10 @@ def main(sys_argv):
         return 1
 
 
+def main(sys_argv):
+    return molt_main(sys_argv)
+
+
 if __name__ == "__main__":
     result = main(sys.argv)
-
     sys.exit(result)
