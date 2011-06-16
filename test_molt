@@ -41,9 +41,61 @@ import sys
 import unittest
 
 
+_log = logging.getLogger("test_molt")
+
 LIBRARY_PACKAGE_NAME = 'molt_lib'
 README_PATH = 'README.md'
 TEST_MODULE_PATTERN = '*_unittest.py'
+
+
+# TODO: run the doc tests in all modules.
+def run_doc_tests():
+    """Run the doc tests, and return (failure_count, test_count)."""
+    result = doctest.testfile(README_PATH)
+
+    return result
+
+
+class DocTestsTestCase(unittest.TestCase):
+
+    """
+    A unittest TestCase that runs the doc tests.
+
+    We wrap the doc tests inside a TestCase so that the aggregate unittest
+    test run will reflect the success or failure of the doc tests.
+    In particular, the success or failure of the doc tests will be reflected
+    in the exit status.
+
+    """
+
+    def setUp(self):
+        # TODO: Find a better way to move to the start of the next line.
+        print
+        _log.info("Running all doc tests as a single unit test...")
+
+    # The name "runTest" is a magic value.
+    def runTest(self):
+        (failure_count, test_count) = run_doc_tests()
+        if failure_count is 0:
+            return
+
+        msg = "%s out of %s doc tests failed." % (failure_count, test_count)
+        # We log the error before calling the assertion.  Otherwise, the
+        # message will not be logged on assertion failure.
+        _log.error(msg)
+        self.assertEquals(failure_count, 0, msg)
+
+
+def create_doc_tests_suite(suite_class):
+    """
+    Return a TestSuite that runs the doc tests.
+
+    """
+    test_case = DocTestsTestCase()  # methodName parameter defaults to "runTest".
+    test_cases = [test_case]
+    test_suite = suite_class(tests=test_cases)
+
+    return test_suite
 
 
 class TestLoader(unittest.TestLoader):
@@ -65,7 +117,10 @@ class TestLoader(unittest.TestLoader):
     """
 
     def loadTestsFromNames(self, names, module=None):
-        """Return a suite of all test cases found."""
+        """
+        Return a suite of all doc tests and test cases in the package.
+
+        """
         suites = []
 
         for name in names:
@@ -80,18 +135,31 @@ ERROR: AttributeError while loading unit tests from--
   be masking an ImportError in the module being processed.
 
 """ % repr(name)
+                # TODO: switch to using the logger.
                 sys.stderr.write(msg)
                 raise
             suites.append(suite)
 
+        # We put the doc tests suite at the end rather than the beginning
+        # because this makes it easier to log a message marking the
+        # transition from the usual style unit tests to the doc tests.
+        # For example, a message logged in the tearDown() of the doc tests
+        # test case will display before the information on any doc test
+        # failures, which is not what we want.
+        doc_tests_suite = create_doc_tests_suite(self.suiteClass)
+        suites.append(doc_tests_suite)
+
         return self.suiteClass(suites)
 
 
+# TODO: This method should accept a logging level to permit verbose
+# logging while running the tests.
+# TODO: finish documenting this method.
 def configure_test_logging():
     """
-    Configure a "black hole" log handler for testing purposes.
+    Configure logging for this script.
 
-    This method adds a log handler to the root logger to prevent the
+    Configures a "black hole" log handler for the root logger to prevent the
     following message from being written while running tests:
 
       'No handlers could be found for logger...'
@@ -100,11 +168,25 @@ def configure_test_logging():
     configuring it to write to os.devnull instead of sys.stderr.
 
     """
-    logger = logging.getLogger()  # the root logger.
+    # Configure the root logger.
+    logger = logging.getLogger()
+
+    logger.setLevel(logging.INFO)
 
     stream = open(os.devnull,"w")
     handler = logging.StreamHandler(stream)
     logger.addHandler(handler)
+
+    # Configure this module's logger.
+    logger = _log
+
+    stream = sys.stderr
+    handler = logging.StreamHandler(stream)
+    formatter = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    _log.debug("Debug logging enabled.")
 
 
 def path_to_module_name(path):
@@ -156,12 +238,6 @@ def find_test_module_names(package_name, pattern):
     return module_names
 
 
-# TODO: run the doc tests in all modules.
-def run_doc_tests():
-    """Run the doc tests."""
-    doctest.testfile(README_PATH)
-
-
 def run_unit_tests(library_package_name, test_module_pattern):
     """Run the unit tests."""
     # Test discovery was not added to unittest until Python 2.7:
@@ -177,6 +253,8 @@ def run_unit_tests(library_package_name, test_module_pattern):
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
     argv = [''] + module_names
+
+    _log.info("Running unit tests...")
     unittest.main(testLoader=TestLoader(), module=None, argv=argv)
 
 
@@ -184,10 +262,6 @@ def main(sys_argv):
     """Run all unit tests."""
     configure_test_logging()
 
-    # TODO: Log the beginning of the doc tests and unit tests.
-    # TODO: The script's exit status should reflect whether or not
-    # both the doc tests and unit tests passed.
-    run_doc_tests()
     run_unit_tests(LIBRARY_PACKAGE_NAME, TEST_MODULE_PATTERN)
 
 

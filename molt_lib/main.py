@@ -35,7 +35,8 @@ Supplies the main method for the molt project.
 import logging
 import sys
 
-_log = logging.getLogger("molt")
+
+_log = logging.getLogger("main")
 
 # TODO: this should be part of the option-parsing code.
 DEBUG_OPTION = "-v"
