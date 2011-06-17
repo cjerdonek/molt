@@ -47,6 +47,7 @@ LIBRARY_PACKAGE_NAME = 'molt_lib'
 README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
 
+# TODO: Add command-line help.
 
 # TODO: run the doc tests in all modules.
 def run_doc_tests():
@@ -282,7 +283,6 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name):
 def main(sys_argv):
     """Run all unit tests."""
     configure_test_logging()
-    _log.info("TEST....")
 
     module_dir = os.path.dirname(__file__)
 
