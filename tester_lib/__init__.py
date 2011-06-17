@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
 # Copyright (C) 2011 Chris Jerdonek. All rights reserved.
@@ -28,22 +27,3 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""
-Runs all unit tests and doc tests in the project.
-
-"""
-
-import sys
-
-import tester_lib.main
-
-
-def main(sys_argv):
-    """Execute this script, and return the resulting exit status."""
-    return tester_lib.main.main(sys_argv)
-
-
-if __name__ == "__main__":
-    # TODO: assert that main() exits..
-    result = main(sys.argv)
-    sys.exit(result)
