@@ -54,19 +54,23 @@ USAGE = """%prog [options]
 
 Runs the molt project's tests.
 
-The project's tests include all of the unit tests and doc tests in the
-project.  Doc tests are any example interactive code snippets that show
-up in the project's documentation -- for example in the project's README
-file or in any of the Python code's docstrings.  A doc test might look
-like this:
+The project's tests include all of the unit tests and doctests in the
+project.  This script uses Python's unittest and doctest modules to find
+and run the tests.
+
+Doctests, as described more fully in Python's doctest module, are example
+interactive code snippets that show up in project documenation.  This
+script looks for doctests in essentially all project files, for example
+in the project's README file and in all of the Python code's docstrings.
+A doctest might look like this:
 
 >>> 1 + 1
 2
 
 For reporting reasons, this script runs all tests as unit tests.
-In particular, the script runs all doc tests collectively as a single
-unit test -- in fact the final unit test.  If any doc tests fail,
-the script reports the number of doc test failures separately in both
+In particular, the script runs all doctests collectively as a single
+unit test.  In fact, they are the final unit test.  If any doctests fail,
+the script reports the number of doctest failures separately in both
 the script's output log messages and in the message text of the
 corresponding unit test's AssertionError."""
 
