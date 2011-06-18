@@ -164,19 +164,19 @@ def parse_args(sys_argv, usage=USAGE):
 
 
 # TODO: run the doc tests in all modules.
-def run_doc_tests():
+def run_doc_tests(verbose=False):
     """Run the doc tests, and return (failure_count, test_count)."""
-    result = doctest.testfile(README_PATH)
+    result = doctest.testfile(README_PATH, verbose=verbose)
 
     return result
 
 
-def create_doc_tests_suite(suite_class):
+def create_doc_tests_suite(suite_class, verbose=False):
     """
     Return a TestSuite that runs the doc tests.
 
     """
-    test_case = DocTestsTestCase()  # methodName parameter defaults to "runTest".
+    test_case = DocTestsTestCase(verbose=verbose)  # methodName parameter defaults to "runTest".
     test_cases = [test_case]
     test_suite = suite_class(tests=test_cases)
 
@@ -252,7 +252,7 @@ def find_unit_test_module_names(top_dir, filename_pattern, module_name):
     return names
 
 
-def run_unit_tests(top_dir, unittest_module_pattern, module_name):
+def run_unit_tests(top_dir, unittest_module_pattern, module_name, verbose=False):
     """Run the unit tests in the given directory."""
     # Test discovery was not added to unittest until Python 2.7:
     #
@@ -269,7 +269,8 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name):
     argv = [''] + module_names
 
     _log.info("Running unit tests...")
-    unittest.main(testLoader=TestLoader(), module=None, argv=argv)
+    test_loader = TestLoader(verbose=verbose)
+    unittest.main(testLoader=test_loader, module=None, argv=argv)
 
 
 def process_args(sys_argv):
@@ -277,10 +278,12 @@ def process_args(sys_argv):
 
     (options, args) = parse_args(sys_argv)
 
+    verbose = options.verbose
+
     module_dir = os.path.dirname(__file__)
 
     top_dir = os.path.join(module_dir, os.pardir, LIBRARY_PACKAGE_NAME)
-    run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME)
+    run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME, verbose=verbose)
 
 
 def main(sys_argv):
@@ -293,8 +296,8 @@ def main(sys_argv):
 
     # Configure logging before entering the try block to ensure that
     # we can log errors in the corresponding except block.
-    log_verbosely = should_log_verbosely(sys_argv)
-    configure_logging(logging.DEBUG if log_verbosely else logging.INFO)
+    verbose = should_log_verbosely(sys_argv)
+    configure_logging(logging.DEBUG if verbose else logging.INFO)
 
     try:
         try:
@@ -345,6 +348,9 @@ class DocTestsTestCase(unittest.TestCase):
     in the exit status.
 
     """
+    def __init__(self, verbose=False):
+        super(DocTestsTestCase, self).__init__()
+        self.__verbose = verbose
 
     def setUp(self):
         # TODO: Find a better way to move to the start of the next line.
@@ -353,7 +359,7 @@ class DocTestsTestCase(unittest.TestCase):
 
     # The name "runTest" is a magic value.
     def runTest(self):
-        (failure_count, test_count) = run_doc_tests()
+        (failure_count, test_count) = run_doc_tests(verbose=self.__verbose)
         if failure_count is 0:
             return
 
@@ -381,6 +387,10 @@ class TestLoader(unittest.TestLoader):
     ImportError.
 
     """
+    def __init__(self, verbose=False):
+        super(TestLoader, self).__init__()
+        self.__verbose = verbose
+
 
     def loadTestsFromNames(self, names, module=None):
         """
@@ -412,7 +422,7 @@ ERROR: AttributeError while loading unit tests from--
         # For example, a message logged in the tearDown() of the doc tests
         # test case will display before the information on any doc test
         # failures, which is not what we want.
-        doc_tests_suite = create_doc_tests_suite(self.suiteClass)
+        doc_tests_suite = create_doc_tests_suite(self.suiteClass, verbose=self.__verbose)
         suites.append(doc_tests_suite)
 
         return self.suiteClass(suites)
