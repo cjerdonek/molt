@@ -57,36 +57,6 @@ def run_doc_tests():
     return result
 
 
-class DocTestsTestCase(unittest.TestCase):
-
-    """
-    A unittest TestCase that runs the doc tests.
-
-    We wrap the doc tests inside a TestCase so that the aggregate unittest
-    test run will reflect the success or failure of the doc tests.
-    In particular, the success or failure of the doc tests will be reflected
-    in the exit status.
-
-    """
-
-    def setUp(self):
-        # TODO: Find a better way to move to the start of the next line.
-        print
-        _log.info("Running all doc tests as a single unit test...")
-
-    # The name "runTest" is a magic value.
-    def runTest(self):
-        (failure_count, test_count) = run_doc_tests()
-        if failure_count is 0:
-            return
-
-        msg = "%s out of %s doc tests failed." % (failure_count, test_count)
-        # We log the error before calling the assertion.  Otherwise, the
-        # message will not be logged on assertion failure.
-        _log.error(msg)
-        self.assertEquals(failure_count, 0, msg)
-
-
 def create_doc_tests_suite(suite_class):
     """
     Return a TestSuite that runs the doc tests.
@@ -99,65 +69,11 @@ def create_doc_tests_suite(suite_class):
     return test_suite
 
 
-class TestLoader(unittest.TestLoader):
-
-    """
-    This TestLoader differs from unittest's default TestLoader by
-    providing additional diagnostic information when an AttributeError
-    occurs while loading a module.
-
-    Because of Python issue 7559:
-
-      http://bugs.python.org/issue7559#
-
-    module ImportErrors are masked, along with the name of the offending
-    module.  This TestLoader reports the name of the offending module
-    along with a reminder that the AttributeError may be masking an
-    ImportError.
-
-    """
-
-    def loadTestsFromNames(self, names, module=None):
-        """
-        Return a suite of all doc tests and test cases in the package.
-
-        """
-        suites = []
-
-        for name in names:
-            try:
-                suite = self.loadTestsFromName(name, module)
-            except AttributeError as err:
-                msg = """\
-
-ERROR: AttributeError while loading unit tests from--
-    %s
-  Note that due to a bug in Python's unittest module, the AttributeError may
-  be masking an ImportError in the module being processed.
-
-""" % repr(name)
-                # TODO: switch to using the logger.
-                sys.stderr.write(msg)
-                raise
-            suites.append(suite)
-
-        # We put the doc tests suite at the end rather than the beginning
-        # because this makes it easier to log a message marking the
-        # transition from the usual style unit tests to the doc tests.
-        # For example, a message logged in the tearDown() of the doc tests
-        # test case will display before the information on any doc test
-        # failures, which is not what we want.
-        doc_tests_suite = create_doc_tests_suite(self.suiteClass)
-        suites.append(doc_tests_suite)
-
-        return self.suiteClass(suites)
-
-
 # TODO: move this function to the top of the module.
 # TODO: This method should accept a logging level to permit verbose
 # logging while running the tests.
 # TODO: finish documenting this method.
-def configure_test_logging():
+def configure_logging():
     """
     Configure logging for this script.
 
@@ -280,12 +196,129 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name):
     unittest.main(testLoader=TestLoader(), module=None, argv=argv)
 
 
-def main(sys_argv):
+def process_args(sys_argv):
     """Run all unit tests."""
-    configure_test_logging()
 
     module_dir = os.path.dirname(__file__)
 
     top_dir = os.path.join(module_dir, os.pardir, LIBRARY_PACKAGE_NAME)
     run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME)
 
+
+def main(sys_argv):
+    """
+    Execute this script's main function, and return the exit status.
+
+    """
+    # TODO: follow all of the recommendations here:
+    # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
+    args = sys_argv[1:]
+
+    # TODO: recognize verbose logging options, etc.
+    configure_logging()
+
+    try:
+        try:
+            process_args(sys_argv)
+        except Error as err:
+            _log.error(err)
+            raise
+    except UsageError as err:
+        print "\nPass -h or --help for help documentation and available options."
+        return 2
+    except Error, err:
+        return 1
+
+
+class Error(Exception):
+    """Base class for exceptions defined in this project."""
+    pass
+
+
+class UsageError(Error):
+    """Exception class for command-line syntax errors."""
+    pass
+
+
+class DocTestsTestCase(unittest.TestCase):
+
+    """
+    A unittest TestCase that runs the doc tests.
+
+    We wrap the doc tests inside a TestCase so that the aggregate unittest
+    test run will reflect the success or failure of the doc tests.
+    In particular, the success or failure of the doc tests will be reflected
+    in the exit status.
+
+    """
+
+    def setUp(self):
+        # TODO: Find a better way to move to the start of the next line.
+        print
+        _log.info("Running all doc tests as a single unit test...")
+
+    # The name "runTest" is a magic value.
+    def runTest(self):
+        (failure_count, test_count) = run_doc_tests()
+        if failure_count is 0:
+            return
+
+        msg = "%s out of %s doc tests failed." % (failure_count, test_count)
+        # We log the error before calling the assertion.  Otherwise, the
+        # message will not be logged on assertion failure.
+        _log.error(msg)
+        self.assertEquals(failure_count, 0, msg)
+
+
+class TestLoader(unittest.TestLoader):
+
+    """
+    This TestLoader differs from unittest's default TestLoader by
+    providing additional diagnostic information when an AttributeError
+    occurs while loading a module.
+
+    Because of Python issue 7559:
+
+      http://bugs.python.org/issue7559#
+
+    module ImportErrors are masked, along with the name of the offending
+    module.  This TestLoader reports the name of the offending module
+    along with a reminder that the AttributeError may be masking an
+    ImportError.
+
+    """
+
+    def loadTestsFromNames(self, names, module=None):
+        """
+        Return a suite of all doc tests and test cases in the package.
+
+        """
+        suites = []
+
+        for name in names:
+            try:
+                suite = self.loadTestsFromName(name, module)
+            except AttributeError as err:
+                msg = """\
+
+ERROR: AttributeError while loading unit tests from--
+    %s
+  Note that due to a bug in Python's unittest module, the AttributeError may
+  be masking an ImportError in the module being processed.
+
+""" % repr(name)
+                # TODO: switch to using the logger.
+                sys.stderr.write(msg)
+                raise
+            suites.append(suite)
+
+        # We put the doc tests suite at the end rather than the beginning
+        # because this makes it easier to log a message marking the
+        # transition from the usual style unit tests to the doc tests.
+        # For example, a message logged in the tearDown() of the doc tests
+        # test case will display before the information on any doc test
+        # failures, which is not what we want.
+        doc_tests_suite = create_doc_tests_suite(self.suiteClass)
+        suites.append(doc_tests_suite)
+
+        return self.suiteClass(suites)
