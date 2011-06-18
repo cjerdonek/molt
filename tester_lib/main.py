@@ -36,6 +36,7 @@ Runs all unit tests and doc tests in the project.
 import doctest
 import glob
 import logging
+from optparse import OptionParser
 import os
 import sys
 import unittest
@@ -48,7 +49,7 @@ README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
 
 
-# TODO: Add command-line help.
+# TODO: Implement command-line help.
 
 # TODO: This method should accept a logging level to permit verbose
 # logging while running the tests.
@@ -85,6 +86,32 @@ def configure_logging():
     logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
+
+
+def add_scanf_options(parser):
+    """Add command-line options to the given OptionParser."""
+    parser.add_option("-v", "--verbose", action='store_true', default=False,
+                      help="log verbose output")
+
+
+def parse_args(sys_argv):
+    """
+    Parse the command arguments, and return (options, args).
+
+    This function may call exit() for some arguments (e.g. "--version" or
+    "--help").
+
+    Raises:
+    scanf.Error: if an error occurs while parsing.
+
+    """
+    parser = TesterOptionParser(usage="Test usage message...")
+    add_scanf_options(parser)
+
+    # The optparse module's parse_args() normally operates on sys.argv[1:].
+    (options, args) = parser.parse_args(sys_argv[1:])
+
+    return (options, args)
 
 
 # TODO: run the doc tests in all modules.
@@ -199,6 +226,8 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name):
 def process_args(sys_argv):
     """Run all unit tests."""
 
+    (options, args) = parse_args(sys_argv)
+
     module_dir = os.path.dirname(__file__)
 
     top_dir = os.path.join(module_dir, os.pardir, LIBRARY_PACKAGE_NAME)
@@ -212,7 +241,6 @@ def main(sys_argv):
     """
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
-    args = sys_argv[1:]
 
     # TODO: recognize verbose logging options, etc.
     configure_logging()
@@ -231,13 +259,28 @@ def main(sys_argv):
 
 
 class Error(Exception):
-    """Base class for exceptions defined in this project."""
+    """Base class for exceptions raised explicitly in this project."""
     pass
 
 
 class UsageError(Error):
     """Exception class for command-line syntax errors."""
     pass
+
+
+# We subclass optparse.OptionParser to customize the error behavior.
+class TesterOptionParser(OptionParser):
+
+    def error(self, message):
+        """
+        Handle an error occurring while parsing command arguments.
+
+        This method overrides the OptionParser base class's error().  The
+        OptionParser class requires that this method either exit or raise
+        an exception.
+
+        """
+        raise UsageError(message)
 
 
 class DocTestsTestCase(unittest.TestCase):

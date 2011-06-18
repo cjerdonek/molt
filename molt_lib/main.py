@@ -42,6 +42,8 @@ _log = logging.getLogger("main")
 DEBUG_OPTION = "-v"
 
 
+# TODO: add a version option -V that reads the package version number.
+
 # TODO: make this testable.
 def configure_logging(logging_level, sys_stderr=None):
     """Configure logging."""

@@ -42,10 +42,9 @@ import tester_lib.main
 
 def main(sys_argv):
     """Run all tests, and exit."""
-    tester_lib.main.main(sys_argv)
-    # Sanity check: the function call above should either exit or raise an Exception.
-    raise Exception("The test script has a bug: this line should not be reachable.")
+    return tester_lib.main.main(sys_argv)
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    result = main(sys.argv)
+    sys.exit(result)
