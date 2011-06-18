@@ -18,11 +18,19 @@ Features
 * Includes a test script that runs all unit tests and doctests in the project.
   The test script includes--
   
-  * command-line help
+  * command-line help,
+  
+  * options for verbose and silent output,
 
-  * automatic unit test and doctest discovery, and
+  * automatic unit test and doctest discovery,
 
-  * options for verbose and silent output.
+  * use of Python's [unittest](http://docs.python.org/library/unittest.html)
+    and [doctest](http://docs.python.org/library/doctest.html) modules, and
+
+  * [integration of doctest with unittest](http://docs.python.org/library/doctest.html#unittest-api)
+    via the unittest API.
+
+
 
 
 Examples
@@ -31,7 +39,7 @@ Examples
 This is a temporary test of a doctest failure:
 
     >>> 1 + 1
-    3
+    2
 
 Chris Jerdonek
 
