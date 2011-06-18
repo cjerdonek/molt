@@ -1,21 +1,21 @@
-Molt (Python Project Creator)
+molt (Python Project Creator)
 =============================
 
-Molt is a Python script for starting new Python projects without all the
-drudgery.  The resulting project uses best practices and includes
+molt is a Python script for starting new Python projects without all the
+drudgery.  The resulting project uses good practices and includes
 plumbing and stubs for documentation, unit tests, doc tests, logging, etc.
-It is driven by YAML configuration and propelled under the hood
+It is driven by YAML configuration files and propelled under the hood
 by [mustache](http://mustache.github.com/) templates.
+
+The script is not yet usable.  Comments and suggestions are welcome.
 
 Examples
 --------
 
-This a temporary test of a doctest failure:
+This is a temporary test of a doctest failure:
 
     >>> 1 + 1
     3
-
-The script is not yet usable.  Comments and suggestions are welcome.
 
 Chris Jerdonek
 
