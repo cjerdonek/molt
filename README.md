@@ -1,9 +1,11 @@
 Molt (Python Project Creator)
 =============================
 
-This project contains a Python script called "molt" for creating new Python
-projects, complete with plumbing and stubs for documentation, unit tests,
-doc tests, and logging.
+Molt is a Python script for starting new Python projects without all the
+drudgery.  The resulting project uses best practices and includes
+plumbing and stubs for documentation, unit tests, doc tests, logging, etc.
+It is driven by YAML configuration and propelled under the hood
+by [mustache](http://mustache.github.com/) templates.
 
 Examples
 --------
