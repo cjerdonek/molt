@@ -29,7 +29,7 @@
 #
 
 """
-Runs all unit tests and doc tests in the project.
+Runs all unit tests and doctests in the project.
 
 """
 
@@ -59,7 +59,7 @@ project.  This script uses Python's unittest and doctest modules to find
 and run the tests.
 
 Doctests, as described more fully in Python's doctest module, are example
-interactive code snippets that show up in project documenation.  This
+interactive code snippets that appear in project documenation.  This
 script looks for doctests in essentially all project files, for example
 in the project's README file and in all of the Python code's docstrings.
 A doctest might look like this:
@@ -67,12 +67,9 @@ A doctest might look like this:
 >>> 1 + 1
 2
 
-For reporting reasons, this script runs all tests as unit tests.
-In particular, the script runs all doctests collectively as a single
-unit test.  In fact, they are the final unit test.  If any doctests fail,
-the script reports the number of doctest failures separately in both
-the script's output log messages and in the message text of the
-corresponding unit test's AssertionError."""
+For unified reporting reasons, this script runs all tests as unit tests,
+including the doctests.  Each file of doctests corresponds to a single
+unittest test case."""
 
 
 # TODO: finish documenting this method.
@@ -107,7 +104,7 @@ def configure_logging(logging_level):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    _log.debug("Debug logging enabled.")
+    _log.debug("Verbose logging enabled.")
 
 
 def add_scanf_options(parser):
@@ -163,24 +160,15 @@ def parse_args(sys_argv, usage=USAGE):
     return (options, args)
 
 
-# TODO: run the doc tests in all modules.
-def run_doc_tests(verbose=False):
-    """Run the doc tests, and return (failure_count, test_count)."""
-    result = doctest.testfile(README_PATH, verbose=verbose)
-
-    return result
-
-
-def create_doc_tests_suite(suite_class, verbose=False):
+def create_doctest_suite():
     """
-    Return a TestSuite that runs the doc tests.
+    Return a TestSuite that contains the doctests.
 
     """
-    test_case = DocTestsTestCase(verbose=verbose)  # methodName parameter defaults to "runTest".
-    test_cases = [test_case]
-    test_suite = suite_class(tests=test_cases)
+    # TODO: run the doc tests in all files and modules.
+    doctest_suite = doctest.DocFileSuite(README_PATH)
 
-    return test_suite
+    return doctest_suite
 
 
 def path_to_module_name(path):
@@ -262,15 +250,22 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name, verbose=False)
     # in Python 2.6 and earlier.
     module_names = find_unit_test_module_names(top_dir, unittest_module_pattern, module_name)
 
+    argv = ['']
+
+    # The "verbosity" parameter was not added to unittest.main() until
+    # Python 2.7, so we pass the option via the argv parameter instead.
+    # TODO: also add support for --quiet.
+    if verbose:
+        argv.append('--verbose')
+
     # unittest.TestLoader's constructor, which is called directly by
     # unittest.main(), does not permit the defaultTest parameter to be
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
-    argv = [''] + module_names
+    argv.extend(module_names)
 
-    _log.info("Running unit tests...")
-    test_loader = TestLoader(verbose=verbose)
-    unittest.main(testLoader=test_loader, module=None, argv=argv)
+    _log.info("Running molt tests...")
+    unittest.main(testLoader=TestLoader(), module=None, argv=argv)
 
 
 def process_args(sys_argv):
@@ -337,64 +332,27 @@ class TesterOptionParser(OptionParser):
         raise UsageError(message)
 
 
-class DocTestsTestCase(unittest.TestCase):
-
-    """
-    A unittest TestCase that runs the doc tests.
-
-    We wrap the doc tests inside a TestCase so that the aggregate unittest
-    test run will reflect the success or failure of the doc tests.
-    In particular, the success or failure of the doc tests will be reflected
-    in the exit status.
-
-    """
-    def __init__(self, verbose=False):
-        super(DocTestsTestCase, self).__init__()
-        self.__verbose = verbose
-
-    def setUp(self):
-        # TODO: Find a better way to move to the start of the next line.
-        print
-        _log.info("Running all doc tests as a single unit test...")
-
-    # The name "runTest" is a magic value.
-    def runTest(self):
-        (failure_count, test_count) = run_doc_tests(verbose=self.__verbose)
-        if failure_count is 0:
-            return
-
-        msg = "%s out of %s doc tests failed." % (failure_count, test_count)
-        # We log the error before calling the assertion.  Otherwise, the
-        # message will not be logged on assertion failure.
-        _log.error(msg)
-        self.assertEquals(failure_count, 0, msg)
-
-
 class TestLoader(unittest.TestLoader):
 
     """
-    This TestLoader differs from unittest's default TestLoader by
-    providing additional diagnostic information when an AttributeError
-    occurs while loading a module.
+    In addition to loading the doctests as unit tests, this TestLoader
+    differs from unittest's default TestLoader by providing additional
+    diagnostic information when an AttributeError occurs while loading a
+    module.
 
     Because of Python issue 7559:
 
       http://bugs.python.org/issue7559#
 
-    module ImportErrors are masked, along with the name of the offending
+    the unittest module masks ImportErrors andthe name of the offending
     module.  This TestLoader reports the name of the offending module
     along with a reminder that the AttributeError may be masking an
     ImportError.
 
     """
-    def __init__(self, verbose=False):
-        super(TestLoader, self).__init__()
-        self.__verbose = verbose
-
-
     def loadTestsFromNames(self, names, module=None):
         """
-        Return a suite of all doc tests and test cases in the package.
+        Return a suite of all unit tests and doctests in the package.
 
         """
         suites = []
@@ -416,13 +374,8 @@ ERROR: AttributeError while loading unit tests from--
                 raise
             suites.append(suite)
 
-        # We put the doc tests suite at the end rather than the beginning
-        # because this makes it easier to log a message marking the
-        # transition from the usual style unit tests to the doc tests.
-        # For example, a message logged in the tearDown() of the doc tests
-        # test case will display before the information on any doc test
-        # failures, which is not what we want.
-        doc_tests_suite = create_doc_tests_suite(self.suiteClass, verbose=self.__verbose)
-        suites.append(doc_tests_suite)
+        doctest_suite = create_doctest_suite()
+
+        suites.append(doctest_suite)
 
         return self.suiteClass(suites)
