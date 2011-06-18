@@ -9,6 +9,22 @@ by [mustache](http://mustache.github.com/) templates.
 
 The script is not yet usable.  Comments and suggestions are welcome.
 
+
+Features
+--------
+
+* Tested with Python 2.6 and 2.7.
+
+* Includes a test script that runs all unit tests and doctests in the project.
+  The test script includes--
+  
+  * command-line help
+
+  * automatic unit test and doctest discovery, and
+
+  * options for verbose and silent output.
+
+
 Examples
 --------
 
@@ -18,6 +34,7 @@ This is a temporary test of a doctest failure:
     3
 
 Chris Jerdonek
+
 
 Copyright
 ---------
