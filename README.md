@@ -8,9 +8,6 @@ plumbing and stubs for documentation, unit tests,
 It is driven by [YAML](http://www.yaml.org/) configuration files and
 propelled under the hood by [mustache](http://mustache.github.com/) templates.
 
-The script is still in progress and not yet usable.  Comments and
-suggestions are welcome.
-
 
 Features
 --------
@@ -33,6 +30,15 @@ Features
     via the unittest API.
 
 
+Project Contents
+----------------
+
+    molt . . . . . . . . . the main script.
+    molt_lib/  . . . . . . supporting code for the main molt script.
+    test_molt  . . . . . . script to run all project tests.
+    tester_lib/  . . . . . supporting code for the test_molt script.
+
+
 Examples
 --------
 
@@ -40,6 +46,13 @@ This is a temporary test of a doctest failure:
 
     >>> 1 + 1
     3
+
+
+TODO
+----
+
+The script is still in progress and not yet usable.  Comments and
+suggestions are welcome.
 
 Chris Jerdonek
 
