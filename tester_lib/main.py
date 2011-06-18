@@ -47,29 +47,9 @@ LIBRARY_PACKAGE_NAME = 'molt_lib'
 README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
 
+
 # TODO: Add command-line help.
 
-# TODO: run the doc tests in all modules.
-def run_doc_tests():
-    """Run the doc tests, and return (failure_count, test_count)."""
-    result = doctest.testfile(README_PATH)
-
-    return result
-
-
-def create_doc_tests_suite(suite_class):
-    """
-    Return a TestSuite that runs the doc tests.
-
-    """
-    test_case = DocTestsTestCase()  # methodName parameter defaults to "runTest".
-    test_cases = [test_case]
-    test_suite = suite_class(tests=test_cases)
-
-    return test_suite
-
-
-# TODO: move this function to the top of the module.
 # TODO: This method should accept a logging level to permit verbose
 # logging while running the tests.
 # TODO: finish documenting this method.
@@ -105,6 +85,26 @@ def configure_logging():
     logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
+
+
+# TODO: run the doc tests in all modules.
+def run_doc_tests():
+    """Run the doc tests, and return (failure_count, test_count)."""
+    result = doctest.testfile(README_PATH)
+
+    return result
+
+
+def create_doc_tests_suite(suite_class):
+    """
+    Return a TestSuite that runs the doc tests.
+
+    """
+    test_case = DocTestsTestCase()  # methodName parameter defaults to "runTest".
+    test_cases = [test_case]
+    test_suite = suite_class(tests=test_cases)
+
+    return test_suite
 
 
 def path_to_module_name(path):
