@@ -49,12 +49,10 @@ README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
 
 
-# TODO: Implement command-line help.
+# TODO: Finish adding a usage string and command-line help.
 
-# TODO: This method should accept a logging level to permit verbose
-# logging while running the tests.
 # TODO: finish documenting this method.
-def configure_logging():
+def configure_logging(logging_level):
     """
     Configure logging for this script.
 
@@ -70,7 +68,7 @@ def configure_logging():
     # Configure the root logger.
     logger = logging.getLogger()
 
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging_level)
 
     stream = open(os.devnull,"w")
     handler = logging.StreamHandler(stream)
@@ -94,6 +92,33 @@ def add_scanf_options(parser):
                       help="log verbose output")
 
 
+def should_log_verbosely(sys_argv):
+    """
+    Return whether verbose logging should be enabled.
+
+    This function should never raise an Exception because it is meant
+    to be called before logging is configured (in particular, before
+    exception logging).
+
+    """
+    # The OptionParser we construct here is a dummy parser solely for
+    # detecting the verbose logging option prior to configuring logging.
+    # We disable the help option to prevent exiting when a help option
+    # is passed (e.g. "-h" or "--help").
+    parser = TesterOptionParser(add_help_option=False)
+    add_scanf_options(parser)
+
+    try:
+        # The optparse module's parse_args() normally expects sys.argv[1:].
+        (options, args) = parser.parse_args(sys_argv[1:])
+    except UsageError:
+        # Default to normal logging on error.  Any usage error will
+        # occur again during the second pars.
+        return False
+
+    return options.verbose
+
+
 def parse_args(sys_argv):
     """
     Parse the command arguments, and return (options, args).
@@ -108,7 +133,7 @@ def parse_args(sys_argv):
     parser = TesterOptionParser(usage="Test usage message...")
     add_scanf_options(parser)
 
-    # The optparse module's parse_args() normally operates on sys.argv[1:].
+    # The optparse module's parse_args() normally expects sys.argv[1:].
     (options, args) = parser.parse_args(sys_argv[1:])
 
     return (options, args)
@@ -242,8 +267,10 @@ def main(sys_argv):
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
-    # TODO: recognize verbose logging options, etc.
-    configure_logging()
+    # Configure logging before entering the try block to ensure that
+    # we can log errors in the corresponding except block.
+    log_verbosely = should_log_verbosely(sys_argv)
+    configure_logging(logging.DEBUG if log_verbosely else logging.INFO)
 
     try:
         try:
