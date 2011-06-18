@@ -33,6 +33,8 @@ Runs all unit tests and doc tests in the project.
 
 """
 
+# TODO: unit test this module.
+
 import doctest
 import glob
 import logging
@@ -48,8 +50,26 @@ LIBRARY_PACKAGE_NAME = 'molt_lib'
 README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
 
+USAGE = """%prog [options]
 
-# TODO: Finish adding a usage string and command-line help.
+Runs the molt project's tests.
+
+The project's tests include all of the unit tests and doc tests in the
+project.  Doc tests are any example interactive code snippets that show
+up in the project's documentation -- for example in the project's README
+file or in any of the Python code's docstrings.  A doc test might look
+like this:
+
+>>> 1 + 1
+2
+
+For reporting reasons, this script runs all tests as unit tests.
+In particular, the script runs all doc tests collectively as a single
+unit test -- in fact the final unit test.  If any doc tests fail,
+the script reports the number of doc test failures separately in both
+the script's output log messages and in the message text of the
+corresponding unit test's AssertionError."""
+
 
 # TODO: finish documenting this method.
 def configure_logging(logging_level):
@@ -119,7 +139,7 @@ def should_log_verbosely(sys_argv):
     return options.verbose
 
 
-def parse_args(sys_argv):
+def parse_args(sys_argv, usage=USAGE):
     """
     Parse the command arguments, and return (options, args).
 
@@ -130,7 +150,7 @@ def parse_args(sys_argv):
     scanf.Error: if an error occurs while parsing.
 
     """
-    parser = TesterOptionParser(usage="Test usage message...")
+    parser = TesterOptionParser(usage)
     add_scanf_options(parser)
 
     # The optparse module's parse_args() normally expects sys.argv[1:].
