@@ -259,20 +259,37 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name, verbose=False)
 
     argv = ['']
 
-    # The "verbosity" parameter was not added to unittest.main() until
-    # Python 2.7, so we pass the option via the argv parameter instead.
-    # TODO: also add support for --quiet.
-    if verbose:
-        argv.append('--verbose')
-
     # unittest.TestLoader's constructor, which is called directly by
     # unittest.main(), does not permit the defaultTest parameter to be
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
     argv.extend(module_names)
 
+    # Python's unittest module didn't add a verbosity parameter to
+    # unittest.main() until Python 2.7.  However, we can bypass this
+    # limitation by passing the verbosity to a test runner instance directly.
+    # That is how unittest.main() uses the parameter internally.  If we
+    # didn't have this option, we could instead have included "--verbose",
+    # etc. in the argv parameter that we pass.
+    #
+    # The verbosity parameter: 0 for quiet, 1 for the default, 2 for verbose.
+    # TODO: also add support for --quiet.
+    verbosity = 2 if verbose else 1
+
+    # We construct a custom test runner to avoid unittest.main()'s
+    # Python 2.6 behavior of always exiting.  See UnittestTestRunner's
+    # docstring for more details.
+    test_runner = UnittestTestRunner(verbosity=verbosity)
+
     _log.info("Running molt tests...")
-    unittest.main(testLoader=TestLoader(), module=None, argv=argv)
+
+    try:
+        unittest.main(testLoader=UnittestTestLoader(), testRunner=test_runner,
+                      module=None, argv=argv)
+    except UnittestTestRunnerResult as err:
+        result = err.result
+
+    return result.wasSuccessful()
 
 
 def process_args(sys_argv):
@@ -285,7 +302,9 @@ def process_args(sys_argv):
     module_dir = os.path.dirname(__file__)
 
     top_dir = os.path.join(module_dir, os.pardir, LIBRARY_PACKAGE_NAME)
-    run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME, verbose=verbose)
+    was_successful = run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME, verbose=verbose)
+
+    return 0 if was_successful else 1
 
 
 def main(sys_argv):
@@ -303,15 +322,17 @@ def main(sys_argv):
 
     try:
         try:
-            process_args(sys_argv)
+            status = process_args(sys_argv)
         except Error as err:
             _log.error(err)
             raise
     except UsageError as err:
         print "\nPass -h or --help for help documentation and available options."
-        return 2
+        status = 2
     except Error, err:
-        return 1
+        status = 1
+
+    return status
 
 
 class Error(Exception):
@@ -322,6 +343,12 @@ class Error(Exception):
 class UsageError(Error):
     """Exception class for command-line syntax errors."""
     pass
+
+
+class UnittestTestRunnerResult(Error):
+    """Raised by UnittestTestRunner to communicate a test run result."""
+    def __init__(self, result):
+        self.result = result
 
 
 # We subclass optparse.OptionParser to customize the error behavior.
@@ -339,7 +366,38 @@ class TesterOptionParser(OptionParser):
         raise UsageError(message)
 
 
-class TestLoader(unittest.TestLoader):
+class UnittestTestRunner(unittest.TextTestRunner):
+
+    """
+    A unittest test runner for use by this package.
+
+    This test runner differs from unittest's default TextTestRunner because
+    its run() method raises an exception after running tests instead of
+    returning the result.  This is a hack to get around the fact that
+    unittest.main() calls sys.exit() immediately after running the tests.
+    Only in Python 2.7 does the unittest module provide a way to bypassing
+    the system exit.
+
+    By having the TestRunner raise an exception, we can leave unittest.main()
+    before it calls sys.exit().  We include the result in the raised
+    exception so that the caller can handle the error and read the result.
+
+    """
+
+    def run(self, test):
+        """
+        Run the given test case or test suite, and raise an exception.
+
+        This method raises a UnittestTestRunnerResult exception that
+        contains the result of the test run.
+
+        """
+        result = super(UnittestTestRunner, self).run(test)
+
+        raise UnittestTestRunnerResult(result)
+
+
+class UnittestTestLoader(unittest.TestLoader):
 
     """
     In addition to loading the doctests as unit tests, this TestLoader
