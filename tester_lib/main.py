@@ -354,7 +354,9 @@ class UnittestTestRunnerResult(Error):
         self.result = result
 
 
-# We subclass optparse.OptionParser to customize the error behavior.
+# We subclass optparse.OptionParser to customize the behavior of error().
+# The base class's implementation of error() prints the usage string
+# and exits with status code 2.
 class TesterOptionParser(OptionParser):
 
     def error(self, message):
