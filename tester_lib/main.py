@@ -206,7 +206,7 @@ def find_matching_module_paths(top_dir, pattern):
     The function searches the given directory recursively.  The pattern
     should be a string that is a file globbing pattern suitable for
     passing to Python's glob module, for example "*_unittest.py".
-    
+
     Returns:
 
     This function returns a list of relative paths.  The paths are relative
@@ -246,7 +246,8 @@ def find_unit_test_module_names(top_dir, filename_pattern, module_name):
     return names
 
 
-def run_unit_tests(top_dir, unittest_module_pattern, module_name, verbose=False):
+def run_unit_tests(top_dir, unittest_module_pattern, module_name,
+                   doctest_paths=[], verbose=False):
     """Run the unit tests in the given directory."""
     # Test discovery was not added to unittest until Python 2.7:
     #
@@ -280,10 +281,12 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name, verbose=False)
     # docstring for more details.
     test_runner = UnittestTestRunner(verbosity=verbosity)
 
+    test_loader = UnittestTestLoader(doctest_paths)
+
     _log.info("Running molt tests...")
 
     try:
-        unittest.main(testLoader=UnittestTestLoader(), testRunner=test_runner,
+        unittest.main(testLoader=test_loader, testRunner=test_runner,
                       module=None, argv=argv)
     except UnittestTestRunnerResult as err:
         result = err.result
@@ -301,7 +304,8 @@ def process_args(sys_argv):
     module_dir = os.path.dirname(__file__)
 
     top_dir = os.path.join(module_dir, os.pardir, LIBRARY_PACKAGE_NAME)
-    was_successful = run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME, verbose=verbose)
+    was_successful = run_unit_tests(top_dir, TEST_MODULE_PATTERN, LIBRARY_PACKAGE_NAME,
+                                    doctest_paths=[README_PATH], verbose=verbose)
 
     return 0 if was_successful else 1
 
@@ -411,6 +415,10 @@ class UnittestTestLoader(unittest.TestLoader):
     ImportError.
 
     """
+
+    def __init__(self, doctest_paths):
+        self._doctest_paths = doctest_paths
+
     def loadTestsFromNames(self, names, module=None):
         """
         Return a suite of all unit tests and doctests in the package.
@@ -432,10 +440,7 @@ an ImportError in the module being processed.
                 raise
             suites.append(suite)
 
-        # TODO: the global variable should be passed as a parameter, e.g.
-        # via the class's constructor.
-        paths = [README_PATH]
-        doctest_suites = create_doctest_suites(module_names=names, paths=paths)
+        doctest_suites = create_doctest_suites(module_names=names, paths=self._doctest_paths)
 
         suites.extend(doctest_suites)
 
