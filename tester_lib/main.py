@@ -422,16 +422,13 @@ class UnittestTestLoader(unittest.TestLoader):
             try:
                 suite = self.loadTestsFromName(name, module)
             except AttributeError as err:
-                msg = """\
+                msg = """AttributeError while loading unit tests from:
+%s
 
-ERROR: AttributeError while loading unit tests from--
-    %s
-  Note that due to a bug in Python's unittest module, the AttributeError may
-  be masking an ImportError in the module being processed.
-
+Due to a bug in Python's unittest module, the AttributeError may be masking
+an ImportError in the module being processed.
 """ % repr(name)
-                # TODO: switch to using the logger.
-                sys.stderr.write(msg)
+                _log.error(msg)
                 raise
             suites.append(suite)
 
