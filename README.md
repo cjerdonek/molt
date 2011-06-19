@@ -38,6 +38,15 @@ Features
     [doctest's unittest API](http://docs.python.org/library/doctest.html#unittest-api).
 
 
+Examples
+--------
+
+This is a temporary test of a doctest failure:
+
+    >>> 1 + 1
+    3
+
+
 Repository Contents
 -------------------
 
@@ -53,17 +62,13 @@ at the top of each Python source file, for example--
     # encoding: utf-8
 
 
-Examples
---------
-
-This is a temporary test of a doctest failure:
-
-    >>> 1 + 1
-    3
-
-
 TODO's
 ------
+
+  * Make the script Unicode aware using the guidance [here](http://docs.python.org/howto/unicode.html).
+
+  * Separate tester code from tester config, and put the tester code into
+    a subfolder.
 
 The script is still in progress and not yet usable.  Comments and
 suggestions are welcome.
