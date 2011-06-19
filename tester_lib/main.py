@@ -106,7 +106,7 @@ def configure_logging(logging_level):
     _log.debug("Verbose logging enabled.")
 
 
-def add_scanf_options(parser):
+def add_parser_options(parser):
     """Add command-line options to the given OptionParser."""
     parser.add_option("-v", "--verbose", action='store_true', default=False,
                       help="log verbose output")
@@ -126,7 +126,7 @@ def should_log_verbosely(sys_argv):
     # We disable the help option to prevent exiting when a help option
     # is passed (e.g. "-h" or "--help").
     parser = TesterOptionParser(add_help_option=False)
-    add_scanf_options(parser)
+    add_parser_options(parser)
 
     try:
         # The optparse module's parse_args() normally expects sys.argv[1:].
@@ -151,7 +151,7 @@ def parse_args(sys_argv, usage=USAGE):
 
     """
     parser = TesterOptionParser(usage)
-    add_scanf_options(parser)
+    add_parser_options(parser)
 
     # The optparse module's parse_args() normally expects sys.argv[1:].
     (options, args) = parser.parse_args(sys_argv[1:])
@@ -404,10 +404,7 @@ class UnittestTestLoader(unittest.TestLoader):
     diagnostic information when an AttributeError occurs while loading a
     module.
 
-    Because of Python issue 7559:
-
-      http://bugs.python.org/issue7559#
-
+    Because of Python issue 7559 ( http://bugs.python.org/issue7559# ),
     the unittest module masks ImportErrors andthe name of the offending
     module.  This TestLoader reports the name of the offending module
     along with a reminder that the AttributeError may be masking an
