@@ -41,10 +41,16 @@ Features
 Repository Contents
 -------------------
 
-    molt . . . . . . . . . the main script.
-    molt_lib/  . . . . . . supporting code for the main molt script.
-    test_molt  . . . . . . script to run all project tests.
-    tester_lib/  . . . . . supporting code for the test_molt script.
+    molt .  .  .  .  .  .  the main script.
+    molt_lib/  .  .  .  .  supporting code for the main molt script.
+    test_molt  .  .  .  .  script to run all project tests.
+    tester_lib/   .  .  .  supporting code for the test_molt script.
+
+All text files in the project are UTF-8 encoded unless specified otherwise
+here.  Also note the Python [encoding declarations](http://www.python.org/dev/peps/pep-0263/)
+at the top of each Python source file, for example--
+
+    # encoding: utf-8
 
 
 Examples
