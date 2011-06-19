@@ -160,15 +160,22 @@ def parse_args(sys_argv, usage=USAGE):
     return (options, args)
 
 
-def create_doctest_suite():
+def create_doctest_suites(module_names, paths):
     """
-    Return a TestSuite that contains the doctests.
+    Return a list of TestSuite instances that contain the doctests.
 
     """
-    # TODO: run the doc tests in all files and modules.
-    doctest_suite = doctest.DocFileSuite(README_PATH)
+    suites = []
 
-    return doctest_suite
+    for module in module_names:
+        suite = doctest.DocTestSuite(module)
+        suites.append(suite)
+
+    for path in paths:
+        suite = doctest.DocFileSuite(README_PATH)
+        suites.append(suite)
+
+    return suites
 
 
 def path_to_module_name(path):
@@ -374,8 +381,11 @@ ERROR: AttributeError while loading unit tests from--
                 raise
             suites.append(suite)
 
-        doctest_suite = create_doctest_suite()
+        # TODO: the global variable should be passed as a parameter, e.g.
+        # via the class's constructor.
+        paths = [README_PATH]
+        doctest_suites = create_doctest_suites(module_names=names, paths=paths)
 
-        suites.append(doctest_suite)
+        suites.extend(doctest_suites)
 
         return self.suiteClass(suites)
