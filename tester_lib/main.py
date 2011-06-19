@@ -55,21 +55,20 @@ USAGE = """%prog [options]
 Runs the molt project's tests.
 
 The project's tests include all of the unit tests and doctests in the
-project.  This script uses Python's unittest and doctest modules to find
-and run the tests.
-
-Doctests, as described more fully in Python's doctest module, are example
-interactive code snippets that appear in project documenation.  This
-script looks for doctests in essentially all project files, for example
-in the project's README file and in all of the Python code's docstrings.
+project.  Doctests, as described more fully in Python's doctest module,
+are example interactive code snippets that appear in project documenation.
 A doctest might look like this:
 
 >>> 1 + 1
 2
 
-For unified reporting reasons, this script runs all tests as unit tests,
-including the doctests.  Each file of doctests corresponds to a single
-unittest test case."""
+The script looks for doctests in essentially all project files, for example
+in the project's README file and in all of the Python code's docstrings.
+
+The script uses Python's unittest and doctest modules to find and run
+the tests.  For unified reporting reasons, the script runs all tests as
+unit tests, including the doctests.  Each file of doctests corresponds to
+a single unittest test case."""
 
 
 # TODO: finish documenting this method.
