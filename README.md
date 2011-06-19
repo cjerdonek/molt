@@ -2,11 +2,19 @@ molt (Python Project Creator)
 =============================
 
 molt is a Python script for starting new Python projects without all the
-drudgery.  The resulting project uses good practices and includes
-plumbing and stubs for documentation, unit tests,
-[doctests](http://docs.python.org/library/doctest.html), logging, etc.
-It is driven by [YAML](http://www.yaml.org/) configuration files and
+drudgery.  Projects created with molt begin with good practices and include
+plumbing and stubs for unit tests, [doctests](http://docs.python.org/library/doctest.html),
+a test script, logging, a markdown README and other documentation, license
+preambles, etc.
+It is driven by [YAML](http://www.yaml.org/) configuration files and is
 propelled under the hood by [mustache](http://mustache.github.com/) templates.
+
+
+Background
+----------
+
+The template for molt-created projects was derived (molted) from molt itself!
+So if you like how this project looks, you'll like what molt creates for you.
 
 
 Features
@@ -14,7 +22,7 @@ Features
 
 * Tested with Python 2.6 and 2.7.
 
-* Includes a test script that runs all unit tests and doctests in the project.
+* Includes a test script that runs all of the molt project tests.
   The test script includes--
   
   * command-line help,
@@ -26,12 +34,12 @@ Features
   * use of Python's [unittest](http://docs.python.org/library/unittest.html)
     and [doctest](http://docs.python.org/library/doctest.html) modules, and
 
-  * [integration of doctest with unittest](http://docs.python.org/library/doctest.html#unittest-api)
-    via the unittest API.
+  * integration of doctest with unittest via
+    [doctest's unittest API](http://docs.python.org/library/doctest.html#unittest-api).
 
 
-Project Contents
-----------------
+Repository Contents
+-------------------
 
     molt . . . . . . . . . the main script.
     molt_lib/  . . . . . . supporting code for the main molt script.
@@ -48,8 +56,8 @@ This is a temporary test of a doctest failure:
     3
 
 
-TODO
-----
+TODO's
+------
 
 The script is still in progress and not yet usable.  Comments and
 suggestions are welcome.
