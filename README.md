@@ -70,6 +70,10 @@ TODO's
   * Separate tester code from tester config, and put the tester code into
     a subfolder.
 
+  * Consider running pylint, PyChecker, and/or pep8 in addition to the
+    doctests in each module.
+
+
 The script is still in progress and not yet usable.  Comments and
 suggestions are welcome.
 
