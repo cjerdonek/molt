@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
 # Copyright (C) 2011 Chris Jerdonek. All rights reserved.
@@ -27,28 +26,4 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-
-"""
-Runs all unit tests and doctests in the project.
-
-"""
-
-# TODO: unit test this module.
-
-import os
-
-import alltest.main
-
-
-LIBRARY_PACKAGE_NAME = 'molt_lib'
-README_PATH = os.path.join(os.pardir, 'README.md')
-TEST_MODULE_PATTERN = '*_unittest.py'
-# Code is in ../molt_lib .
-CODE_DIR = os.path.join(os.path.dirname(__file__), os.pardir, LIBRARY_PACKAGE_NAME)
-
-
-def main(sys_argv):
-    """Run all tests, and exit."""
-    return alltest.main.main(sys_argv, code_dir, package_dir, test_module_pattern, doctest_paths=None)
-
 
