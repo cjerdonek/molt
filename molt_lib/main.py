@@ -43,9 +43,6 @@ from .optionparser import UsageError
 
 _log = logging.getLogger("main")
 
-# TODO: this should be part of the option-parsing code.
-DEBUG_OPTION = "-v"
-
 
 # TODO: add a version option -V that reads the package version number.
 
@@ -99,7 +96,7 @@ def create_parser(usage, include_help_option):
                       action="store", type='string', default=None,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
-    parser.add_option(DEBUG_OPTION, dest="verbose", action="store_true",
+    parser.add_option("-v", dest="verbose", action="store_true",
                       help="log verbosely")
 
     return parser
