@@ -73,6 +73,8 @@ TODO's
   * Consider running pylint, PyChecker, and/or pep8 in addition to the
     doctests in each module.
 
+  * Add git files.
+
 
 The script is still in progress and not yet usable.  Comments and
 suggestions are welcome.

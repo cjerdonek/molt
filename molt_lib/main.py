@@ -33,6 +33,8 @@ Supplies the main method for the molt project.
 """
 
 import logging
+# The optparse module is deprecated in Python 2.7 in favor of argparse.
+from optparse import OptionParser
 import sys
 
 
@@ -43,6 +45,21 @@ DEBUG_OPTION = "-v"
 
 
 # TODO: add a version option -V that reads the package version number.
+
+# We escape the leading "%" so that the leading "%p" is not interpreted as
+# a Python string formatting conversion specifier.  The optparse.OptionParser
+# class, however, recognizes "%prog" by replacing it with the current
+# script name when passed to the constructor as a usage string.
+# TODO: find out if OptionParser recognizes other strings.
+# TODO: find the preferred way of writing the first line of the usage string.
+USAGE = """%%prog template_directory [config_file] [options]
+
+Create a new Python project.
+
+This script creates a Python project from the template in the given template
+directory using values from the given configuration file.  If you do not
+provide a configuration file, the script uses default values."""
+
 
 # TODO: make this testable.
 def configure_logging(logging_level, sys_stderr=None):
@@ -63,6 +80,24 @@ def configure_logging(logging_level, sys_stderr=None):
     _log.debug("Debug logging enabled.")
 
 
+def create_parser(usage, args):
+    """
+    Return an OptionParser for the program.
+
+    """
+    # TODO: subclass OptionParser to throw a UsageError on error.
+    parser = OptionParser(usage=usage)
+
+    parser.add_option("-d", "--destination", metavar='DIRECTORY', dest="destination",
+                      action="store", type='string', default=None,
+                      help='the directory in which to create the new project. '
+                           'Defaults to the current working directory.')
+    parser.add_option(DEBUG_OPTION, dest="verbose", action="store_true",
+                      help="log verbosely")
+
+    return parser
+
+
 class Error(Exception):
     """Base class for exceptions defined in this project."""
     pass
@@ -73,8 +108,11 @@ class UsageError(Error):
     pass
 
 
-def do_program_body(sys_argv):
-    # TODO
+def do_program_body(sys_argv, usage):
+    args = sys_argv[1:]
+
+    parser = create_parser(usage=usage, args=args)
+    (options, args) = parser.parse_args(args)
     print "Program body..."
 
 
@@ -100,10 +138,11 @@ def main(sys_argv, configure_logging=configure_logging, process_args=do_program_
 
     try:
         try:
-            process_args(sys_argv)
+            process_args(sys_argv, USAGE)
         except Error as err:
             _log.error(err)
             raise
+    # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         print "\nPass -h or --help for help documentation and available options."
         return 2
