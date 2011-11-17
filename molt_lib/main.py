@@ -32,10 +32,13 @@ Supplies the main method for the molt project.
 
 """
 
+from __future__ import absolute_import
+
 import logging
-# The optparse module is deprecated in Python 2.7 in favor of argparse.
-from optparse import OptionParser
 import sys
+
+from .optionparser import OptionParser
+from .optionparser import UsageError
 
 
 _log = logging.getLogger("main")
@@ -52,13 +55,13 @@ DEBUG_OPTION = "-v"
 # script name when passed to the constructor as a usage string.
 # TODO: find out if OptionParser recognizes other strings.
 # TODO: find the preferred way of writing the first line of the usage string.
-USAGE = """%%prog template_directory [config_file] [options]
+USAGE = """%prog template_directory [config_file] [options]
 
 Create a new Python project.
 
-This script creates a Python project from the template in the given template
-directory using values from the given configuration file.  If you do not
-provide a configuration file, the script uses default values."""
+This script creates a Python project from a project template in the given
+template directory using values from the given configuration file.  If you
+do not provide a configuration file, the script uses default values."""
 
 
 # TODO: make this testable.
@@ -85,7 +88,6 @@ def create_parser(usage, args):
     Return an OptionParser for the program.
 
     """
-    # TODO: subclass OptionParser to throw a UsageError on error.
     parser = OptionParser(usage=usage)
 
     parser.add_option("-d", "--destination", metavar='DIRECTORY', dest="destination",
@@ -100,11 +102,6 @@ def create_parser(usage, args):
 
 class Error(Exception):
     """Base class for exceptions defined in this project."""
-    pass
-
-
-class UsageError(Error):
-    """Exception class for command-line syntax errors."""
     pass
 
 
@@ -144,7 +141,12 @@ def main(sys_argv, configure_logging=configure_logging, process_args=do_program_
             raise
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
-        print "\nPass -h or --help for help documentation and available options."
+        s = """\
+Command-line usage error: %s
+
+Pass -h or --help for help documentation and available options.""" % err
+        _log.error(s)
+
         return 2
     except Error, err:
         return 1

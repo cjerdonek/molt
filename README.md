@@ -9,6 +9,9 @@ preambles, etc.
 It is driven by [YAML](http://www.yaml.org/) configuration files and is
 propelled under the hood by [mustache](http://mustache.github.com/) templates.
 
+The script is still in progress and not yet usable.  Comments and
+suggestions are welcome.
+
 
 Background
 ----------
