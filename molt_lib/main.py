@@ -59,9 +59,14 @@ USAGE = """%prog template_directory [config_file] [options]
 
 Create a new Python project.
 
-This script creates a Python project from a project template in the given
-template directory using values from the given configuration file.  If you
-do not provide a configuration file, the script uses default values."""
+This script creates a Python project from a template in the given template
+directory using values from the given configuration file.  If you do not
+provide a configuration file, the script uses default values."""
+
+
+class Error(Exception):
+    """Base class for exceptions defined in this project."""
+    pass
 
 
 # TODO: make this testable.
@@ -83,12 +88,12 @@ def configure_logging(logging_level, sys_stderr=None):
     _log.debug("Debug logging enabled.")
 
 
-def create_parser(usage, args):
+def create_parser(usage, include_help_option):
     """
     Return an OptionParser for the program.
 
     """
-    parser = OptionParser(usage=usage)
+    parser = OptionParser(usage=usage, add_help_option=include_help_option)
 
     parser.add_option("-d", "--destination", metavar='DIRECTORY', dest="destination",
                       action="store", type='string', default=None,
@@ -100,16 +105,23 @@ def create_parser(usage, args):
     return parser
 
 
-class Error(Exception):
-    """Base class for exceptions defined in this project."""
-    pass
+def parse_args(sys_argv, usage=None, include_help_option=True):
+    """
+    Parse arguments and return (options, args).
+
+    Raises UsageError on command-line usage error.
+
+    """
+    args = sys_argv[1:]
+
+    parser = create_parser(usage, include_help_option)
+    options, args = parser.parse_args(args)
+
+    return options, args
 
 
 def do_program_body(sys_argv, usage):
-    args = sys_argv[1:]
-
-    parser = create_parser(usage=usage, args=args)
-    (options, args) = parser.parse_args(args)
+    options, args = parse_args(sys_argv, usage)
     print "Program body..."
 
 
@@ -128,17 +140,23 @@ def main(sys_argv, configure_logging=configure_logging, process_args=do_program_
     """
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
-    args = sys_argv[1:]
 
-    # Configure logging prior to parsing options.
-    configure_logging(logging.DEBUG if DEBUG_OPTION in args else logging.INFO)
+    logging_level = logging.INFO
 
     try:
-        try:
-            process_args(sys_argv, USAGE)
-        except Error as err:
-            _log.error(err)
-            raise
+        # Do a first pass of option parsing just to determine the logging level.
+        # Also, suppress display of the help string this time around.
+        options, args = parse_args(sys_argv, include_help_option=False)
+        if options.verbose:
+            logging_level = logging.DEBUG
+    except UsageError:
+        pass
+
+    # Configure logging prior to parsing options for real.
+    configure_logging(logging_level)
+
+    try:
+        process_args(sys_argv, USAGE)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         s = """\
@@ -149,6 +167,7 @@ Pass -h or --help for help documentation and available options.""" % err
 
         return 2
     except Error, err:
+        _log.error(err)
         return 1
 
 
