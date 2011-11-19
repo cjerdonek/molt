@@ -28,43 +28,34 @@
 #
 
 """
-Exposes an option parser that is a subclass of optparse.OptionParser.
+Supports logging configuration.
 
 """
 
 from __future__ import absolute_import
 
 import logging
-# The optparse module is deprecated in Python 2.7 in favor of argparse.
-# However, argparse is not available in Python 2.6.
-import optparse
 import sys
 
 
 _log = logging.getLogger(__name__)
 
 
-class UsageError(Exception):
-    """
-    Exception class for command-line syntax errors.
+# TODO: make this testable.
+def configure_logging(logging_level, sys_stderr=None):
+    """Configure logging."""
+    if sys_stderr is None:
+        sys_stderr = sys.stderr
 
-    """
-    pass
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
 
+    stream = sys_stderr
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(formatter)
 
-# We subclass optparse.OptionParser to customize the behavior of error().
-# The base class's implementation of error() prints the usage string
-# and exits with status code 2.
-class OptionParser(optparse.OptionParser):
+    logger = logging.getLogger()  # the root logger.
+    logger.setLevel(logging_level)
+    logger.addHandler(handler)
 
-    def error(self, message):
-        """
-        Handle an error occurring while parsing command arguments.
-
-        This method overrides the OptionParser base class's error().  The
-        OptionParser class requires that this method either exit or raise
-        an exception.
-
-        """
-        raise UsageError(message)
+    _log.debug("Debug logging enabled.")
 

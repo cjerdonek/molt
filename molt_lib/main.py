@@ -37,6 +37,7 @@ from __future__ import absolute_import
 import logging
 import sys
 
+from .logging import configure_logging
 from .optionparser import OptionParser
 from .optionparser import UsageError
 
@@ -64,25 +65,6 @@ provide a configuration file, the script uses default values."""
 class Error(Exception):
     """Base class for exceptions defined in this project."""
     pass
-
-
-# TODO: make this testable.
-def configure_logging(logging_level, sys_stderr=None):
-    """Configure logging."""
-    if sys_stderr is None:
-        sys_stderr = sys.stderr
-
-    logger = logging.getLogger()  # the root logger.
-
-    logger.setLevel(logging_level)
-
-    stream = sys_stderr
-    handler = logging.StreamHandler(stream)
-    formatter = logging.Formatter("[%(levelname)s] %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-    _log.debug("Debug logging enabled.")
 
 
 def create_parser(usage, include_help_option):
