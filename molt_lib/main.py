@@ -248,6 +248,15 @@ def create_directory(path):
     raise Error("Path already exists and is not a directory: %s" % path)
 
 
+def complete_values(values):
+    # TODO: investigate whether the mustache template can be set up to call
+    # a function that generates a dynamic length string, e.g. by providing a
+    # callable key named something like "header_line:script_name".
+    readme_title_line = "=" * (len(values['script_name']) + len(values['project_name']))
+
+    values['readme_title_line'] = readme_title_line
+
+
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
@@ -261,6 +270,7 @@ def do_program_body(sys_argv, usage):
     template = read_file(template_path, encoding=ENCODING_TEMPLATE)
 
     values = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
+    complete_values(values)
 
     script_name = values['script_name']
 
