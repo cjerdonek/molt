@@ -251,12 +251,12 @@ def create_directory(path):
 
 
 def complete_values(values):
-    # TODO: investigate whether the mustache template can be set up to call
-    # a function that generates a dynamic length string, e.g. by providing a
-    # callable key named something like "header_line:script_name".
-    readme_title_line = "=" * (len(values['script_name']) + len(values['project_name']))
 
-    values['readme_title_line'] = readme_title_line
+    def title(text):
+        rendered = render_template(text, values)
+        return "%s\n%s" % (rendered, "=" * len(rendered))
+
+    values['title'] = title
     values['current_year'] = datetime.now().year
 
 
