@@ -124,6 +124,10 @@ def create_parser(defaults, suppress_help_exit, usage=None):
                       action="store", type='string', default=defaults.destination_directory,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
+    parser.add_option("-o", "--overwrite", dest="should_overwrite",
+                      action="store_true", default=False,
+                      help='whether to overwrite files in the destination directory '
+                           'if the destination directory already exists.')
     parser.add_option("-t", "--template", metavar='DIRECTORY', dest="template_directory",
                       action="store", type='string', default=defaults.template_directory,
                       help='the directory containing the project template.  '
@@ -231,8 +235,17 @@ def make_project_directory_name(script_name, index):
 
 
 def create_directory(path):
-    os.mkdir(path)
-    _log.debug("Created directory: %s" % path)
+    """
+    Create a directory if not there, and return whether one was created.
+
+    """
+    if not os.path.exists(path):
+        os.mkdir(path)
+        _log.debug("Created directory: %s" % path)
+        return True
+    if os.path.isdir(path):
+        return False
+    raise Error("Path already exists and is not a directory: %s" % path)
 
 
 def do_program_body(sys_argv, usage):
@@ -255,12 +268,13 @@ def do_program_body(sys_argv, usage):
     project_directory_name = script_name
     while True:
         project_directory = os.path.join(destination_directory, project_directory_name)
-        if not os.path.exists(project_directory):
+        if options.should_overwrite or not os.path.exists(project_directory):
             break
         project_directory_name = make_project_directory_name(script_name, index)
         index += 1
 
-    create_directory(project_directory)
+    if not create_directory(project_directory):
+        _log.info("Overwriting project: %s" % project_directory)
     _log.debug("Project directory: %s" % project_directory)
 
     destination_path = os.path.join(project_directory, 'README.md')
@@ -268,7 +282,7 @@ def do_program_body(sys_argv, usage):
     rendered = render_template(template, values)
 
     write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
-    _log.info("Printing destination directory to stdout.")
+    _log.info("Printing destination directory to stdout...")
     print project_directory
     _log.info("Done.")
 
