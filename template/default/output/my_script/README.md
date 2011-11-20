@@ -32,7 +32,7 @@ John Doe
 Copyright and License
 ---------------------
 
-Copyright (C)  John Doe. All rights reserved.
+Copyright (C) 2011 John Doe.  All rights reserved.
 
 TODO: add license.
 

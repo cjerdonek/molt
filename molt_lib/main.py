@@ -35,6 +35,7 @@ Supplies the main method for the molt project.
 from __future__ import absolute_import
 
 import codecs
+from datetime import datetime
 import logging
 import os
 import sys
@@ -256,6 +257,7 @@ def complete_values(values):
     readme_title_line = "=" * (len(values['script_name']) + len(values['project_name']))
 
     values['readme_title_line'] = readme_title_line
+    values['current_year'] = datetime.now().year
 
 
 def do_program_body(sys_argv, usage):
