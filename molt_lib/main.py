@@ -34,9 +34,13 @@ Supplies the main method for the molt project.
 
 from __future__ import absolute_import
 
+import codecs
 import logging
 import os
 import sys
+
+import pystache
+import yaml
 
 from .logging import configure_logging
 from .optionparser import OptionParser
@@ -46,7 +50,9 @@ from .optionparser import UsageError
 _log = logging.getLogger("main")
 
 
-ENCODING_CONFIG = 'utf-8'
+ENCODING_CONFIG   = 'utf-8'
+ENCODING_OUTPUT   = 'utf-8'
+ENCODING_TEMPLATE = 'utf-8'
 
 # TODO: add a version option -V that reads the package version number.
 
@@ -197,20 +203,36 @@ def read_file(path, encoding):
     Return the contents of a file as a unicode string.
 
     """
-    with codecs.open(template_path, "r", encoding=encoding) as f:
+    with codecs.open(path, "r", encoding=encoding) as f:
         text = f.read()
 
     return text
 
 
-def render_template(template_path, values):
+def write_file(text, path, encoding):
+    """
+    Write a unicode string to a file.
 
-    with codecs.open(template_path, "r", encoding=ENCODING_TEMPLATE_FILE) as f:
-        template = f.read()
+    """
+    with codecs.open(path, "w", encoding=encoding) as f:
+        f.write(text)
+    _log.debug("Wrote: %s" % path)
+
+
+def render_template(template, values):
 
     rendered = pystache.render(template, values)
 
     return rendered
+
+
+def make_project_directory_name(script_name, index):
+    return "%s_%s" % (script_name, index)
+
+
+def create_directory(path):
+    os.mkdir(path)
+    _log.debug("Created directory: %s" % path)
 
 
 def do_program_body(sys_argv, usage):
@@ -219,7 +241,35 @@ def do_program_body(sys_argv, usage):
     current_working_directory = os.getcwd()
     options = read_args(sys_argv, usage=usage, current_working_directory=current_working_directory)
 
-    print "Program body..."
+    config_path = options.config_path
+    destination_directory = options.destination_directory
+    template_directory = options.template_directory
+
+    template_path = os.path.join(template_directory, 'README.md.mustache')
+    template = read_file(template_path, encoding=ENCODING_TEMPLATE)
+
+    values = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
+
+    script_name = values['script_name']
+
+    index = 1
+    project_directory_name = script_name
+    while True:
+        project_directory = os.path.join(destination_directory, project_directory_name)
+        if not os.path.exists(project_directory):
+            break
+        project_directory_name = make_project_directory_name(script_name, index)
+        index += 1
+
+    create_directory(project_directory)
+    _log.debug("Project directory: %s" % project_directory)
+
+    destination_path = os.path.join(project_directory, 'README.md')
+
+    rendered = render_template(template, values)
+
+    write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
+    _log.info("Done.")
 
 
 def main(sys_argv, configure_logging=configure_logging, process_args=do_program_body):
