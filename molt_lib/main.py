@@ -65,7 +65,8 @@ USAGE = """%prog [options]
 Create a new Python project.
 
 This script creates a new Python project from a project template using
-values from a configuration file."""
+values from a configuration file, and prints the destination directory
+to standard output."""
 
 
 class Error(Exception):
