@@ -93,7 +93,6 @@ def get_project_directory():
 
 # TODO: move the string literals to a more visible location.
 def create_defaults(current_working_directory):
-
     project_directory = get_project_directory()
 
     defaults = DefaultOptions()
@@ -237,8 +236,7 @@ def create_directory(path):
 
 def do_program_body(sys_argv, usage):
 
-    # TODO: use dependency injection to make this more testable.
-    current_working_directory = os.getcwd()
+    current_working_directory = os.curdir
     options = read_args(sys_argv, usage=usage, current_working_directory=current_working_directory)
 
     config_path = options.config_path
@@ -269,6 +267,8 @@ def do_program_body(sys_argv, usage):
     rendered = render_template(template, values)
 
     write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
+    _log.info("Printing destination directory to stdout.")
+    print project_directory
     _log.info("Done.")
 
 
@@ -294,6 +294,7 @@ def main(sys_argv, configure_logging=configure_logging, process_args=do_program_
 
     try:
         process_args(sys_argv, USAGE)
+        return 0
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         s = """\
