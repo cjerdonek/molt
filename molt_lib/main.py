@@ -82,7 +82,7 @@ class DefaultOptions(object):
     def __init__(self):
         self.config_path = ""
         self.destination_directory = ""
-        self.template_directory = ""
+        self.mustache_directory = ""
 
 
 def get_project_directory():
@@ -95,12 +95,13 @@ def get_project_directory():
 # TODO: move the string literals to a more visible location.
 def create_defaults(current_working_directory):
     project_directory = get_project_directory()
+    template_directory = os.path.join("template", "default")
 
     defaults = DefaultOptions()
 
-    defaults.config_path = os.path.join(project_directory, "config_default.yaml")
+    defaults.config_path = os.path.join(template_directory, "config.yaml")
     defaults.destination_directory = current_working_directory
-    defaults.template_directory = os.path.join(project_directory, "template")
+    defaults.mustache_directory = os.path.join(template_directory, "mustache")
 
     return defaults
 
@@ -129,7 +130,7 @@ def create_parser(defaults, suppress_help_exit, usage=None):
                       help='whether to overwrite files in the destination directory '
                            'if the destination directory already exists.')
     parser.add_option("-t", "--template", metavar='DIRECTORY', dest="template_directory",
-                      action="store", type='string', default=defaults.template_directory,
+                      action="store", type='string', default=defaults.mustache_directory,
                       help='the directory containing the project template.  '
                            'Defaults to the default template directory.')
     parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
