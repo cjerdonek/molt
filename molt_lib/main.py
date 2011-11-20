@@ -35,6 +35,7 @@ Supplies the main method for the molt project.
 from __future__ import absolute_import
 
 import logging
+import os
 import sys
 
 from .logging import configure_logging
@@ -45,21 +46,20 @@ from .optionparser import UsageError
 _log = logging.getLogger("main")
 
 
+ENCODING_CONFIG = 'utf-8'
+
 # TODO: add a version option -V that reads the package version number.
 
 # We escape the leading "%" so that the leading "%p" is not interpreted as
 # a Python string formatting conversion specifier.  The optparse.OptionParser
 # class, however, recognizes "%prog" by replacing it with the current
 # script name when passed to the constructor as a usage string.
-# TODO: find out if OptionParser recognizes other strings.
-# TODO: find the preferred way of writing the first line of the usage string.
-USAGE = """%prog template_directory [config_file] [options]
+USAGE = """%prog [options]
 
 Create a new Python project.
 
-This script creates a Python project from a template in the given template
-directory using values from the given configuration file.  If you do not
-provide a configuration file, the script uses default values."""
+This script creates a new Python project from a project template using
+values from a configuration file."""
 
 
 class Error(Exception):
@@ -67,40 +67,158 @@ class Error(Exception):
     pass
 
 
-def create_parser(usage, include_help_option):
+class DefaultOptions(object):
+    """
+    The default values that the OptionParser should use.
+
+    """
+    def __init__(self):
+        self.config_path = ""
+        self.destination_directory = ""
+        self.template_directory = ""
+
+
+def get_project_directory():
+    lib_directory = os.path.dirname(__file__)
+    project_directory = os.path.normpath(os.path.join(lib_directory, os.pardir))
+
+    return project_directory
+
+
+# TODO: move the string literals to a more visible location.
+def create_defaults(current_working_directory):
+
+    project_directory = get_project_directory()
+
+    defaults = DefaultOptions()
+
+    defaults.config_path = os.path.join(project_directory, "config_default.yaml")
+    defaults.destination_directory = current_working_directory
+    defaults.template_directory = os.path.join(project_directory, "template")
+
+    return defaults
+
+
+def create_parser(defaults, suppress_help_exit, usage=None):
     """
     Return an OptionParser for the program.
 
     """
-    parser = OptionParser(usage=usage, add_help_option=include_help_option)
+    help_action = "store_true" if suppress_help_exit else "help"
 
-    parser.add_option("-d", "--destination", metavar='DIRECTORY', dest="destination",
-                      action="store", type='string', default=None,
+    parser = OptionParser(usage=usage, add_help_option=False)
+
+    # TODO: explicitly add a version option?
+    parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
+                      action="store", type='string', default=defaults.config_path,
+                      help='the path to the configuration file that contains, '
+                           'for example, the values with which to populate the template.  '
+                           'Defaults to the default configuration file.')
+    parser.add_option("-d", "--destination", metavar='DIRECTORY', dest="destination_directory",
+                      action="store", type='string', default=defaults.destination_directory,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
-    parser.add_option("-v", dest="verbose", action="store_true",
-                      help="log verbosely")
+    parser.add_option("-t", "--template", metavar='DIRECTORY', dest="template_directory",
+                      action="store", type='string', default=defaults.template_directory,
+                      help='the directory containing the project template.  '
+                           'Defaults to the default template directory.')
+    parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
+                      action="store_true", default=False,
+                      help="log verbosely.")
+    parser.add_option("-h", "--help", action=help_action,
+                      help="show this help message and exit.")
 
     return parser
 
 
-def parse_args(sys_argv, usage=None, include_help_option=True):
+def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
     """
     Parse arguments and return (options, args).
 
     Raises UsageError on command-line usage error.
 
     """
+    if defaults is None:
+        defaults = DefaultOptions()
+
     args = sys_argv[1:]
 
-    parser = create_parser(usage, include_help_option)
+    parser = create_parser(defaults, suppress_help_exit=suppress_help_exit, usage=usage)
     options, args = parser.parse_args(args)
 
     return options, args
 
 
+def is_verbose_logging_enabled(sys_argv):
+    """
+    Return whether verbose logging is enabled.
+
+    """
+    try:
+        # Suppress the help option to prevent exiting.
+        options, args = parse_args(sys_argv, suppress_help_exit=True)
+    except UsageError:
+        # Default to normal logging on error.
+        return False
+
+    return options.is_verbose_logging_enabled
+
+
+def read_args(sys_argv, usage, current_working_directory):
+    """
+    Raises UsageError on bad arguments.
+
+
+    """
+    defaults = create_defaults(current_working_directory)
+    options, args = parse_args(sys_argv, suppress_help_exit=False, usage=usage, defaults=defaults)
+
+    _log.debug("Configuration file: %s" % options.config_path)
+    _log.debug("Destination directory: %s" % options.destination_directory)
+    _log.debug("Template directory: %s" % options.template_directory)
+
+    return options
+
+
+
+def unserialize_yaml_file(path, encoding):
+    """
+    Deserialize a yaml file.
+
+    """
+    with codecs.open(path, "r", encoding=encoding) as f:
+        data = yaml.load(f)
+
+    return data
+
+
+def read_file(path, encoding):
+    """
+    Return the contents of a file as a unicode string.
+
+    """
+    with codecs.open(template_path, "r", encoding=encoding) as f:
+        text = f.read()
+
+    return text
+
+
+def render_template(template_path, values):
+
+    with codecs.open(template_path, "r", encoding=ENCODING_TEMPLATE_FILE) as f:
+        template = f.read()
+
+    rendered = pystache.render(template, values)
+
+    return rendered
+
+
 def do_program_body(sys_argv, usage):
-    options, args = parse_args(sys_argv, usage)
+
+    # TODO: use dependency injection to make this more testable.
+    current_working_directory = os.getcwd()
+    options = read_args(sys_argv, usage=usage, current_working_directory=current_working_directory)
+
     print "Program body..."
 
 
@@ -120,18 +238,8 @@ def main(sys_argv, configure_logging=configure_logging, process_args=do_program_
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
-    logging_level = logging.INFO
-
-    try:
-        # Do a first pass of option parsing just to determine the logging level.
-        # Also, suppress display of the help string this time around.
-        options, args = parse_args(sys_argv, include_help_option=False)
-        if options.verbose:
-            logging_level = logging.DEBUG
-    except UsageError:
-        pass
-
-    # Configure logging prior to parsing options for real.
+    # Configure logging before parsing options for real.
+    logging_level = logging.DEBUG if is_verbose_logging_enabled(sys_argv) else logging.INFO
     configure_logging(logging_level)
 
     try:
