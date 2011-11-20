@@ -35,7 +35,7 @@ See the project's README for details.
 
 """
 
-# This file should not contain any application code.
+# To maximize test coverage, this file should contain minimal application code.
 
 import sys
 
@@ -43,7 +43,10 @@ import molt_lib.main
 
 
 def main(sys_argv):
-    """Execute this script, and return the resulting exit status."""
+    """
+    Run the main script, and return the exit status.
+
+    """
     return molt_lib.main.main(sys_argv)
 
 
