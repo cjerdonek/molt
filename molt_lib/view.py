@@ -44,6 +44,11 @@ import pystache
 _log = logging.getLogger(__name__)
 
 
+def comment_python_line(line):
+    if line:
+        line = " " + line
+    return "#" + line
+
 
 def render(template, values):
 
@@ -61,10 +66,29 @@ class File(pystache.View):
         super(File, self).__init__(**kwargs)
 
     def title(self):
-        def make(text):
-            rendered = render(text, self.context)
-            return "%s\n%s" % (rendered, "=" * len(rendered))
-        return make
+        def make_title(text):
+            inner = render(text, self.context)
+            return "%s\n%s" % (inner, "=" * len(inner))
+
+        return make_title
+
+    # TODO: shouldn't this be part of the View class, or be supported
+    # by pystache.render()?
+    def render_text(self, text):
+        return pystache.Template(text, self).render()
+
+    def comment(self):
+        def make_comment(text):
+            print text
+            inner = self.render_text(text)
+            lines = inner.split("\n")
+            new_lines = []
+            for line in lines:
+                new_line = comment_python_line(line)
+                new_lines.append(new_line)
+            return "\n".join(new_lines)
+
+        return make_comment
 
     def current_year(self):
         return datetime.now().year

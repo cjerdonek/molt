@@ -92,9 +92,16 @@ def get_project_directory():
 
     return project_directory
 
+
 def get_license_directory():
     project_directory = get_project_directory()
     return os.path.join(project_directory, "template")
+
+
+def get_snippets_directory():
+    project_directory = get_project_directory()
+    return os.path.join(project_directory, "template", "default", "snippets")
+
 
 # TODO: move the string literals to a more visible location.
 def create_defaults(current_working_directory):
@@ -267,18 +274,21 @@ def do_program_body(sys_argv, usage):
     destination_directory = options.destination_directory
     template_directory = options.template_directory
     license_directory = get_license_directory()
+    snippets_directory = get_snippets_directory()
 
     readme_path = os.path.join(template_directory, 'README.md.mustache')
     license_path = os.path.join(license_directory, 'BSD.mustache')
+    pyheader_path = os.path.join(snippets_directory, 'pyheader.mustache')
 
     readme_template = read_template(readme_path)
     license_template = read_template(license_path)
+    pyheader_template = read_template(pyheader_path)
 
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
     license_view = File(template=license_template, context=context)
     readme_view = File(template=readme_template, context=context, license_view=license_view)
-
+    pyheader_view = File(template=pyheader_template, context=context, license_view=license_view)
 
     script_name = context['script_name']
 
@@ -297,7 +307,7 @@ def do_program_body(sys_argv, usage):
 
     destination_path = os.path.join(project_directory, 'README.md')
 
-    rendered = readme_view.render()
+    rendered = pyheader_view.render()
 
     write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
     _log.info("Printing destination directory to stdout...")

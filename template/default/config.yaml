@@ -1,4 +1,5 @@
 # encoding: utf-8
+encoding: utf-8
 script_name: my_script
 project_name: "My Python Project"
 author_name: "John Doe"
