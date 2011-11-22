@@ -92,11 +92,14 @@ def get_project_directory():
 
     return project_directory
 
+def get_license_directory():
+    project_directory = get_project_directory()
+    return os.path.join(project_directory, "template")
 
 # TODO: move the string literals to a more visible location.
 def create_defaults(current_working_directory):
     project_directory = get_project_directory()
-    template_directory = os.path.join("template", "default")
+    template_directory = os.path.join(project_directory, "template", "default")
 
     defaults = DefaultOptions()
 
@@ -250,6 +253,11 @@ def create_directory(path):
     raise Error("Path already exists and is not a directory: %s" % path)
 
 
+def read_template(path):
+    template = read_file(path, encoding=ENCODING_TEMPLATE)
+    return template
+
+
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
@@ -258,13 +266,20 @@ def do_program_body(sys_argv, usage):
     config_path = options.config_path
     destination_directory = options.destination_directory
     template_directory = options.template_directory
+    license_directory = get_license_directory()
 
-    template_path = os.path.join(template_directory, 'README.md.mustache')
-    template = read_file(template_path, encoding=ENCODING_TEMPLATE)
+    readme_path = os.path.join(template_directory, 'README.md.mustache')
+    license_path = os.path.join(license_directory, 'BSD.mustache')
+
+    readme_template = read_template(readme_path)
+    license_template = read_template(license_path)
 
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
-    view = File(template=template, context=context)
+    license_view = File(template=license_template, context=context)
+    readme_view = File(template=readme_template, context=context, license_view=license_view)
+
+
     script_name = context['script_name']
 
     index = 1
@@ -282,7 +297,7 @@ def do_program_body(sys_argv, usage):
 
     destination_path = os.path.join(project_directory, 'README.md')
 
-    rendered = view.render()
+    rendered = readme_view.render()
 
     write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
     _log.info("Printing destination directory to stdout...")

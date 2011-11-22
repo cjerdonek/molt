@@ -45,21 +45,30 @@ _log = logging.getLogger(__name__)
 
 
 
-def render_template(template, values):
+def render(template, values):
 
     rendered = pystache.render(template, values)
 
     return rendered
 
 
+# TODO: make separate views for README and license.
 class File(pystache.View):
 
+    def __init__(self, license_view=None, **kwargs):
+
+        self.license_view = license_view
+        super(File, self).__init__(**kwargs)
+
     def title(self):
-        def render(text):
-            rendered = render_template(text, self.context)
+        def make(text):
+            rendered = render(text, self.context)
             return "%s\n%s" % (rendered, "=" * len(rendered))
-        return render
+        return make
 
     def current_year(self):
         return datetime.now().year
+
+    def copyright_and_license(self):
+        return self.license_view.render()
 
