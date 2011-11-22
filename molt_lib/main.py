@@ -46,7 +46,7 @@ import yaml
 from .logging import configure_logging
 from .optionparser import OptionParser
 from .optionparser import UsageError
-
+from .view import File
 
 _log = logging.getLogger("main")
 
@@ -250,16 +250,6 @@ def create_directory(path):
     raise Error("Path already exists and is not a directory: %s" % path)
 
 
-def complete_values(values):
-
-    def title(text):
-        rendered = render_template(text, values)
-        return "%s\n%s" % (rendered, "=" * len(rendered))
-
-    values['title'] = title
-    values['current_year'] = datetime.now().year
-
-
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
@@ -272,10 +262,10 @@ def do_program_body(sys_argv, usage):
     template_path = os.path.join(template_directory, 'README.md.mustache')
     template = read_file(template_path, encoding=ENCODING_TEMPLATE)
 
-    values = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
-    complete_values(values)
+    context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
-    script_name = values['script_name']
+    view = File(template=template, context=context)
+    script_name = context['script_name']
 
     index = 1
     project_directory_name = script_name
@@ -292,7 +282,7 @@ def do_program_body(sys_argv, usage):
 
     destination_path = os.path.join(project_directory, 'README.md')
 
-    rendered = render_template(template, values)
+    rendered = view.render()
 
     write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
     _log.info("Printing destination directory to stdout...")
