@@ -60,9 +60,10 @@ def render(template, values):
 # TODO: make separate views for README and license.
 class File(pystache.View):
 
-    def __init__(self, license_view=None, **kwargs):
+    def __init__(self, license_view=None, pyheader_view=None, **kwargs):
 
         self.license_view = license_view
+        self.pyheader_view = pyheader_view
         super(File, self).__init__(**kwargs)
 
     def title(self):
@@ -95,4 +96,7 @@ class File(pystache.View):
 
     def copyright_and_license(self):
         return self.license_view.render()
+
+    def pyheader(self):
+        return self.pyheader_view.render()
 

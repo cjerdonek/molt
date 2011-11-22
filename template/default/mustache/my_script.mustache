@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+{{{pyheader}}}
+
+"""
+A script for creating new Python projects.
+
+See the project's README for details.
+
+"""
+
+# To maximize test coverage, this file should contain minimal application code.
+
+import sys
+
+import molt_lib.main
+
+
+def main(sys_argv):
+    """
+    Run the main script, and return the exit status.
+
+    """
+    return molt_lib.main.main(sys_argv)
+
+
+if __name__ == "__main__":
+    result = main(sys.argv)
+    sys.exit(result)
