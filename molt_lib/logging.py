@@ -47,7 +47,7 @@ def configure_logging(logging_level, sys_stderr=None):
     if sys_stderr is None:
         sys_stderr = sys.stderr
 
-    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+    formatter = logging.Formatter("%(name)s: [%(levelname)s] %(message)s")
 
     stream = sys_stderr
     handler = logging.StreamHandler(stream)
