@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 # encoding: utf-8
 #
-# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011 John Doe.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,67 +29,27 @@
 #
 
 """
-The master pystache view.
+A script for creating new Python projects.
+
+See the project's README for details.
 
 """
 
-from __future__ import absolute_import
+# To maximize test coverage, this file should contain minimal application code.
 
-from datetime import datetime
-import logging
 import sys
 
-import pystache
+import molt_lib.main
 
 
-_log = logging.getLogger(__name__)
+def main(sys_argv):
+    """
+    Run the main script, and return the exit status.
+
+    """
+    return molt_lib.main.main(sys_argv)
 
 
-def comment_python_line(line):
-    if line:
-        line = " " + line
-    return "#" + line
-
-
-def render(template, values):
-
-    rendered = pystache.render(template, values)
-
-    return rendered
-
-
-# TODO: make separate views for README and license.
-class File(pystache.View):
-
-    def __init__(self, **kwargs):
-
-        super(File, self).__init__(**kwargs)
-
-    def title(self):
-        def make_title(text):
-            inner = render(text, self.context)
-            return "%s\n%s" % (inner, "=" * len(inner))
-
-        return make_title
-
-    # TODO: shouldn't this be part of the View class, or be supported
-    # by pystache.render()?
-    def render_text(self, text):
-        return pystache.Template(text, self).render()
-
-    def comment(self):
-        def make_comment(text):
-            print text
-            inner = self.render_text(text)
-            lines = inner.split("\n")
-            new_lines = []
-            for line in lines:
-                new_line = comment_python_line(line)
-                new_lines.append(new_line)
-            return "\n".join(new_lines)
-
-        return make_comment
-
-    def current_year(self):
-        return datetime.now().year
-
+if __name__ == "__main__":
+    result = main(sys.argv)
+    sys.exit(result)

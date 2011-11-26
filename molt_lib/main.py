@@ -277,23 +277,17 @@ def do_program_body(sys_argv, usage):
     snippets_directory = get_snippets_directory()
 
     # TODO: settle on a folder hierarchy and traverse it automatically.
-    license_path = os.path.join(license_directory, 'BSD.mustache')
-    pyheader_path = os.path.join(snippets_directory, 'pyheader.mustache')
     readme_path = os.path.join(template_directory, 'README.md.mustache')
     my_script_path = os.path.join(template_directory, 'my_script.mustache')
 
-    license_template = read_template(license_path)
-    pyheader_template = read_template(pyheader_path)
     readme_template = read_template(readme_path)
 
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
-    license_view = File(template=license_template, context=context)
-    readme_view = File(template=readme_template, context=context, license_view=license_view)
-    pyheader_view = File(template=pyheader_template, context=context, license_view=license_view)
-    my_script_view = File(context=context, pyheader_view=pyheader_view)
+    readme_view = File(template=readme_template, context=context)
+    my_script_view = File(context=context)
     my_script_view.template_name = 'my_script'
-    my_script_view.template_path = template_directory
+    my_script_view.template_path = [template_directory, snippets_directory]
 
     script_name = context['script_name']
 
