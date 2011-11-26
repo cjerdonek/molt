@@ -285,14 +285,15 @@ def do_program_body(sys_argv, usage):
     license_template = read_template(license_path)
     pyheader_template = read_template(pyheader_path)
     readme_template = read_template(readme_path)
-    my_script_template = read_template(my_script_path)
 
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
     license_view = File(template=license_template, context=context)
     readme_view = File(template=readme_template, context=context, license_view=license_view)
     pyheader_view = File(template=pyheader_template, context=context, license_view=license_view)
-    my_script_view = File(template=my_script_template, context=context, pyheader_view=pyheader_view)
+    my_script_view = File(context=context, pyheader_view=pyheader_view)
+    my_script_view.template_name = 'my_script'
+    my_script_view.template_path = template_directory
 
     script_name = context['script_name']
 
