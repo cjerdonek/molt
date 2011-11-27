@@ -47,6 +47,7 @@ from . import io
 from .logging import configure_logging
 from .optionparser import OptionParser
 from .optionparser import UsageError
+from .project_type import ProjectType
 from .render import Renderer
 from .view import File
 
@@ -97,26 +98,25 @@ def get_project_directory():
     return project_directory
 
 
-def get_license_directory():
+def get_default_project_type():
+    """
+    Return the default project type as a ProjectType instance.
+
+    """
     project_directory = get_project_directory()
-    return os.path.join(project_directory, "template")
+    project_type_dir = os.path.join(project_directory, "project_types", "default")
+    return ProjectType(project_type_dir)
 
 
-def get_partials_directory():
-    project_directory = get_project_directory()
-    return os.path.join(project_directory, "template", "default", "partials")
-
-
-# TODO: move the string literals to a more visible location.
 def create_defaults(current_working_directory):
-    project_directory = get_project_directory()
-    template_directory = os.path.join(project_directory, "template", "default")
+
+    project_type = get_default_project_type()
 
     defaults = DefaultOptions()
 
-    defaults.config_path = os.path.join(template_directory, "config.yaml")
+    defaults.config_path = project_type.get_config_path()
     defaults.destination_directory = current_working_directory
-    defaults.source_root_directory = os.path.join(template_directory, "project")
+    defaults.source_root_directory = project_type.get_project_directory()
 
     return defaults
 
@@ -245,16 +245,8 @@ def render_template(template, values):
 
 
 def make_output_directory_name(script_name, index):
+    # TODO: change to "project (2)" etc.
     return "%s_%s" % (script_name, index)
-
-
-def read_template(path):
-    template = read_file(path, encoding=ENCODING_TEMPLATE)
-    return template
-
-
-def render_file(file_path, target_directory, context, extra_template_dirs):
-    view = File(context)
 
 
 def do_program_body(sys_argv, usage):
@@ -270,9 +262,6 @@ def do_program_body(sys_argv, usage):
     if should_generate_expected:
         # TODO: implement this.
         raise Error("Option not implemented.")
-
-    license_directory = get_license_directory()
-    partials_directory = get_partials_directory()
 
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
@@ -291,8 +280,11 @@ def do_program_body(sys_argv, usage):
         _log.info("Overwriting output directory: %s" % output_directory)
     _log.debug("Output directory: %s" % output_directory)
 
+    project_type = get_default_project_type()
+    extra_template_dirs = project_type.get_template_directories()
+
     renderer = Renderer(root_source_dir=template_directory, target_dir=output_directory,
-                        context=context, extra_template_dirs=[partials_directory],
+                        context=context, extra_template_dirs=extra_template_dirs,
                         output_encoding=ENCODING_OUTPUT)
 
     renderer.render()

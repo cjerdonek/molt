@@ -59,6 +59,7 @@ class Renderer(object):
         if not os.path.exists(root_dir):
             raise Exception("Source directory does not exist: %s" % root_dir)
 
+        _log.debug("Rendering to: %s" % self.target_dir)
         for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
             # TODO: eliminate the cut-and-paste between the dir_name and file_name for loops.
             for dir_name in dir_names:
