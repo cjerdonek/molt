@@ -54,6 +54,11 @@ class Renderer(object):
         self.target_dir = target_dir
 
     def render(self):
+        root_dir = self.root_source_dir
+
+        if not os.path.exists(root_dir):
+            raise Exception("Source directory does not exist: %s" % root_dir)
+
         for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
             for file_name in file_names:
                 source_path = os.path.join(dir_path, file_name)
@@ -77,7 +82,7 @@ class Renderer(object):
     def render_path(self, source_path, target_path):
         source_dir, source_file_name = os.path.split(source_path)
 
-        # Pystache only allows us to pass the template name rather than the
+        # Pystache allows us to pass only the template name and not the
         # template path.  Strip the template file extension to get the name.
         template_name, ext = os.path.splitext(source_file_name)
 

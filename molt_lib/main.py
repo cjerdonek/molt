@@ -87,7 +87,7 @@ class DefaultOptions(object):
     def __init__(self):
         self.config_path = ""
         self.destination_directory = ""
-        self.mustache_directory = ""
+        self.source_root_directory = ""
 
 
 def get_project_directory():
@@ -102,9 +102,9 @@ def get_license_directory():
     return os.path.join(project_directory, "template")
 
 
-def get_snippets_directory():
+def get_partials_directory():
     project_directory = get_project_directory()
-    return os.path.join(project_directory, "template", "default", "snippets")
+    return os.path.join(project_directory, "template", "default", "partials")
 
 
 # TODO: move the string literals to a more visible location.
@@ -116,7 +116,7 @@ def create_defaults(current_working_directory):
 
     defaults.config_path = os.path.join(template_directory, "config.yaml")
     defaults.destination_directory = current_working_directory
-    defaults.mustache_directory = os.path.join(template_directory, "mustache")
+    defaults.source_root_directory = os.path.join(template_directory, "project")
 
     return defaults
 
@@ -145,7 +145,7 @@ def create_parser(defaults, suppress_help_exit, usage=None):
                       help='whether to overwrite files in the destination directory '
                            'if the destination directory already exists.')
     parser.add_option("-t", "--template", metavar='DIRECTORY', dest="template_directory",
-                      action="store", type='string', default=defaults.mustache_directory,
+                      action="store", type='string', default=defaults.source_root_directory,
                       help='the directory containing the project template.  '
                            'Defaults to the default template directory.')
     parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
@@ -272,7 +272,7 @@ def do_program_body(sys_argv, usage):
     destination_directory = options.destination_directory
     template_directory = options.template_directory
     license_directory = get_license_directory()
-    snippets_directory = get_snippets_directory()
+    partials_directory = get_partials_directory()
 
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
 
@@ -292,7 +292,7 @@ def do_program_body(sys_argv, usage):
     _log.debug("Output directory: %s" % output_directory)
 
     renderer = Renderer(root_source_dir=template_directory, target_dir=output_directory,
-                        context=context, extra_template_dirs=[snippets_directory],
+                        context=context, extra_template_dirs=[partials_directory],
                         output_encoding=ENCODING_OUTPUT)
 
     renderer.render()
