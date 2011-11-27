@@ -42,6 +42,20 @@ import os
 _log = logging.getLogger(__name__)
 
 
+def create_directory(path):
+    """
+    Create a directory if not there, and return whether one was created.
+
+    """
+    if not os.path.exists(path):
+        os.mkdir(path)
+        _log.info("Created directory: %s" % path)
+        return True
+    if os.path.isdir(path):
+        return False
+    raise Error("Path already exists and is not a directory: %s" % path)
+
+
 def write_file(text, path, encoding):
     """
     Write a unicode string to a file.

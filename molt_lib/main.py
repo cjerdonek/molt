@@ -240,20 +240,6 @@ def make_output_directory_name(script_name, index):
     return "%s_%s" % (script_name, index)
 
 
-def create_directory(path):
-    """
-    Create a directory if not there, and return whether one was created.
-
-    """
-    if not os.path.exists(path):
-        os.mkdir(path)
-        _log.debug("Created directory: %s" % path)
-        return True
-    if os.path.isdir(path):
-        return False
-    raise Error("Path already exists and is not a directory: %s" % path)
-
-
 def read_template(path):
     template = read_file(path, encoding=ENCODING_TEMPLATE)
     return template
@@ -287,7 +273,7 @@ def do_program_body(sys_argv, usage):
         output_directory_name = make_output_directory_name(script_name, index)
         index += 1
 
-    if not create_directory(output_directory):
+    if not io.create_directory(output_directory):
         _log.info("Overwriting output directory: %s" % output_directory)
     _log.debug("Output directory: %s" % output_directory)
 

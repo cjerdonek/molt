@@ -60,6 +60,16 @@ class Renderer(object):
             raise Exception("Source directory does not exist: %s" % root_dir)
 
         for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
+            # TODO: eliminate the cut-and-paste between the dir_name and file_name for loops.
+            for dir_name in dir_names:
+                source_dir = os.path.join(dir_path, dir_name)
+                # TODO: os.path.relpath() is available only as of Python 2.6.
+                # Make this work in Python 2.5.
+                rel_path = os.path.relpath(source_dir, self.root_source_dir)
+                target_dir = os.path.join(self.target_dir, rel_path)
+
+                io.create_directory(target_dir)
+
             for file_name in file_names:
                 source_path = os.path.join(dir_path, file_name)
                 rel_path = os.path.relpath(source_path, self.root_source_dir)
