@@ -53,9 +53,11 @@ from .view import File
 _log = logging.getLogger("main")
 
 
-ENCODING_CONFIG   = 'utf-8'
-ENCODING_OUTPUT   = 'utf-8'
-ENCODING_TEMPLATE = 'utf-8'
+ENCODING_DEFAULT = 'utf-8'
+
+ENCODING_CONFIG   = ENCODING_DEFAULT
+ENCODING_OUTPUT   = ENCODING_DEFAULT
+ENCODING_TEMPLATE = ENCODING_DEFAULT
 
 # TODO: add a version option -V that reads the package version number.
 
