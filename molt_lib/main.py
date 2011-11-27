@@ -43,9 +43,11 @@ import sys
 import pystache
 import yaml
 
+from . import io
 from .logging import configure_logging
 from .optionparser import OptionParser
 from .optionparser import UsageError
+from .render import Renderer
 from .view import File
 
 _log = logging.getLogger("main")
@@ -225,16 +227,6 @@ def read_file(path, encoding):
     return text
 
 
-def write_file(text, path, encoding):
-    """
-    Write a unicode string to a file.
-
-    """
-    with codecs.open(path, "w", encoding=encoding) as f:
-        f.write(text)
-    _log.debug("Wrote: %s" % path)
-
-
 def render_template(template, values):
 
     rendered = pystache.render(template, values)
@@ -265,6 +257,10 @@ def read_template(path):
     return template
 
 
+def render_file(file_path, target_directory, context, extra_template_dirs):
+    view = File(context)
+
+
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
@@ -276,18 +272,7 @@ def do_program_body(sys_argv, usage):
     license_directory = get_license_directory()
     snippets_directory = get_snippets_directory()
 
-    # TODO: settle on a folder hierarchy and traverse it automatically.
-    readme_path = os.path.join(template_directory, 'README.md.mustache')
-    my_script_path = os.path.join(template_directory, 'my_script.mustache')
-
-    readme_template = read_template(readme_path)
-
     context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
-
-    readme_view = File(template=readme_template, context=context)
-    my_script_view = File(context=context)
-    my_script_view.template_name = 'my_script'
-    my_script_view.template_path = [template_directory, snippets_directory]
 
     script_name = context['script_name']
 
@@ -304,11 +289,14 @@ def do_program_body(sys_argv, usage):
         _log.info("Overwriting project: %s" % project_directory)
     _log.debug("Project directory: %s" % project_directory)
 
-    destination_path = os.path.join(project_directory, 'README.md')
+    renderer = Renderer(source_dir=template_directory, target_dir=project_directory,
+                        context=context, extra_template_dirs=[snippets_directory],
+                        output_encoding=ENCODING_OUTPUT)
 
-    rendered = my_script_view.render()
+    # TODO: settle on a folder hierarchy and traverse it automatically.
+    renderer.render('README.md.mustache')
+    renderer.render('my_script.mustache')
 
-    write_file(rendered, destination_path, encoding=ENCODING_OUTPUT)
     _log.info("Printing destination directory to stdout...")
     print project_directory
     _log.info("Done.")

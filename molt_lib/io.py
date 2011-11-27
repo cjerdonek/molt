@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
-# Copyright (C) 2011 John Doe.  All rights reserved.
+# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,27 +28,27 @@
 #
 
 """
-A script for creating new Python projects.
-
-See the project's README for details.
+Exposes a Renderer class to render project files from template files.
 
 """
 
-# To maximize test coverage, this file should contain minimal application code.
+from __future__ import absolute_import
 
-import sys
+import codecs
+import logging
+import os
 
-import molt_lib.main
+
+_log = logging.getLogger(__name__)
 
 
-def main(sys_argv):
+def write_file(text, path, encoding):
     """
-    Run the main script, and return the exit status.
+    Write a unicode string to a file.
 
     """
-    return molt_lib.main.main(sys_argv)
+    with codecs.open(path, "w", encoding=encoding) as f:
+        f.write(text)
+    _log.debug("Wrote: %s" % path)
 
 
-if __name__ == "__main__":
-    result = main(sys.argv)
-    sys.exit(result)
