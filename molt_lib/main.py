@@ -245,8 +245,7 @@ def render_template(template, values):
 
 
 def make_output_directory_name(script_name, index):
-    # TODO: change to "project (2)" etc.
-    return "%s_%s" % (script_name, index)
+    return "%s (%d)" % (script_name, index)
 
 
 def do_program_body(sys_argv, usage):
