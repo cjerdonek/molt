@@ -70,8 +70,8 @@ USAGE = """%prog [options]
 Create a new Python project.
 
 This script creates a new Python project from a project template using
-values from a configuration file, and prints the destination directory
-to standard output."""
+values from a configuration file.  It prints the output directory to
+standard output when complete."""
 
 
 class Error(Exception):
@@ -136,21 +136,29 @@ def create_parser(defaults, suppress_help_exit, usage=None):
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
-    parser.add_option("-d", "--destination", metavar='DIRECTORY', dest="destination_directory",
+    parser.add_option("-t", "--target", metavar='DIRECTORY', dest="destination_directory",
                       action="store", type='string', default=defaults.destination_directory,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
     parser.add_option("-o", "--overwrite", dest="should_overwrite",
                       action="store_true", default=False,
-                      help='whether to overwrite files in the destination directory '
-                           'if the destination directory already exists.')
-    parser.add_option("-t", "--template", metavar='DIRECTORY', dest="template_directory",
+                      help='whether to overwrite files in the target directory '
+                           'if the target directory already exists.  Otherwise, '
+                           'a new target directory is created by incrementing the '
+                           'target directory name, for example "target_name (2)".')
+    parser.add_option("-p", "--project-template", metavar='DIRECTORY', dest="template_directory",
                       action="store", type='string', default=defaults.source_root_directory,
                       help='the directory containing the project template.  '
                            'Defaults to the default template directory.')
     parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
                       action="store_true", default=False,
                       help="log verbosely.")
+    parser.add_option("--generate-expected", dest="should_generate_expected",
+                      action="store_true", default=False,
+                      help='whether to regenerate the "expected" version of each '
+                           'project template.  Regenerating versions does not '
+                           'delete files but only overwrites them.  This option '
+                           'is exposed mainly for molt development purposes.')
     parser.add_option("-h", "--help", action=help_action,
                       help="show this help message and exit.")
 
@@ -257,6 +265,12 @@ def do_program_body(sys_argv, usage):
     config_path = options.config_path
     destination_directory = options.destination_directory
     template_directory = options.template_directory
+    should_generate_expected = options.should_generate_expected
+
+    if should_generate_expected:
+        # TODO: implement this.
+        raise Error("Option not implemented.")
+
     license_directory = get_license_directory()
     partials_directory = get_partials_directory()
 
