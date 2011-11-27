@@ -289,13 +289,11 @@ def do_program_body(sys_argv, usage):
         _log.info("Overwriting project: %s" % project_directory)
     _log.debug("Project directory: %s" % project_directory)
 
-    renderer = Renderer(source_dir=template_directory, target_dir=project_directory,
+    renderer = Renderer(root_source_dir=template_directory, target_dir=project_directory,
                         context=context, extra_template_dirs=[snippets_directory],
                         output_encoding=ENCODING_OUTPUT)
 
-    # TODO: settle on a folder hierarchy and traverse it automatically.
-    renderer.render('README.md.mustache')
-    renderer.render('my_script.mustache')
+    renderer.render()
 
     _log.info("Printing destination directory to stdout...")
     print project_directory

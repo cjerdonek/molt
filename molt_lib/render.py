@@ -46,34 +46,50 @@ _log = logging.getLogger(__name__)
 
 class Renderer(object):
 
-    def __init__(self, source_dir, target_dir, context, extra_template_dirs, output_encoding):
+    def __init__(self, root_source_dir, target_dir, context, extra_template_dirs, output_encoding):
         self.context = context
         self.encoding = output_encoding
         self.extra_template_dirs = extra_template_dirs
-        self.source_dir = source_dir
+        self.root_source_dir = root_source_dir
         self.target_dir = target_dir
 
-    def render(self, rel_path):
+    def render(self):
+        for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
+            for file_name in file_names:
+                source_path = os.path.join(dir_path, file_name)
+                rel_path = os.path.relpath(source_path, self.root_source_dir)
+                self.render_rel_path(rel_path)
+
+    def render_rel_path(self, rel_path):
         """
         rel_path is a path relative to the source directory.
 
         """
-        # A bare file name or path is a file name or path without the template
-        # extension, for example "README.md" for "README.md.mustache".
+        # By bare path, we mean the path without the template extension, for
+        # example "README.md" for "README.md.mustache".
         bare_rel_path, ext = os.path.splitext(rel_path)
-        rel_dir, bare_file_name = os.path.split(bare_rel_path)
 
-        source_dir = os.path.join(self.source_dir, rel_dir)
-        destination_path = os.path.join(self.target_dir, bare_rel_path)
+        source_path = os.path.join(self.root_source_dir, rel_path)
+        target_path = os.path.join(self.target_dir, bare_rel_path)
+
+        self.render_path(source_path, target_path)
+
+    def render_path(self, source_path, target_path):
+        source_dir, source_file_name = os.path.split(source_path)
+
+        # Pystache only allows us to pass the template name rather than the
+        # template path.  Strip the template file extension to get the name.
+        template_name, ext = os.path.splitext(source_file_name)
+
+        source_dir = os.path.dirname(source_path)
 
         template_dirs = [source_dir] + self.extra_template_dirs
 
         view = File(context=self.context)
-        view.template_name = bare_file_name
+        view.template_name = template_name
         view.template_path = template_dirs
 
         rendered = view.render()
 
-        io.write_file(rendered, destination_path, encoding=self.encoding)
+        io.write_file(rendered, target_path, encoding=self.encoding)
 
-        return destination_path
