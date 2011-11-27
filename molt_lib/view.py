@@ -78,7 +78,6 @@ class File(pystache.View):
 
     def comment(self):
         def make_comment(text):
-            print text
             inner = self.render_text(text)
             lines = inner.split("\n")
             new_lines = []
