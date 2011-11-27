@@ -234,7 +234,7 @@ def render_template(template, values):
     return rendered
 
 
-def make_project_directory_name(script_name, index):
+def make_output_directory_name(script_name, index):
     return "%s_%s" % (script_name, index)
 
 
@@ -277,26 +277,26 @@ def do_program_body(sys_argv, usage):
     script_name = context['script_name']
 
     index = 1
-    project_directory_name = script_name
+    output_directory_name = script_name
     while True:
-        project_directory = os.path.join(destination_directory, project_directory_name)
-        if options.should_overwrite or not os.path.exists(project_directory):
+        output_directory = os.path.join(destination_directory, output_directory_name)
+        if options.should_overwrite or not os.path.exists(output_directory):
             break
-        project_directory_name = make_project_directory_name(script_name, index)
+        output_directory_name = make_output_directory_name(script_name, index)
         index += 1
 
-    if not create_directory(project_directory):
-        _log.info("Overwriting project: %s" % project_directory)
-    _log.debug("Project directory: %s" % project_directory)
+    if not create_directory(output_directory):
+        _log.info("Overwriting output directory: %s" % output_directory)
+    _log.debug("Output directory: %s" % output_directory)
 
-    renderer = Renderer(root_source_dir=template_directory, target_dir=project_directory,
+    renderer = Renderer(root_source_dir=template_directory, target_dir=output_directory,
                         context=context, extra_template_dirs=[snippets_directory],
                         output_encoding=ENCODING_OUTPUT)
 
     renderer.render()
 
-    _log.info("Printing destination directory to stdout...")
-    print project_directory
+    _log.info("Printing output directory to stdout...")
+    print output_directory
     _log.info("Done.")
 
 
