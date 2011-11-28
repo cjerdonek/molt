@@ -44,9 +44,9 @@ import pystache
 import yaml
 
 from . import io
-from .common.logging import configure_logging
-from .common.optionparser import OptionParser
+from . import commandline
 from .common.optionparser import UsageError
+from .common.logging import configure_logging
 from .project_type import ProjectType
 from .render import Renderer
 from .view import File
@@ -60,35 +60,11 @@ ENCODING_CONFIG   = ENCODING_DEFAULT
 ENCODING_OUTPUT   = ENCODING_DEFAULT
 ENCODING_TEMPLATE = ENCODING_DEFAULT
 
-# TODO: add a version option -V that reads the package version number.
-
-# We escape the leading "%" so that the leading "%p" is not interpreted as
-# a Python string formatting conversion specifier.  The optparse.OptionParser
-# class, however, recognizes "%prog" by replacing it with the current
-# script name when passed to the constructor as a usage string.
-USAGE = """%prog [options]
-
-Create a new Python project.
-
-This script creates a new Python project from a project template using
-values from a configuration file.  It prints the output directory to
-standard output when complete."""
 
 
 class Error(Exception):
     """Base class for exceptions defined in this project."""
     pass
-
-
-class DefaultOptions(object):
-    """
-    The default values that the OptionParser should use.
-
-    """
-    def __init__(self):
-        self.config_path = ""
-        self.destination_directory = ""
-        self.source_root_directory = ""
 
 
 def get_project_directory():
@@ -112,107 +88,13 @@ def create_defaults(current_working_directory):
 
     project_type = get_default_project_type()
 
-    defaults = DefaultOptions()
+    defaults = commandline.DefaultOptions()
 
     defaults.config_path = project_type.get_config_path()
     defaults.destination_directory = current_working_directory
     defaults.source_root_directory = project_type.get_project_directory()
 
     return defaults
-
-
-def create_parser(defaults, suppress_help_exit, usage=None):
-    """
-    Return an OptionParser for the program.
-
-    """
-    help_action = "store_true" if suppress_help_exit else "help"
-
-    parser = OptionParser(usage=usage, add_help_option=False)
-
-    # TODO: explicitly add a version option?
-    parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
-                      action="store", type='string', default=defaults.config_path,
-                      help='the path to the configuration file that contains, '
-                           'for example, the values with which to populate the template.  '
-                           'Defaults to the default configuration file.')
-    parser.add_option("-t", "--target", metavar='DIRECTORY', dest="target_directory",
-                      action="store", type='string', default=defaults.destination_directory,
-                      help='the directory in which to create the new project. '
-                           'Defaults to the current working directory.')
-    parser.add_option("-o", "--overwrite", dest="should_overwrite",
-                      action="store_true", default=False,
-                      help='whether to overwrite files in the target directory '
-                           'if the target directory already exists.  Otherwise, '
-                           'a new target directory is created by incrementing the '
-                           'target directory name, for example "target_name (2)".')
-    parser.add_option("-p", "--project-template", metavar='DIRECTORY', dest="project_directory",
-                      action="store", type='string', default=defaults.source_root_directory,
-                      help='the directory containing the project template.  '
-                           'Defaults to the default template directory.')
-    parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
-                      action="store_true", default=False,
-                      help="log verbosely.")
-    parser.add_option("-g", "--generate-expected", dest="should_generate_expected",
-                      action="store_true", default=False,
-                      help='whether to regenerate the "expected" version of each '
-                           'project template.  Regenerating versions does not '
-                           'delete files but only overwrites them.  This option '
-                           'is exposed mainly for molt development purposes.')
-    parser.add_option("-h", "--help", action=help_action,
-                      help="show this help message and exit.")
-
-    return parser
-
-
-def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
-    """
-    Parse arguments and return (options, args).
-
-    Raises UsageError on command-line usage error.
-
-    """
-    if defaults is None:
-        defaults = DefaultOptions()
-
-    args = sys_argv[1:]
-
-    parser = create_parser(defaults, suppress_help_exit=suppress_help_exit, usage=usage)
-    options, args = parser.parse_args(args)
-
-    return options, args
-
-
-def is_verbose_logging_enabled(sys_argv):
-    """
-    Return whether verbose logging is enabled.
-
-    """
-    try:
-        # Suppress the help option to prevent exiting.
-        options, args = parse_args(sys_argv, suppress_help_exit=True)
-    except UsageError:
-        # Default to normal logging on error.
-        return False
-
-    return options.is_verbose_logging_enabled
-
-
-def read_args(sys_argv, usage, current_working_directory):
-    """
-    Raises UsageError on bad arguments.
-
-
-    """
-    defaults = create_defaults(current_working_directory)
-    options, args = parse_args(sys_argv, suppress_help_exit=False, usage=usage, defaults=defaults)
-
-    _log.debug("Configuration file: %s" % options.config_path)
-    _log.debug("Project directory: %s" % options.project_directory)
-    _log.debug("Target directory: %s" % options.target_directory)
-
-    return options
-
 
 
 def unserialize_yaml_file(path):
@@ -247,6 +129,7 @@ def render_template(template, values):
 def make_output_directory_name(script_name, index):
     return "%s (%d)" % (script_name, index)
 
+
 def render_project(project_directory, output_directory, config_path, extra_template_dirs):
 
     context = unserialize_yaml_file(config_path)
@@ -274,7 +157,8 @@ def generate_expected():
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
-    options = read_args(sys_argv, usage=usage, current_working_directory=current_working_directory)
+    defaults = create_defaults(current_working_directory)
+    options = commandline.read_args(sys_argv, usage=usage, defaults=defaults, current_working_directory=current_working_directory)
 
 
     # TODO: do something nicer than this if-else block.
@@ -331,11 +215,11 @@ def main(sys_argv, configure_logging=configure_logging, process_args=do_program_
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
     # Configure logging before parsing options for real.
-    logging_level = logging.DEBUG if is_verbose_logging_enabled(sys_argv) else logging.INFO
+    logging_level = logging.DEBUG if commandline.is_verbose_logging_enabled(sys_argv) else logging.INFO
     configure_logging(logging_level)
 
     try:
-        process_args(sys_argv, USAGE)
+        process_args(sys_argv, commandline.USAGE)
         return 0
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
