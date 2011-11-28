@@ -64,6 +64,8 @@ ENCODING_TEMPLATE = ENCODING_DEFAULT
 
 def get_project_directory():
     lib_directory = os.path.dirname(__file__)
+    lib_directory = os.path.relpath(lib_directory)
+
     project_directory = os.path.normpath(os.path.join(lib_directory, os.pardir))
 
     return project_directory

@@ -55,11 +55,17 @@ class Renderer(object):
 
     def render(self):
         root_dir = self.root_source_dir
+        target_dir = self.target_dir
+
+        # TODO: Eliminate cut-and-paste with similar log message below.
+        _log.info("""\
+Rendering template directory...
+  From: %s
+  To:   %s""" % (root_dir, target_dir))
 
         if not os.path.exists(root_dir):
             raise Exception("Source directory does not exist: %s" % root_dir)
 
-        _log.debug("Rendering to: %s" % self.target_dir)
         for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
             # TODO: skip special files and directories.
             # TODO: eliminate the cut-and-paste between the dir_name and file_name for loops.
@@ -73,15 +79,15 @@ class Renderer(object):
                 io.create_directory(target_dir)
 
             for file_name in file_names:
-                extension = os.path.splitext(file_name)[1]
-                # TODO: allow the template extension to be configurable.
-
-                if extension != ".mustache":
-                    _log.info("Skipping non-template file: %s" % file_name)
-                    continue
-
                 source_path = os.path.join(dir_path, file_name)
                 rel_path = os.path.relpath(source_path, self.root_source_dir)
+
+                # TODO: allow the template extension to be configurable.
+                extension = os.path.splitext(rel_path)[1]
+                if extension != ".mustache":
+                    _log.info("Skipping non-template file: %s" % rel_path)
+                    continue
+
                 self.render_rel_path(rel_path)
 
     def render_rel_path(self, rel_path):
@@ -96,7 +102,10 @@ class Renderer(object):
         source_path = os.path.join(self.root_source_dir, rel_path)
         target_path = os.path.join(self.target_dir, bare_rel_path)
 
-        _log.debug("Rendering %s to %s" % (source_path, target_path))
+        _log.debug("""\
+Rendering template:
+  From: %s
+  To:   %s""" % (source_path, target_path))
         self.render_path(source_path, target_path)
 
     def render_path(self, source_path, target_path):
