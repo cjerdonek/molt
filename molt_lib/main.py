@@ -40,11 +40,9 @@ import logging
 import os
 import sys
 
-import pystache
-import yaml
-
 from . import io
 from . import commandline
+from . import config
 from .common.error import Error
 from .common.optionparser import UsageError
 from .common.logging import configure_logging
@@ -94,17 +92,6 @@ def create_defaults(current_working_directory):
     return defaults
 
 
-def unserialize_yaml_file(path):
-    """
-    Deserialize a yaml file.
-
-    """
-    with codecs.open(path, "r", encoding=ENCODING_CONFIG) as f:
-        data = yaml.load(f)
-
-    return data
-
-
 def read_file(path, encoding):
     """
     Return the contents of a file as a unicode string.
@@ -116,20 +103,14 @@ def read_file(path, encoding):
     return text
 
 
-def render_template(template, values):
-
-    rendered = pystache.render(template, values)
-
-    return rendered
-
-
 def make_output_directory_name(script_name, index):
     return "%s (%d)" % (script_name, index)
 
 
 def render_project(project_directory, output_directory, config_path, extra_template_dirs):
 
-    context = unserialize_yaml_file(config_path)
+    render_config = config.read_render_config(config_path, encoding=ENCODING_CONFIG)
+    context = render_config.context
 
     renderer = Renderer(root_source_dir=project_directory, target_dir=output_directory,
                         context=context, extra_template_dirs=extra_template_dirs,
@@ -157,7 +138,6 @@ def do_program_body(sys_argv, usage):
     defaults = create_defaults(current_working_directory)
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
-
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
         generate_expected()
@@ -170,8 +150,8 @@ def do_program_body(sys_argv, usage):
         project_type = get_default_project_type()
         extra_template_dirs = project_type.get_template_directories()
 
-        context = unserialize_yaml_file(config_path)
-        script_name = context['script_name']
+        render_config = config.read_render_config(config_path, encoding=ENCODING_CONFIG)
+        script_name = render_config.project_label
 
         # TODO: fix this hack.
         index = 1

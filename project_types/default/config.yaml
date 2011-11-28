@@ -1,5 +1,16 @@
 # encoding: utf-8
-encoding: utf-8
-script_name: my_script
-project_name: "My Python Project"
-author_name: "John Doe"
+context:
+  encoding: utf-8
+  script_name: my_script
+  project_name: "My Python Project"
+  author_name: "John Doe"
+path_actions:
+  name: "."
+  rename: project
+  contents:
+    - name: my_script
+      rename: "{{{script_name}}}"
+    - name: pylib
+      rename: "pylib_{{{script_name}}}"
+      contents:
+

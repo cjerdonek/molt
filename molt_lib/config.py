@@ -28,7 +28,7 @@
 #
 
 """
-Exposes a Renderer class to render project files from template files.
+Supports render configuration.
 
 """
 
@@ -38,44 +38,22 @@ import codecs
 import logging
 import os
 
-import yaml
+from . import io
 
 
 _log = logging.getLogger(__name__)
 
 
-def create_directory(path):
-    """
-    Create a directory if not there, and return whether one was created.
-
-    """
-    if not os.path.exists(path):
-        os.mkdir(path)
-        _log.info("Created directory: %s" % path)
-        return True
-    if os.path.isdir(path):
-        return False
-    raise Error("Path already exists and is not a directory: %s" % path)
+def read_render_config(path, encoding):
+    data = io.unserialize_yaml_file(path, encoding)
+    return RenderConfig(data)
 
 
-def write_file(text, path, encoding):
-    """
-    Write a unicode string to a file.
+class RenderConfig(object):
 
-    """
-    with codecs.open(path, "w", encoding=encoding) as f:
-        f.write(text)
-    _log.debug("Wrote: %s" % path)
+    def __init__(self, data):
+        context = data['context']
 
-
-def unserialize_yaml_file(path, encoding):
-    """
-    Deserialize a yaml file.
-
-    """
-    with codecs.open(path, "r", encoding=encoding) as f:
-        data = yaml.load(f)
-
-    return data
-
+        self.context = data['context']
+        self.project_label = context['script_name']
 
