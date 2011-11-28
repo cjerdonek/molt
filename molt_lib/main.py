@@ -45,6 +45,7 @@ import yaml
 
 from . import io
 from . import commandline
+from .common.error import Error
 from .common.optionparser import UsageError
 from .common.logging import configure_logging
 from .project_type import ProjectType
@@ -59,12 +60,6 @@ ENCODING_DEFAULT = 'utf-8'
 ENCODING_CONFIG   = ENCODING_DEFAULT
 ENCODING_OUTPUT   = ENCODING_DEFAULT
 ENCODING_TEMPLATE = ENCODING_DEFAULT
-
-
-
-class Error(Exception):
-    """Base class for exceptions defined in this project."""
-    pass
 
 
 def get_project_directory():
@@ -158,7 +153,7 @@ def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
     defaults = create_defaults(current_working_directory)
-    options = commandline.read_args(sys_argv, usage=usage, defaults=defaults, current_working_directory=current_working_directory)
+    options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
 
     # TODO: do something nicer than this if-else block.

@@ -1,0 +1,79 @@
+{{> python_header }}
+
+"""
+Exposes a Renderer class to render project files from template files.
+
+"""
+
+from __future__ import absolute_import
+
+import codecs
+import logging
+import os
+
+from .common.optionparser import OptionParser
+from .common.optionparser import UsageError
+
+
+_log = logging.getLogger(__name__)
+
+
+# TODO: add a version option -V that reads the package version number.
+
+# We escape the leading "%" so that the leading "%p" is not interpreted as
+# a Python string formatting conversion specifier.  The optparse.OptionParser
+# class, however, recognizes "%prog" by replacing it with the current
+# script name when passed to the constructor as a usage string.
+USAGE = """%prog [options]
+
+This script..."""
+
+
+def create_parser(suppress_help_exit, usage=USAGE):
+    """
+    Return an OptionParser for the program.
+
+    """
+    help_action = "store_true" if suppress_help_exit else "help"
+
+    parser = OptionParser(usage=usage, add_help_option=False)
+
+    # TODO: explicitly add a version option?
+    parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
+                      action="store_true", default=False,
+                      help="log verbosely.")
+    parser.add_option("-h", "--help", action=help_action,
+                      help="show this help message and exit.")
+
+    return parser
+
+
+def is_verbose_logging_enabled(sys_argv):
+    """
+    Return whether verbose logging is enabled.
+
+    """
+    try:
+        # Suppress the help option to prevent exiting.
+        options, args = parse_args(sys_argv, suppress_help_exit=True)
+    except UsageError:
+        # Default to normal logging on error.
+        return False
+
+    return options.is_verbose_logging_enabled
+
+
+def parse_args(sys_argv, suppress_help_exit, usage=None):
+    """
+    Parse arguments and return (options, args).
+
+    Raises UsageError on command-line usage error.
+
+    """
+    args = sys_argv[1:]
+
+    parser = create_parser(suppress_help_exit=suppress_help_exit, usage=usage)
+    options, args = parser.parse_args(args)
+
+    return options, args
+

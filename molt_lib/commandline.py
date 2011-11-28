@@ -148,7 +148,7 @@ def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
     return options, args
 
 
-def read_args(sys_argv, usage, defaults, current_working_directory):
+def read_args(sys_argv, usage, defaults):
     """
     Raises UsageError on bad arguments.
 

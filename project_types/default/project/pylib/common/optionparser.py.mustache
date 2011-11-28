@@ -1,0 +1,43 @@
+{{> python_header }}
+
+"""
+Exposes an option parser that is a subclass of optparse.OptionParser.
+
+"""
+
+from __future__ import absolute_import
+
+import logging
+# The optparse module is deprecated in Python 2.7 in favor of argparse.
+# However, argparse is not available in Python 2.6.
+import optparse
+import sys
+
+
+_log = logging.getLogger(__name__)
+
+
+class UsageError(Exception):
+    """
+    Exception class for command-line syntax errors.
+
+    """
+    pass
+
+
+# We subclass optparse.OptionParser to customize the behavior of error().
+# The base class's implementation of error() prints the usage string
+# and exits with status code 2.
+class OptionParser(optparse.OptionParser):
+
+    def error(self, message):
+        """
+        Handle an error occurring while parsing command arguments.
+
+        This method overrides the OptionParser base class's error().  The
+        OptionParser class requires that this method either exit or raise
+        an exception.
+
+        """
+        raise UsageError(message)
+

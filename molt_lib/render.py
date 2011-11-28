@@ -61,6 +61,7 @@ class Renderer(object):
 
         _log.debug("Rendering to: %s" % self.target_dir)
         for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
+            # TODO: skip special files and directories.
             # TODO: eliminate the cut-and-paste between the dir_name and file_name for loops.
             for dir_name in dir_names:
                 source_dir = os.path.join(dir_path, dir_name)
@@ -72,6 +73,13 @@ class Renderer(object):
                 io.create_directory(target_dir)
 
             for file_name in file_names:
+                extension = os.path.splitext(file_name)[1]
+                # TODO: allow the template extension to be configurable.
+
+                if extension != ".mustache":
+                    _log.info("Skipping non-template file: %s" % file_name)
+                    continue
+
                 source_path = os.path.join(dir_path, file_name)
                 rel_path = os.path.relpath(source_path, self.root_source_dir)
                 self.render_rel_path(rel_path)
