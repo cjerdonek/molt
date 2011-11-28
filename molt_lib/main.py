@@ -44,9 +44,9 @@ import pystache
 import yaml
 
 from . import io
-from .logging import configure_logging
-from .optionparser import OptionParser
-from .optionparser import UsageError
+from .common.logging import configure_logging
+from .common.optionparser import OptionParser
+from .common.optionparser import UsageError
 from .project_type import ProjectType
 from .render import Renderer
 from .view import File
