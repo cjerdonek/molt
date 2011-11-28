@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
 # Copyright (C) 2011 John Doe.  All rights reserved.
@@ -29,27 +28,43 @@
 #
 
 """
-A script for creating new Python projects.
-
-See the project's README for details.
+Exposes an option parser that is a subclass of optparse.OptionParser.
 
 """
 
-# To maximize test coverage, this file should contain minimal application code.
+from __future__ import absolute_import
 
+import logging
+# The optparse module is deprecated in Python 2.7 in favor of argparse.
+# However, argparse is not available in Python 2.6.
+import optparse
 import sys
 
-import pylib.main
+
+_log = logging.getLogger(__name__)
 
 
-def main(sys_argv):
+class UsageError(Exception):
     """
-    Run the main script, and return the exit status.
+    Exception class for command-line syntax errors.
 
     """
-    return pylib.main.main(sys_argv)
+    pass
 
 
-if __name__ == "__main__":
-    result = main(sys.argv)
-    sys.exit(result)
+# We subclass optparse.OptionParser to customize the behavior of error().
+# The base class's implementation of error() prints the usage string
+# and exits with status code 2.
+class OptionParser(optparse.OptionParser):
+
+    def error(self, message):
+        """
+        Handle an error occurring while parsing command arguments.
+
+        This method overrides the OptionParser base class's error().  The
+        OptionParser class requires that this method either exit or raise
+        an exception.
+
+        """
+        raise UsageError(message)
+

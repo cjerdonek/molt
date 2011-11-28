@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
 # Copyright (C) 2011 John Doe.  All rights reserved.
@@ -29,27 +28,34 @@
 #
 
 """
-A script for creating new Python projects.
-
-See the project's README for details.
+Supports logging configuration.
 
 """
 
-# To maximize test coverage, this file should contain minimal application code.
+from __future__ import absolute_import
 
+import logging
 import sys
 
-import pylib.main
+
+_log = logging.getLogger(__name__)
 
 
-def main(sys_argv):
-    """
-    Run the main script, and return the exit status.
+# TODO: make this testable.
+def configure_logging(logging_level, sys_stderr=None):
+    """Configure logging."""
+    if sys_stderr is None:
+        sys_stderr = sys.stderr
 
-    """
-    return pylib.main.main(sys_argv)
+    formatter = logging.Formatter("%(name)s: [%(levelname)s] %(message)s")
 
+    stream = sys_stderr
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(formatter)
 
-if __name__ == "__main__":
-    result = main(sys.argv)
-    sys.exit(result)
+    logger = logging.getLogger()  # the root logger.
+    logger.setLevel(logging_level)
+    logger.addHandler(handler)
+
+    _log.debug("Debug logging enabled.")
+

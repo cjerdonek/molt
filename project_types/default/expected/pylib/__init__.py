@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
 # Copyright (C) 2011 John Doe.  All rights reserved.
@@ -27,29 +26,3 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-
-"""
-A script for creating new Python projects.
-
-See the project's README for details.
-
-"""
-
-# To maximize test coverage, this file should contain minimal application code.
-
-import sys
-
-import pylib.main
-
-
-def main(sys_argv):
-    """
-    Run the main script, and return the exit status.
-
-    """
-    return pylib.main.main(sys_argv)
-
-
-if __name__ == "__main__":
-    result = main(sys.argv)
-    sys.exit(result)
