@@ -276,6 +276,7 @@ def do_program_body(sys_argv, usage):
     current_working_directory = os.curdir
     options = read_args(sys_argv, usage=usage, current_working_directory=current_working_directory)
 
+
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
         generate_expected()
