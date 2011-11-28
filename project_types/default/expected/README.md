@@ -1,6 +1,5 @@
 my_script (My Python Project)
-
-==============================
+=============================
 
 This [project](http://github.com/)...
 
