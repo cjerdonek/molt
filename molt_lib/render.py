@@ -88,6 +88,7 @@ class Renderer(object):
         source_path = os.path.join(self.root_source_dir, rel_path)
         target_path = os.path.join(self.target_dir, bare_rel_path)
 
+        _log.debug("Rendering %s to %s" % (source_path, target_path))
         self.render_path(source_path, target_path)
 
     def render_path(self, source_path, target_path):

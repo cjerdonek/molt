@@ -136,7 +136,7 @@ def create_parser(defaults, suppress_help_exit, usage=None):
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
-    parser.add_option("-t", "--target", metavar='DIRECTORY', dest="destination_directory",
+    parser.add_option("-t", "--target", metavar='DIRECTORY', dest="target_directory",
                       action="store", type='string', default=defaults.destination_directory,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
@@ -146,14 +146,14 @@ def create_parser(defaults, suppress_help_exit, usage=None):
                            'if the target directory already exists.  Otherwise, '
                            'a new target directory is created by incrementing the '
                            'target directory name, for example "target_name (2)".')
-    parser.add_option("-p", "--project-template", metavar='DIRECTORY', dest="template_directory",
+    parser.add_option("-p", "--project-template", metavar='DIRECTORY', dest="project_directory",
                       action="store", type='string', default=defaults.source_root_directory,
                       help='the directory containing the project template.  '
                            'Defaults to the default template directory.')
     parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
                       action="store_true", default=False,
                       help="log verbosely.")
-    parser.add_option("--generate-expected", dest="should_generate_expected",
+    parser.add_option("-g", "--generate-expected", dest="should_generate_expected",
                       action="store_true", default=False,
                       help='whether to regenerate the "expected" version of each '
                            'project template.  Regenerating versions does not '
@@ -208,19 +208,19 @@ def read_args(sys_argv, usage, current_working_directory):
     options, args = parse_args(sys_argv, suppress_help_exit=False, usage=usage, defaults=defaults)
 
     _log.debug("Configuration file: %s" % options.config_path)
-    _log.debug("Destination directory: %s" % options.destination_directory)
-    _log.debug("Template directory: %s" % options.template_directory)
+    _log.debug("Project directory: %s" % options.project_directory)
+    _log.debug("Target directory: %s" % options.target_directory)
 
     return options
 
 
 
-def unserialize_yaml_file(path, encoding):
+def unserialize_yaml_file(path):
     """
     Deserialize a yaml file.
 
     """
-    with codecs.open(path, "r", encoding=encoding) as f:
+    with codecs.open(path, "r", encoding=ENCODING_CONFIG) as f:
         data = yaml.load(f)
 
     return data
@@ -247,49 +247,69 @@ def render_template(template, values):
 def make_output_directory_name(script_name, index):
     return "%s (%d)" % (script_name, index)
 
+def render_project(project_directory, output_directory, config_path, extra_template_dirs):
+
+    context = unserialize_yaml_file(config_path)
+
+    renderer = Renderer(root_source_dir=project_directory, target_dir=output_directory,
+                        context=context, extra_template_dirs=extra_template_dirs,
+                        output_encoding=ENCODING_OUTPUT)
+
+    renderer.render()
+
+
+def generate_expected():
+    project_type = get_default_project_type()
+
+    _log.info("Generating expected for project type: %s" % project_type.label)
+
+    project_directory = project_type.get_project_directory()
+    config_path = project_type.get_config_path()
+    output_directory = project_type.get_expected_directory()
+    extra_template_dirs = project_type.get_template_directories()
+
+    render_project(project_directory, output_directory, config_path, extra_template_dirs)
+
 
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
     options = read_args(sys_argv, usage=usage, current_working_directory=current_working_directory)
 
-    config_path = options.config_path
-    destination_directory = options.destination_directory
-    template_directory = options.template_directory
-    should_generate_expected = options.should_generate_expected
+    # TODO: do something nicer than this if-else block.
+    if options.should_generate_expected:
+        generate_expected()
+    else:
+        project_directory = options.project_directory
+        config_path = options.config_path
+        target_directory = options.target_directory
 
-    if should_generate_expected:
-        # TODO: implement this.
-        raise Error("Option not implemented.")
+        # TODO: need to address extra_template_dirs for command-line-provided project templates.
+        project_type = get_default_project_type()
+        extra_template_dirs = project_type.get_template_directories()
 
-    context = unserialize_yaml_file(config_path, encoding=ENCODING_CONFIG)
+        context = unserialize_yaml_file(config_path)
+        script_name = context['script_name']
 
-    script_name = context['script_name']
+        # TODO: fix this hack.
+        index = 1
+        output_directory_name = script_name
+        while True:
+            output_directory = os.path.join(target_directory, output_directory_name)
+            if options.should_overwrite or not os.path.exists(output_directory):
+                break
+            output_directory_name = make_output_directory_name(script_name, index)
+            index += 1
 
-    index = 1
-    output_directory_name = script_name
-    while True:
-        output_directory = os.path.join(destination_directory, output_directory_name)
-        if options.should_overwrite or not os.path.exists(output_directory):
-            break
-        output_directory_name = make_output_directory_name(script_name, index)
-        index += 1
+        if not io.create_directory(output_directory):
+            _log.info("Overwriting output directory: %s" % output_directory)
+        _log.debug("Output directory: %s" % output_directory)
 
-    if not io.create_directory(output_directory):
-        _log.info("Overwriting output directory: %s" % output_directory)
-    _log.debug("Output directory: %s" % output_directory)
+        render_project(project_directory, output_directory, config_path, extra_template_dirs)
 
-    project_type = get_default_project_type()
-    extra_template_dirs = project_type.get_template_directories()
+        _log.info("Printing output directory to stdout...")
+        print output_directory
 
-    renderer = Renderer(root_source_dir=template_directory, target_dir=output_directory,
-                        context=context, extra_template_dirs=extra_template_dirs,
-                        output_encoding=ENCODING_OUTPUT)
-
-    renderer.render()
-
-    _log.info("Printing output directory to stdout...")
-    print output_directory
     _log.info("Done.")
 
 

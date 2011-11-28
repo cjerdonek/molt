@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011 John Doe.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -26,40 +26,3 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-
-"""
-Exposes a class that encapsulates a project type in the molt folder hierarchy.
-
-"""
-
-from __future__ import absolute_import
-
-import logging
-import os
-import sys
-
-
-_log = logging.getLogger(__name__)
-
-
-class ProjectType(object):
-
-    def __init__(self, directory):
-        label = os.path.basename(directory)
-
-        self.directory = directory
-        self.label = label
-
-    def get_config_path(self):
-        return os.path.join(self.directory, "config.yaml")
-
-    def get_project_directory(self):
-        return os.path.join(self.directory, "project")
-
-    def get_template_directories(self):
-        partials_dir = os.path.join(self.directory, "partials")
-        return [partials_dir]
-
-    def get_expected_directory(self):
-        return os.path.join(self.directory, "expected")
-

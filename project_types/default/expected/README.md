@@ -1,5 +1,6 @@
 my_script (My Python Project)
-=============================
+
+==============================
 
 This [project](http://github.com/)...
 
@@ -32,7 +33,5 @@ John Doe
 Copyright and License
 ---------------------
 
-Copyright (C) 2011 John Doe.  All rights reserved.
 
-TODO: add license.
 
