@@ -9,6 +9,9 @@ preambles, etc.
 It is driven by [YAML](http://www.yaml.org/) configuration files and is
 propelled under the hood by [mustache](http://mustache.github.com/) templates.
 
+The project generated with the default setting can be found
+[here](https://github.com/cjerdonek/molt/tree/master/project_types/default/expected).
+
 The script is still in progress and not yet usable.  Comments and
 suggestions are welcome.
 
@@ -27,9 +30,9 @@ Features
 
 * Includes a test script that runs all of the molt project tests.
   The test script includes--
-  
+
   * command-line help,
-  
+
   * options for verbose and silent output,
 
   * automatic unit test and doctest discovery,
