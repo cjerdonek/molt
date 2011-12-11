@@ -81,17 +81,16 @@ class ConfigReaderTestCase(TestCase):
             }
         }
 
-        path_config = read_path_config(root_node, "root", "dir")
+        path_config = read_path_config(root_node, "dir")
         path_config.sort()
 
         expected = [
-            ('root/dir', PathAction('name1', False)),
-            ('root/dir/a/c', PathAction('name3', False)),
-            ('root/dir/a/d', PathAction('name2', False)),
-            ('root/dir/b', PathAction(None, True))
+            ('dir', PathAction('name1', False)),
+            ('dir/a/c', PathAction('name3', False)),
+            ('dir/a/d', PathAction('name2', False)),
+            ('dir/b', PathAction(None, True))
         ]
 
-        pprint(path_config)
         self.assertEquals(path_config, expected)
 
 class PathActionTestCase(TestCase):
@@ -102,14 +101,15 @@ class PathActionTestCase(TestCase):
     """
 
     def testConstructor(self):
+        none_path_action = PathAction(None, None)
+
         # None arguments.
-        pa = PathAction(None, None)
-        self.assertTrue(pa.new_name is None)
+        self.assertTrue(none_path_action.new_name is None)
         # Test converts executable to boolean.
-        self.assertTrue(pa.is_executable is False)
+        self.assertTrue(none_path_action.is_executable is False)
 
         # Default arguments.
-        self.assertTrue(PathAction(), PathAction(None, None))
+        self.assertEquals(PathAction(), none_path_action)
 
         # Test converts name to string.
         self.assertEquals(PathAction(1, 1), PathAction("1", True))

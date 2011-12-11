@@ -75,10 +75,10 @@ class ConfigReader(object):
 
         return path_action, child_nodes
 
-def read_path_config(root_node, root_dir, dir_name):
+def read_path_config(root_node, dir_name):
     accumulator = []
     none_path_action = PathAction()
-    stack = Stack(root_dir, dir_name, root_node)
+    stack = Stack("", dir_name, root_node)
 
     # We use an iterative approach with an accumulator to avoid a recursive
     # implementation.
