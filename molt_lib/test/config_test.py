@@ -34,36 +34,65 @@ Unit tests for config.py.
 
 from __future__ import absolute_import
 
+from pprint import pprint
 import unittest
 
 from .. import config
 
-make_path_action = config.make_path_action
-parse_path_config = config.parse_path_config
+ConfigReader = config.ConfigReader
 PathAction = config.PathAction
-
+read_path_config = config.read_path_config
 
 TestCase = unittest.TestCase
 
 
-class MakePathActionTestCase(TestCase):
+class ConfigReaderTestCase(TestCase):
 
     """
     Test make_path_action().
 
     """
 
-    def assertPathAction(self, data, expected):
-        actual = make_path_action(data)
+    reader = ConfigReader()
+
+    def assertPathAction(self, node, expected):
+        actual = self.reader.read_path_action(node)
         self.assertEquals(actual, expected)
 
-    def testNone(self):
-        self.assertRaises(Exception, make_path_action, None)
+    def testReadPathAction(self):
+        # Node None.
+        self.assertRaises(Exception, self.reader.read_path_action, None)
 
-    def testEmpty(self):
         self.assertPathAction({}, PathAction(None, False))
         self.assertPathAction({'rename': "foo", "executable": 1}, PathAction("foo", True))
 
+    def testReadPathConfig(self):
+        # TODO: create simpler test cases.
+        root_node = {
+            "rename": "name1",
+            "contents": {
+                "a": {
+                    "contents": {
+                        "d": {"rename": "name2"},
+                        "c": {"rename": "name3"}
+                    }
+                },
+                "b": {"executable": True}
+            }
+        }
+
+        path_config = read_path_config(root_node, "root", "dir")
+        path_config.sort()
+
+        expected = [
+            ('root/dir', PathAction('name1', False)),
+            ('root/dir/a/c', PathAction('name3', False)),
+            ('root/dir/a/d', PathAction('name2', False)),
+            ('root/dir/b', PathAction(None, True))
+        ]
+
+        pprint(path_config)
+        self.assertEquals(path_config, expected)
 
 class PathActionTestCase(TestCase):
 
@@ -78,6 +107,9 @@ class PathActionTestCase(TestCase):
         self.assertTrue(pa.new_name is None)
         # Test converts executable to boolean.
         self.assertTrue(pa.is_executable is False)
+
+        # Default arguments.
+        self.assertTrue(PathAction(), PathAction(None, None))
 
         # Test converts name to string.
         self.assertEquals(PathAction(1, 1), PathAction("1", True))
