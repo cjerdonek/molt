@@ -81,6 +81,10 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
     parser = OptionParser(usage=usage, add_help_option=False)
 
     # TODO: explicitly add a version option?
+    parser.add_option("-g", "--groom-template", metavar='DIRECTORY', dest="project_directory",
+                      action="store", type='string', default=defaults.source_root_directory,
+                      help='the directory containing the groom project template.  '
+                           'Defaults to the default template directory.')
     parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
                       action="store", type='string', default=defaults.config_path,
                       help='the path to the configuration file that contains, '
@@ -96,14 +100,10 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'if the target directory already exists.  Otherwise, '
                            'a new target directory is created by incrementing the '
                            'target directory name, for example "target_name (2)".')
-    parser.add_option("-p", "--project-template", metavar='DIRECTORY', dest="project_directory",
-                      action="store", type='string', default=defaults.source_root_directory,
-                      help='the directory containing the project template.  '
-                           'Defaults to the default template directory.')
     parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
                       action="store_true", default=False,
                       help="log verbosely.")
-    parser.add_option("-g", "--generate-expected", dest="should_generate_expected",
+    parser.add_option("-e", "--expected", dest="should_generate_expected",
                       action="store_true", default=False,
                       help='whether to regenerate the "expected" version of each '
                            'project template.  Regenerating versions does not '

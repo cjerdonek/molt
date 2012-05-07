@@ -6,6 +6,12 @@ Molt is a Python implementation of [Groom](https://github.com/cjerdonek/groom).
 The project is still in progress and not yet usable.  Comments and
 suggestions are welcome.
 
+Usage
+-----
+
+    molt groom/template/directory
+
+
 Develop
 -------
 
