@@ -53,9 +53,9 @@ _log = logging.getLogger(__name__)
 # script name when passed to the constructor as a usage string.
 USAGE = """%prog [options]
 
-Create a new Python project.
+Create a new project from a Groom template.
 
-This script creates a new Python project from a project template using
+This script creates a new project from a Groom project template using
 values from a configuration file.  It prints the output directory to
 standard output when complete."""
 

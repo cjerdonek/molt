@@ -40,15 +40,16 @@ import logging
 import os
 import sys
 
-from . import io
-from . import commandline
-from . import config
-from .common.error import Error
-from .common.optionparser import UsageError
-from .common.logging import configure_logging
-from .project_type import ProjectType
-from .render import Renderer
-from .view import File
+import molt
+from molt import io
+from molt import commandline
+from molt import config
+from molt.common.error import Error
+from molt.common.optionparser import UsageError
+from molt.common.logging import configure_logging
+from molt.project_type import ProjectType
+from molt.render import Renderer
+from molt.view import File
 
 _log = logging.getLogger("main")
 
@@ -61,7 +62,7 @@ ENCODING_TEMPLATE = ENCODING_DEFAULT
 
 
 def get_project_directory():
-    lib_directory = os.path.dirname(__file__)
+    lib_directory = os.path.dirname(molt.__file__)
     lib_directory = os.path.relpath(lib_directory)
 
     project_directory = os.path.normpath(os.path.join(lib_directory, os.pardir))
@@ -212,3 +213,6 @@ Pass -h or --help for help documentation and available options.""" % err
         return 1
 
 
+if __name__ == "__main__":
+    result = main(sys.argv)
+    sys.exit(result)
