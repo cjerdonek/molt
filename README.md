@@ -1,7 +1,12 @@
-molt (Python Project Creator)
-=============================
+Molt
+====
 
-molt is a Python script for starting new Python projects without all the
+Molt is a Python implementation of [Groom](https://github.com/cjerdonek/groom).
+
+The project is still in progress and not yet usable.  Comments and
+suggestions are welcome.
+
+Molt is a Python script for starting new Python projects without all the
 drudgery.  Projects created with molt begin with good practices and include
 plumbing and stubs for unit tests, [doctests](http://docs.python.org/library/doctest.html),
 a test script, logging, a markdown README and other documentation, license
@@ -11,9 +16,6 @@ propelled under the hood by [mustache](http://mustache.github.com/) templates.
 
 The project generated with the default setting can be found
 [here](https://github.com/cjerdonek/molt/tree/master/project_types/default/expected).
-
-The script is still in progress and not yet usable.  Comments and
-suggestions are welcome.
 
 
 Background
