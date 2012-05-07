@@ -9,7 +9,7 @@ suggestions are welcome.
 Usage
 -----
 
-    molt groom/template/directory
+    molt your/groom/template/directory
 
 
 Develop
