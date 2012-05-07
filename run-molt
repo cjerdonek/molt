@@ -39,7 +39,7 @@ See the project's README for details.
 
 import sys
 
-import molt_lib.main
+import molt.main
 
 
 def main(sys_argv):
@@ -47,7 +47,7 @@ def main(sys_argv):
     Run the main script, and return the exit status.
 
     """
-    return molt_lib.main.main(sys_argv)
+    return molt.main.main(sys_argv)
 
 
 if __name__ == "__main__":

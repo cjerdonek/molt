@@ -40,10 +40,10 @@ import os
 import alltest.main
 
 
-LIBRARY_PACKAGE_NAME = 'molt_lib'
+LIBRARY_PACKAGE_NAME = 'molt'
 README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
-# Code is in ../molt_lib .
+# Code is in ../molt .
 CODE_DIR = os.path.join(os.path.dirname(__file__), os.pardir, LIBRARY_PACKAGE_NAME)
 
 

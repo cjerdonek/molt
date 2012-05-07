@@ -46,7 +46,7 @@ import unittest
 
 _log = logging.getLogger(__name__)
 
-LIBRARY_PACKAGE_NAME = 'molt_lib'
+LIBRARY_PACKAGE_NAME = 'molt'
 README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
 
@@ -335,7 +335,7 @@ def main(sys_argv, execute_config=execute_config, **kwargs):
 
     try:
         try:
-            config = ProgramConfig(**kwargs) 
+            config = ProgramConfig(**kwargs)
             status = execute_config(sys_argv, config)
         except Error as err:
             _log.error(err)
