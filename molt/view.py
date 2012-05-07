@@ -58,7 +58,7 @@ def render(template, values):
 
 
 # TODO: make separate views for README and license.
-class File(pystache.View):
+class File(object):
 
     def __init__(self, **kwargs):
 
