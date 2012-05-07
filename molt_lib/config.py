@@ -71,14 +71,14 @@ class ConfigReader(object):
 
         """
         path_action = self.read_path_action(node)
-        child_nodes = node.get('contents', {})
+        child_nodes_dict = node.get('contents', {})
 
-        return path_action, child_nodes
+        return path_action, child_nodes_dict
 
 def read_path_config(root_node, dir_name):
     accumulator = []
     none_path_action = PathAction()
-    stack = Stack("", dir_name, root_node)
+    stack = Stack(dir_name, root_node)
 
     # We use an iterative approach with an accumulator to avoid a recursive
     # implementation.
@@ -118,39 +118,38 @@ class Stack(object):
 
     reader = ConfigReader()
 
-    def __init__(self, root_dir, dir_name, node):
-        # A list of lists of (dir_name, node) pairs.
+    def __init__(self, dir_name, node):
+        self.next = (dir_name, node)
+        # A list of lists of (dir_name, child_nodes_dict) pairs.
         self.remaining = []
-
-        child_pairs = {dir_name: node}
-        self._stage(root_dir, child_pairs)
-
-    def _stage(self, dir_name, child_pairs):
-        print dir_name, child_pairs
-        pair = (dir_name, child_pairs.items())
-        self.remaining.append(pair)
 
     def pop(self):
         """
         Return the next (path, path_action) pair.
 
         """
+        if self.next is None:
+            return None
+
         remaining = self.remaining
-        while True:
-            if not remaining:
-                return None
-            child_pairs = remaining[-1][1]
-            if not child_pairs:
-                remaining.pop()
-                continue
-            child_pair = child_pairs.pop()
-            break
-        # Stage the new node.
-        dir_name, node = child_pair
-        path_action, child_pairs = self.reader.read_path_config_node(node)
-        self._stage(dir_name, child_pairs)
+        dir_name, node = self.next
+        path_action, child_nodes_dict = self.reader.read_path_config_node(node)
+
+        remaining.append((dir_name, child_nodes_dict))
 
         path = os.path.join(*[pair[0] for pair in remaining])
+
+        while True:
+            if not remaining:
+                next = None
+                break
+            child_nodes_dict = remaining[-1][1]
+            if child_nodes_dict:
+                next = child_nodes_dict.popitem()
+                break
+            remaining.pop()
+
+        self.next = next
 
         return path, path_action
 

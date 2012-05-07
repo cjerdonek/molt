@@ -91,6 +91,8 @@ class ConfigReaderTestCase(TestCase):
             ('dir/b', PathAction(None, True))
         ]
 
+        pprint(expected)
+        pprint(path_config)
         self.assertEquals(path_config, expected)
 
 class PathActionTestCase(TestCase):
