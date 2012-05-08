@@ -47,9 +47,28 @@ from molt.view import File
 OUTPUT_ENCODING = 'utf-8'
 ENCODE_ERRORS = 'strict'
 
+TEMPLATE_EXT = '.mustache'
+SKIP_EXT = '.skip'
+
+
 _log = logging.getLogger(__name__)
 
 
+def is_template(path):
+    """
+    Return whether the file at the given path is a template.
+
+    """
+    root, ext = os.path.splitext(path)
+    if ext != TEMPLATE_EXT:
+        # For example, "README.txt".
+        return False
+    root, ext = os.path.splitext(root)
+    if ext == SKIP_EXT:
+        # For example, "template.skip.mustache".
+        return False
+    # For example, "README.md.mustache".
+    return True
 
 
 class Molter(object):
