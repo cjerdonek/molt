@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-This module provides a command to test pystache (unit tests, doctests, etc).
+Provides the setup() entry point for the main molt command-line script.
 
 """
 
