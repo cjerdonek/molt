@@ -57,6 +57,18 @@ def read(path, encoding, errors):
     return b.decode(encoding, errors)
 
 
+def write(u, path, encoding, errors):
+    """
+    Write a unicode string to a file.
+
+    """
+    b = u.encode(encoding=encoding, errors=errors)
+
+    _log.info("Writing: %s" % path)
+    with open(path, 'wb') as f:
+        f.write(b)
+
+
 def deserialize(path, encoding, errors):
     """
     Deserialize a JSON or YAML file based on the file extension.
@@ -79,16 +91,6 @@ def create_directory(path):
     if os.path.isdir(path):
         return False
     raise Error("Path already exists and is not a directory: %s" % path)
-
-
-def write_file(text, path, encoding):
-    """
-    Write a unicode string to a file.
-
-    """
-    with codecs.open(path, "w", encoding=encoding) as f:
-        f.write(text)
-    _log.debug("Wrote: %s" % path)
 
 
 # TODO: combine with deserialize().

@@ -44,13 +44,33 @@ from molt.common import io
 from molt.view import File
 
 
+OUTPUT_ENCODING = 'utf-8'
+ENCODE_ERRORS = 'strict'
+
 _log = logging.getLogger(__name__)
+
+
 
 
 class Molter(object):
 
     def __init__(self, pystacher):
         self.pystacher = pystacher
+
+    def _render_path_to_string(self, path, context):
+        """
+        Render the template at a path to a unicode string.
+
+        """
+        return self.pystacher.render_path(path, context)
+
+    def _render_path_to_file(self, path, context, target_path):
+        """
+        Render the template at a path to a file.
+
+        """
+        u = self._render_path_to_string(path, context)
+        io.write(u, target_path, OUTPUT_ENCODING, ENCODE_ERRORS)
 
     def render(template_dir, config_path, output_dir):
         print template_dir
@@ -63,14 +83,6 @@ class Molter(object):
     def get_output_path(self, path):
         pass
 
-    def render_path(self, path, context):
-        """
-        Arguments:
-
-          path: a path to a Mustache template file.
-
-        """
-        return self.pystacher.render_path(path, context)
 
 
 class Renderer(object):
@@ -177,4 +189,4 @@ if __name__ == "__main__":
 
     test_path = os.path.join(template_dir, "{{project}}.py")
 
-    print molter.render_path(test_path, data)
+    molter._render_path_to_file(test_path, data, 'temp.txt')
