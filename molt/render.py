@@ -28,7 +28,7 @@
 #
 
 """
-Exposes a Renderer class to render project files from template files.
+Exposes a Renderer class to render a project template.
 
 """
 
@@ -37,11 +37,40 @@ from __future__ import absolute_import
 import logging
 import os
 
-from . import io
-from .view import File
+from pystache import Renderer as Pystacher
+
+import molt
+from molt.common import io
+from molt.view import File
 
 
 _log = logging.getLogger(__name__)
+
+
+class Molter(object):
+
+    def __init__(self, pystacher):
+        self.pystacher = pystacher
+
+    def render(template_dir, config_path, output_dir):
+        print template_dir
+        print config_path
+        print output_dir
+
+    def render_path(self, path, context):
+        return self.renderer.render_path(path, context)
+
+    def get_output_path(self, path):
+        pass
+
+    def render_path(self, path, context):
+        """
+        Arguments:
+
+          path: a path to a Mustache template file.
+
+        """
+        return self.pystacher.render_path(path, context)
 
 
 class Renderer(object):
@@ -127,3 +156,25 @@ Rendering template:
 
         io.write_file(rendered, target_path, encoding=self.encoding)
 
+
+if __name__ == "__main__":
+    ENCODING = 'utf-8'
+    DECODE_ERRORS = 'strict'
+
+    project_dir = os.path.dirname(molt.__file__)
+    rel_example_dir = os.path.join('test', 'example')
+    output_dir = 'output'
+
+    template_dir = os.path.join(project_dir, rel_example_dir, 'PythonApp')
+    config_path = os.path.join(project_dir, rel_example_dir, 'sample.json')
+
+    data = io.deserialize(config_path, ENCODING, DECODE_ERRORS)
+    data = data['mustache']
+
+    pystacher = Pystacher()
+
+    molter = Molter(pystacher)
+
+    test_path = os.path.join(template_dir, "{{project}}.py")
+
+    print molter.render_path(test_path, data)

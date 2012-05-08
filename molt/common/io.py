@@ -35,6 +35,7 @@ Exposes a Renderer class to render project files from template files.
 from __future__ import absolute_import
 
 import codecs
+import json
 import logging
 import os
 
@@ -42,6 +43,28 @@ import yaml
 
 
 _log = logging.getLogger(__name__)
+
+
+def read(path, encoding, errors):
+    """
+    Read and return the contents of a text file as a unicode string.
+
+    """
+    # This function implementation was chosen to be compatible across Python 2/3.
+    with open(path, 'rb') as f:
+        b = f.read()
+
+    return b.decode(encoding, errors)
+
+
+def deserialize(path, encoding, errors):
+    """
+    Deserialize a JSON or YAML file based on the file extension.
+
+    """
+    u = read(path, encoding, errors)
+
+    return json.loads(u)
 
 
 def create_directory(path):
@@ -68,6 +91,7 @@ def write_file(text, path, encoding):
     _log.debug("Wrote: %s" % path)
 
 
+# TODO: combine with deserialize().
 def unserialize_yaml_file(path, encoding):
     """
     Deserialize a yaml file.

@@ -19,6 +19,12 @@ For help documentation from a source distribution--
 
     python -m molt.commands.molt -h
 
+Test--
+
+    python -m molt.commands.molt -c molt/test/example/sample.json -o output molt/test/example/PythonApp
+
+TODO:
+
 Features
 --------
 

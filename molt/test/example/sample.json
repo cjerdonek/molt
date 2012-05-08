@@ -1,0 +1,7 @@
+{
+    "mustache": {
+        "project": "hello",
+        "author": "Mustachioed Maven",
+        "year": 2012
+    }
+}
