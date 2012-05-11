@@ -37,18 +37,24 @@ Runs all unit tests and doctests in the project.
 
 import os
 
-import alltest.main
+import molt
+from molt.test.alltest import run_all_tests
 
 
 LIBRARY_PACKAGE_NAME = 'molt'
 README_PATH = os.path.join(os.pardir, 'README.md')
 TEST_MODULE_PATTERN = '*_unittest.py'
-# Code is in ../molt .
-CODE_DIR = os.path.join(os.path.dirname(__file__), os.pardir, LIBRARY_PACKAGE_NAME)
 
 
-def main(sys_argv):
+def run_tests(sys_argv):
     """Run all tests, and exit."""
-    return alltest.main.main(sys_argv, code_dir, package_dir, test_module_pattern, doctest_paths=None)
+    source_dir = os.path.dirname(molt.__file__)
+    package_dir = os.path.join(source_dir, os.pardir)
+    package_name = molt.__name__
 
-
+    # TODO: pass verbosity via the caller of this function.
+    return run_all_tests(source_dir=source_dir,
+                         unittest_module_pattern=TEST_MODULE_PATTERN,
+                         module_name=package_name,
+                         doctest_paths=[],
+                         verbose=True)

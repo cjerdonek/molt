@@ -49,6 +49,7 @@ from molt.common.optionparser import UsageError
 from molt.common.logging import configure_logging
 from molt.project_type import ProjectType
 from molt.render import Renderer
+from molt.test.main import run_tests
 from molt.view import File
 
 _log = logging.getLogger("main")
@@ -139,6 +140,9 @@ def do_program_body(sys_argv, usage):
     defaults = create_defaults(current_working_directory)
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
+    if options.run_tests:
+        return run_tests(sys_argv)
+
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
         generate_expected()
@@ -174,6 +178,7 @@ def do_program_body(sys_argv, usage):
         print output_directory
 
     _log.info("Done.")
+    return 0
 
 
 def run(sys_argv, configure_logging=configure_logging, process_args=do_program_body):
@@ -197,8 +202,7 @@ def run(sys_argv, configure_logging=configure_logging, process_args=do_program_b
     configure_logging(logging_level)
 
     try:
-        process_args(sys_argv, commandline.USAGE)
-        return 0
+        status = process_args(sys_argv, commandline.USAGE)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         s = """\
@@ -207,7 +211,9 @@ Command-line usage error: %s
 Pass -h or --help for help documentation and available options.""" % err
         _log.error(s)
 
-        return 2
+        status = 2
     except Error, err:
         _log.error(err)
-        return 1
+        status = 1
+
+    return status

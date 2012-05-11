@@ -246,9 +246,12 @@ def find_unit_test_module_names(top_dir, filename_pattern, module_name):
     return names
 
 
-def run_unit_tests(top_dir, unittest_module_pattern, module_name,
-                   doctest_paths=[], verbose=False):
+def run_all_tests(source_dir, unittest_module_pattern, module_name,
+                  doctest_paths=[], verbose=False):
     """Run the unit tests in the given directory."""
+    # TODO: change top_dir to source_dir.
+    top_dir = source_dir
+
     # Test discovery was not added to unittest until Python 2.7:
     #
     #   http://docs.python.org/library/unittest.html#test-discovery
@@ -296,7 +299,7 @@ def run_unit_tests(top_dir, unittest_module_pattern, module_name,
 
 class ProgramConfig(object):
 
-    def __init__(self, package_name, package_dir, test_module_pattern, doctest_paths=[]):
+    def __init__(self, package_dir, test_module_pattern, doctest_paths=[]):
         self.package_dir = package_dir
         self.test_module_pattern = test_module_pattern
         self.doctest_paths = doctest_paths
