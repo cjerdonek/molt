@@ -181,7 +181,7 @@ def do_program_body(sys_argv, usage):
     return 0
 
 
-def run(sys_argv, configure_logging=configure_logging, process_args=do_program_body):
+def run_molt(sys_argv, configure_logging=configure_logging, process_args=do_program_body):
     """
     Execute this script's main function, and return the exit status.
 

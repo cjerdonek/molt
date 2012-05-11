@@ -36,11 +36,11 @@ from __future__ import absolute_import
 
 import sys
 
-from molt.main import run
+from molt.main import run_molt
 
 
 def main(sys_argv=sys.argv):
-    return run(sys_argv=sys_argv)
+    return run_molt(sys_argv=sys_argv)
 
 
 if __name__ == "__main__":

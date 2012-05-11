@@ -35,8 +35,7 @@ Unit tests for the main module.
 import logging
 import unittest
 
-import main
-
+from molt.main import Error, run_molt
 
 class MockLogging(object):
 
@@ -58,11 +57,11 @@ class MainTestCase(unittest.TestCase):
         self.logging = MockLogging()
 
     def test_error(self):
-        def raise_error(sys_argv):
-            raise main.Error("test")
+        def process_args(sys_argv, usage):
+            raise Error("test")
 
-        result = main.main([], configure_logging=self.logging.configure_logging,
-                           process_args=raise_error)
+        result = run_molt([], configure_logging=self.logging.configure_logging,
+                          process_args=process_args)
         self.assertEquals(result, 1)
         self.assertEquals(self.logging.level, logging.INFO)
 
