@@ -36,7 +36,6 @@ Runs all unit tests and doctests in the project.
 # TODO: unit test this module.
 # TODO: use os.walk_packages instead of manually directory traversal.
 # TODO: pass a filter function instead of a glob pattern.
-# TODO: override unittest so as not to exit().
 
 import doctest
 import glob
@@ -174,6 +173,8 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     Run all tests, and return a unittest.TestResult instance.
 
     """
+    _log.info("Running molt tests.")
+
     # TODO: consider using unittest's test discovery functionality
     #   added in Python 2.7.
     #
@@ -205,70 +206,11 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
-    # We construct a custom test runner to avoid unittest.main()'s
-    # Python 2.6 behavior of always exiting.  See UnittestTestRunner's
-    # docstring for more details.
-    test_runner = UnittestTestRunner(verbosity=verbosity)
-
     test_loader = UnittestTestLoader(doctest_modules=all_module_names, doctest_paths=doctest_paths)
 
-    _log.info("Running molt tests...")
+    test_program = unittest.main(testLoader=test_loader, module=None, argv=argv, exit=False)
 
-    try:
-        unittest.main(testLoader=test_loader, testRunner=test_runner,
-                      module=None, argv=argv)
-    except UnittestTestRunnerResult as err:
-        test_result = err.result
-
-    return test_result
-
-
-class UnittestTestRunnerResult(Error):
-
-    """
-    Raised by UnittestTestRunner to communicate a test run result.
-
-    """
-
-    def __init__(self, test_result):
-        """
-        Arguments:
-
-          result: a unittest.TestResult instance.
-
-        """
-        self.result = test_result
-
-
-class UnittestTestRunner(unittest.TextTestRunner):
-
-    """
-    A unittest test runner for use by this package.
-
-    This test runner differs from unittest's default TextTestRunner because
-    its run() method raises an exception after running tests instead of
-    returning the result.  This is a hack to get around the fact that
-    unittest.main() calls sys.exit() immediately after running the tests.
-    Only in Python 2.7 does the unittest module provide a way to bypassing
-    the system exit.
-
-    By having the TestRunner raise an exception, we can leave unittest.main()
-    before it calls sys.exit().  We include the result in the raised
-    exception so that the caller can handle the error and read the result.
-
-    """
-
-    def run(self, test):
-        """
-        Run the given test case or test suite, and raise an exception.
-
-        This method raises a UnittestTestRunnerResult exception that
-        contains the result of the test run.
-
-        """
-        test_result = super(UnittestTestRunner, self).run(test)
-
-        raise UnittestTestRunnerResult(test_result)
+    return test_program.result
 
 
 class UnittestTestLoader(unittest.TestLoader):
