@@ -1,0 +1,3 @@
+[submodule "submodules/groom"]
+	path = submodules/groom
+	url = git://github.com/cjerdonek/groom.git
