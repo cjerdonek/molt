@@ -37,11 +37,14 @@ Runs all unit tests and doctests in the project.
 # TODO: use os.walk_packages instead of manually directory traversal.
 # TODO: pass a filter function instead of a glob pattern.
 
+from __future__ import absolute_import
+
 import doctest
 import glob
 import logging
 from optparse import OptionParser
 import os
+from pkgutil import walk_packages
 import sys
 import unittest
 
@@ -98,77 +101,23 @@ def add_doctest_files(suites, paths):
         suites.append(suite)
 
 
-def path_to_module_name(path):
+def find_modules(package):
     """
-    Convert a file path to a dotted module name, and return the name.
-
-    This function assumes that the first directory in the file path
-    is the first module name in the dotted module name.  In other words,
-    the given path must be relative to the top-level directory in the
-    package hierarchy.
+    Return a list of the names of modules inside a package.
 
     """
-    root, ext = os.path.splitext(path)
-    module_parts = []
-    while True:
-        root, tail = os.path.split(root)
-        module_parts.append(tail)
-        if not root:
-            break
-    module_parts.reverse()
+    dir_path = os.path.dirname(package.__file__)
+    prefix = "%s." % package.__name__
 
-    return ".".join(module_parts)
+    names = []
+    for info in walk_packages(path=[dir_path], prefix=prefix):
+        loader, name, ispkg = info
+        names.append(name)
 
-
-def find_matching_module_paths(top_dir, pattern):
-    """
-    Return the paths to the modules whose file names match the pattern.
-
-    The function searches the given directory recursively.  The pattern
-    should be a string that is a file globbing pattern suitable for
-    passing to Python's glob module, for example "*_unittest.py".
-
-    Returns:
-
-    This function returns a list of relative paths.  The paths are relative
-    to the given directory.  For example, if "./shapes/circle_unittest.py"
-    relative to the given directory matches, then the function will return
-    "shapes/circle_unittest.py" for that module.
-
-    """
-    original_dir = os.getcwd()
-
-    try:
-        # Temporarily switch directories as an easy way to generate paths
-        # relative to the top directory.
-        os.chdir(top_dir)
-
-        paths = []
-        for dir_path, dir_names, file_names in os.walk(os.curdir):
-            glob_path = os.path.join(dir_path, pattern)
-            for path in glob.glob(glob_path):
-                # Remove the leading current directory portion (for example "./").
-                path = os.path.normpath(path)
-                paths.append(path)
-    finally:
-        os.chdir(original_dir)
-
-    return paths
-
-
-def find_unit_test_module_names(top_dir, filename_pattern, module_name):
-    """
-    Return the names of the modules whose file names match the pattern.
-
-    """
-    paths = find_matching_module_paths(top_dir, filename_pattern)
-    names = [path_to_module_name(path) for path in paths]
-    names = [".".join([module_name, name]) for name in names]
     return names
 
 
-def run_all_tests(source_dir, unittest_module_pattern, module_name,
-                  doctest_paths=[], verbose=False):
+def run_all_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
     """
     Run all tests, and return a unittest.TestResult instance.
 
@@ -184,8 +133,8 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     #
     # We use our own test discovery method here to support test discovery
     # in Python 2.6 and earlier.
-    test_module_names = find_unit_test_module_names(source_dir, unittest_module_pattern, module_name)
-    all_module_names = find_unit_test_module_names(source_dir, "*.py", module_name)
+    module_names = find_modules(package)
+    test_module_names = filter(is_unittest_module, module_names)
 
     argv = ['']
 
@@ -206,7 +155,7 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
-    test_loader = UnittestTestLoader(doctest_modules=all_module_names, doctest_paths=doctest_paths)
+    test_loader = UnittestTestLoader(doctest_modules=module_names, doctest_paths=doctest_paths)
 
     test_program = unittest.main(testLoader=test_loader, module=None, argv=argv, exit=False)
 

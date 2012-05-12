@@ -43,7 +43,8 @@ from molt.test.alltest import run_all_tests
 
 LIBRARY_PACKAGE_NAME = 'molt'
 README_REL_PATH = 'README.md'  # relative to the project directory.
-TEST_MODULE_PATTERN = '*_unittest.py'
+IS_UNITTEST_MODULE = lambda name: (name.endswith('_unittest') or
+                                   name.endswith('_test'))
 
 
 def run_tests(verbose=False):
@@ -58,9 +59,8 @@ def run_tests(verbose=False):
     doctest_paths = [readme_path]
 
     # TODO: pass verbosity via the caller of this function.
-    test_result = run_all_tests(source_dir=source_dir,
-                                unittest_module_pattern=TEST_MODULE_PATTERN,
-                                module_name=package_name,
+    test_result = run_all_tests(package=molt,
+                                is_unittest_module=IS_UNITTEST_MODULE,
                                 doctest_paths=doctest_paths,
                                 verbose=verbose)
     return test_result
