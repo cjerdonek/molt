@@ -28,7 +28,7 @@
 #
 
 """
-Provides the setup() entry point for the main molt command-line script.
+Provides the entry point for the main molt command-line script.
 
 """
 

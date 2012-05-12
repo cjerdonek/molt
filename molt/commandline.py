@@ -42,6 +42,8 @@ from .common.optionparser import OptionParser
 from .common.optionparser import UsageError
 
 
+OPTION_RUN_TESTS = "--run-tests"
+
 _log = logging.getLogger(__name__)
 
 
@@ -109,7 +111,7 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'project template.  Regenerating versions does not '
                            'delete files but only overwrites them.  This option '
                            'is exposed mainly for molt development purposes.')
-    parser.add_option("--run-tests", dest="run_tests",
+    parser.add_option(OPTION_RUN_TESTS, dest="run_tests",
                       action="store_true", default=False,
                       help='whether to run tests.')
     parser.add_option("-h", "--help", action=help_action,
