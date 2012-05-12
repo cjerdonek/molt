@@ -224,12 +224,13 @@ if __name__ == "__main__":
     ENCODING = 'utf-8'
     DECODE_ERRORS = 'strict'
 
-    project_dir = os.path.dirname(molt.__file__)
-    rel_example_dir = os.path.join('test', 'example')
+    source_dir = os.path.dirname(molt.__file__)
+    project_dir = os.path.join(source_dir, os.pardir)
+    example_dir = os.path.join(project_dir, 'examples', 'PythonScript')
     output_dir = 'output'
 
-    template_dir = os.path.join(project_dir, rel_example_dir, 'PythonApp')
-    config_path = os.path.join(project_dir, rel_example_dir, 'sample.json')
+    template_dir = os.path.join(example_dir, 'template')
+    config_path = os.path.join(example_dir, 'sample.json')
 
     data = io.deserialize(config_path, ENCODING, DECODE_ERRORS)
     data = data['mustache']
