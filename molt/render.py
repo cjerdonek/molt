@@ -36,6 +36,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+from shutil import copyfile
 
 from pystache import Renderer as Pystacher
 
@@ -54,26 +55,37 @@ SKIP_EXT = '.skip'
 _log = logging.getLogger(__name__)
 
 
-def is_template(path):
+def preprocess_filename(filename):
     """
-    Return whether the file at the given path is a template.
+    Return the pair (new_filename, is_template).
 
     """
-    root, ext = os.path.splitext(path)
-    if ext != TEMPLATE_EXT:
-        # For example, "README.txt".
-        return False
-    root, ext = os.path.splitext(root)
-    if ext == SKIP_EXT:
-        # For example, "template.skip.mustache".
-        return False
-    # For example, "README.md.mustache".
-    return True
+    is_template = False
+
+    root, ext = os.path.splitext(filename)
+
+    if ext == TEMPLATE_EXT:
+        subroot, ext = os.path.splitext(root)
+        if ext == SKIP_EXT:
+            # For example, "template.skip.mustache".
+            filename = subroot + TEMPLATE_EXT
+        else:
+            # For example, "README.md.mustache".
+            filename = root
+            is_template = True
+
+    return filename, is_template
 
 
 class Molter(object):
 
     def __init__(self, pystacher):
+        """
+        Arguments:
+
+          pystacher: a pystache.Renderer instance.
+
+        """
         self.pystacher = pystacher
 
     def _render_path_to_string(self, path, context):
@@ -91,17 +103,37 @@ class Molter(object):
         u = self._render_path_to_string(path, context)
         io.write(u, target_path, OUTPUT_ENCODING, ENCODE_ERRORS)
 
-    def render(template_dir, config_path, output_dir):
-        print template_dir
-        print config_path
-        print output_dir
+    def molt_file(self, path, context, output_dir):
+        dir_path, filename = os.path.split(path)
+        new_filename, is_template = preprocess_filename(filename)
+        new_filename = self.pystacher.render(new_filename, context)
 
-    def render_path(self, path, context):
-        return self.renderer.render_path(path, context)
+        new_path = os.path.join(output_dir, new_filename)
 
-    def get_output_path(self, path):
-        pass
+        if not is_template:
+            copyfile(path, new_path)
+        else:
+            self._render_path_to_file(path, context, new_path)
 
+    def molt_dir(self, dir_path, context, output_dir):
+        """
+        Recursively render the contents of a directory to an output directory.
+
+        Arguments:
+
+          output_dir: a path to an existing directory.
+
+        """
+        for name in os.listdir(dir_path):
+            path = os.path.join(dir_path, name)
+            if not os.path.isdir(path):
+                self.molt_file(path, context, output_dir)
+                continue
+            # Otherwise, it is a directory.
+            new_name = preprocess_filename(filename)[0]
+            new_output_dir = os.path.join(output_dir, new_name)
+            os.mkdir(new_output_dir)
+            self.molt_dir(path, context, new_output_dir)
 
 
 class Renderer(object):
@@ -206,6 +238,7 @@ if __name__ == "__main__":
 
     molter = Molter(pystacher)
 
-    test_path = os.path.join(template_dir, "{{project}}.py")
+    test_path = os.path.join(template_dir, "{{project}}.py.mustache")
 
-    molter._render_path_to_file(test_path, data, 'temp.txt')
+    os.mkdir("output")
+    molter.molt_dir(template_dir, data, "output")
