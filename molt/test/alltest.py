@@ -297,14 +297,6 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     return result.wasSuccessful()
 
 
-class ProgramConfig(object):
-
-    def __init__(self, package_dir, test_module_pattern, doctest_paths=[]):
-        self.package_dir = package_dir
-        self.test_module_pattern = test_module_pattern
-        self.doctest_paths = doctest_paths
-
-
 def execute_config(sys_argv, config):
     """Run all unit tests."""
 
@@ -322,67 +314,10 @@ def execute_config(sys_argv, config):
     return 0 if was_successful else 1
 
 
-# TODO: make this function into a class that simplifies testing.
-def main(sys_argv, execute_config=execute_config, **kwargs):
-    """
-    Execute this script's main function, and return the exit status.
-
-    """
-    # TODO: follow all of the recommendations here:
-    # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
-
-    # Configure logging before entering the try block to ensure that
-    # we can log errors in the corresponding except block.
-    verbose = should_log_verbosely(sys_argv)
-    configure_logging(logging.DEBUG if verbose else logging.INFO)
-
-    try:
-        try:
-            config = ProgramConfig(**kwargs)
-            status = execute_config(sys_argv, config)
-        except Error as err:
-            _log.error(err)
-            raise
-    except UsageError as err:
-        print "\nPass -h or --help for help documentation and available options."
-        status = 2
-    except Error, err:
-        status = 1
-
-    return status
-
-
-class Error(Exception):
-    """Base class for exceptions raised explicitly in this project."""
-    pass
-
-
-class UsageError(Error):
-    """Exception class for command-line syntax errors."""
-    pass
-
-
 class UnittestTestRunnerResult(Error):
     """Raised by UnittestTestRunner to communicate a test run result."""
     def __init__(self, result):
         self.result = result
-
-
-# We subclass optparse.OptionParser to customize the behavior of error().
-# The base class's implementation of error() prints the usage string
-# and exits with status code 2.
-class TesterOptionParser(OptionParser):
-
-    def error(self, message):
-        """
-        Handle an error occurring while parsing command arguments.
-
-        This method overrides the OptionParser base class's error().  The
-        OptionParser class requires that this method either exit or raise
-        an exception.
-
-        """
-        raise UsageError(message)
 
 
 class UnittestTestRunner(unittest.TextTestRunner):

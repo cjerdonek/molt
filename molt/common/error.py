@@ -42,6 +42,9 @@ _log = logging.getLogger(__name__)
 
 
 class Error(Exception):
-    """Base class for exceptions defined in this project."""
+    """
+    Base class for exceptions defined in this project.
+
+    """
     pass
 
