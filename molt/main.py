@@ -49,7 +49,7 @@ from molt.common.optionparser import UsageError
 from molt.common.logging import configure_logging
 from molt.project_type import ProjectType
 from molt.render import Renderer
-from molt.test.main import run_tests
+from molt.test.harness.main import run_tests
 from molt.view import File
 
 _log = logging.getLogger("main")
