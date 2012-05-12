@@ -1,7 +1,7 @@
 Molt
 ====
 
-Molt is a Python implementation of [Groom](https://github.com/cjerdonek/groom).
+Molt is a Python implementation of [Groom](http://cjerdonek.github.com/groom/).
 
 The project is still in progress and not yet usable.  Comments and
 suggestions are welcome.
@@ -10,7 +10,7 @@ suggestions are welcome.
 Requirements
 ------------
 
-Molt requires Python 2.7.  Support for Python 3.x is planned for addition.
+Molt requires Python 2.7.  Support for Python 3.x is planned.
 Since Molt is a development tool, there are no plans to add support for
 Python 2.6 or earlier.
 
@@ -39,8 +39,6 @@ Test it manually--
 
 Features
 --------
-
-* Tested with Python 2.6 and 2.7.
 
 * Includes a test script that runs all of the molt project tests.
   The test script includes--
@@ -87,7 +85,7 @@ Chris Jerdonek
 Copyright
 ---------
 
-Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
