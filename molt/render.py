@@ -130,7 +130,7 @@ class Molter(object):
                 self.molt_file(path, context, output_dir)
                 continue
             # Otherwise, it is a directory.
-            new_name = preprocess_filename(filename)[0]
+            new_name = preprocess_filename(name)[0]
             new_output_dir = os.path.join(output_dir, new_name)
             os.mkdir(new_output_dir)
             self.molt_dir(path, context, new_output_dir)
