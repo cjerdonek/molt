@@ -141,7 +141,10 @@ def do_program_body(sys_argv, usage):
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
     if options.run_tests:
-        return run_tests(sys_argv)
+        test_result = run_tests(verbose=options.verbose)
+
+        return 0 if test_result.wasSuccessful() else 1
+
 
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:

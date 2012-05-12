@@ -43,12 +43,10 @@ import os
 import sys
 import unittest
 
+from molt.common.error import Error
+
 
 _log = logging.getLogger(__name__)
-
-LIBRARY_PACKAGE_NAME = 'molt'
-README_PATH = os.path.join(os.pardir, 'README.md')
-TEST_MODULE_PATTERN = '*_unittest.py'
 
 USAGE = """%prog [options]
 
@@ -106,39 +104,6 @@ def configure_logging(logging_level):
     _log.debug("Verbose logging enabled.")
 
 
-def add_parser_options(parser):
-    """Add command-line options to the given OptionParser."""
-    parser.add_option("-v", "--verbose", action='store_true', default=False,
-                      help="log verbose output")
-
-
-def should_log_verbosely(sys_argv):
-    """
-    Return whether verbose logging should be enabled.
-
-    This function should never raise an Exception because it is meant
-    to be called before logging is configured (in particular, before
-    exception logging).
-
-    """
-    # The OptionParser we construct here is a dummy parser solely for
-    # detecting the verbose logging option prior to configuring logging.
-    # We disable the help option to prevent exiting when a help option
-    # is passed (e.g. "-h" or "--help").
-    parser = TesterOptionParser(add_help_option=False)
-    add_parser_options(parser)
-
-    try:
-        # The optparse module's parse_args() normally expects sys.argv[1:].
-        (options, args) = parser.parse_args(sys_argv[1:])
-    except UsageError:
-        # Default to normal logging on error.  Any usage error will
-        # occur again during the second pars.
-        return False
-
-    return options.verbose
-
-
 def parse_args(sys_argv, usage=USAGE):
     """
     Parse the command arguments, and return (options, args).
@@ -171,7 +136,7 @@ def create_doctest_suites(module_names, paths):
         suites.append(suite)
 
     for path in paths:
-        suite = doctest.DocFileSuite(README_PATH)
+        suite = doctest.DocFileSuite(path, module_relative=False)
         suites.append(suite)
 
     return suites
@@ -248,7 +213,10 @@ def find_unit_test_module_names(top_dir, filename_pattern, module_name):
 
 def run_all_tests(source_dir, unittest_module_pattern, module_name,
                   doctest_paths=[], verbose=False):
-    """Run the unit tests in the given directory."""
+    """
+    Run all tests, and return a unittest.TestResult instance.
+
+    """
     # TODO: change top_dir to source_dir.
     top_dir = source_dir
 
@@ -292,32 +260,26 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
         unittest.main(testLoader=test_loader, testRunner=test_runner,
                       module=None, argv=argv)
     except UnittestTestRunnerResult as err:
-        result = err.result
+        test_result = err.result
 
-    return result.wasSuccessful()
-
-
-def execute_config(sys_argv, config):
-    """Run all unit tests."""
-
-    (options, args) = parse_args(sys_argv)
-
-    verbose = options.verbose
-
-    module_dir = os.path.dirname(__file__)
-
-    top_dir = os.path.join(module_dir, os.pardir, LIBRARY_PACKAGE_NAME)
-    was_successful = run_unit_tests(top_dir,
-                                    config.test_module_pattern, LIBRARY_PACKAGE_NAME,
-                                    doctest_paths=[README_PATH], verbose=verbose)
-
-    return 0 if was_successful else 1
+    return test_result
 
 
 class UnittestTestRunnerResult(Error):
-    """Raised by UnittestTestRunner to communicate a test run result."""
-    def __init__(self, result):
-        self.result = result
+
+    """
+    Raised by UnittestTestRunner to communicate a test run result.
+
+    """
+
+    def __init__(self, test_result):
+        """
+        Arguments:
+
+          result: a unittest.TestResult instance.
+
+        """
+        self.result = test_result
 
 
 class UnittestTestRunner(unittest.TextTestRunner):
@@ -346,9 +308,9 @@ class UnittestTestRunner(unittest.TextTestRunner):
         contains the result of the test run.
 
         """
-        result = super(UnittestTestRunner, self).run(test)
+        test_result = super(UnittestTestRunner, self).run(test)
 
-        raise UnittestTestRunnerResult(result)
+        raise UnittestTestRunnerResult(test_result)
 
 
 class UnittestTestLoader(unittest.TestLoader):

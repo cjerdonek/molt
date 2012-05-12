@@ -38,6 +38,8 @@ import codecs
 import logging
 import os
 
+# TODO: use argparse instead of optparse:
+#   http://docs.python.org/library/argparse.html#module-argparse
 from .common.optionparser import OptionParser
 from .common.optionparser import UsageError
 
@@ -80,6 +82,9 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
     """
     help_action = "store_true" if suppress_help_exit else "help"
 
+    # We prevent the help option from being added automatically so that
+    # we can add our own optional manually.  This lets us prevent exiting
+    # when a help option is passed (e.g. "-h" or "--help").
     parser = OptionParser(usage=usage, add_help_option=False)
 
     # TODO: explicitly add a version option?
@@ -102,7 +107,7 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'if the target directory already exists.  Otherwise, '
                            'a new target directory is created by incrementing the '
                            'target directory name, for example "target_name (2)".')
-    parser.add_option("-v", "--verbose", dest="is_verbose_logging_enabled",
+    parser.add_option("-v", "--verbose", dest="verbose",
                       action="store_true", default=False,
                       help="log verbosely.")
     parser.add_option("-e", "--expected", dest="should_generate_expected",
@@ -124,15 +129,20 @@ def is_verbose_logging_enabled(sys_argv):
     """
     Return whether verbose logging is enabled.
 
+    This function should never raise an Exception nor exit because it is
+    meant to be called before logging is configured (in particular,
+    before exception logging).
+
     """
     try:
         # Suppress the help option to prevent exiting.
         options, args = parse_args(sys_argv, suppress_help_exit=True)
     except UsageError:
-        # Default to normal logging on error.
+        # Default to normal logging on error.  Any usage error will
+        # occur again during the second pars.
         return False
 
-    return options.is_verbose_logging_enabled
+    return options.verbose
 
 
 def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
@@ -145,9 +155,10 @@ def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
     if defaults is None:
         defaults = DefaultOptions()
 
-    args = sys_argv[1:]
-
     parser = create_parser(defaults, suppress_help_exit=suppress_help_exit, usage=usage)
+
+    # The optparse module's parse_args() normally expects sys.argv[1:].
+    args = sys_argv[1:]
     options, args = parser.parse_args(args)
 
     return options, args

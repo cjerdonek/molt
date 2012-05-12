@@ -42,19 +42,25 @@ from molt.test.alltest import run_all_tests
 
 
 LIBRARY_PACKAGE_NAME = 'molt'
-README_PATH = os.path.join(os.pardir, 'README.md')
+README_REL_PATH = 'README.md'  # relative to the project directory.
 TEST_MODULE_PATTERN = '*_unittest.py'
 
 
-def run_tests(sys_argv):
-    """Run all tests, and exit."""
+def run_tests(verbose=False):
+    """
+    Run all project tests, and return a unittest.TestResult instance.
+
+    """
     source_dir = os.path.dirname(molt.__file__)
     package_dir = os.path.join(source_dir, os.pardir)
     package_name = molt.__name__
+    readme_path = os.path.join(package_dir, README_REL_PATH)
+    doctest_paths = [readme_path]
 
     # TODO: pass verbosity via the caller of this function.
-    return run_all_tests(source_dir=source_dir,
-                         unittest_module_pattern=TEST_MODULE_PATTERN,
-                         module_name=package_name,
-                         doctest_paths=[],
-                         verbose=True)
+    test_result = run_all_tests(source_dir=source_dir,
+                                unittest_module_pattern=TEST_MODULE_PATTERN,
+                                module_name=package_name,
+                                doctest_paths=doctest_paths,
+                                verbose=verbose)
+    return test_result

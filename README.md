@@ -64,7 +64,7 @@ Examples
 This is a temporary test of a doctest failure:
 
     >>> 1 + 1
-    3
+    2
 
 
 TODO's
