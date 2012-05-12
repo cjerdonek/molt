@@ -64,6 +64,28 @@ values from a configuration file.  It prints the output directory to
 standard output when complete."""
 
 
+# TODO: merge this with the help text for the --run-tests option.
+USAGE2 = """%prog [options]
+
+Runs the molt project's tests.
+
+The project's tests include all of the unit tests and doctests in the
+project.  Doctests, as described more fully in Python's doctest module,
+are example interactive code snippets that appear in project documenation.
+A doctest might look like this:
+
+>>> 1 + 1
+3
+
+The script looks for doctests in essentially all project files, for example
+in the project's README file and in all of the Python code's docstrings.
+
+The script uses Python's unittest and doctest modules to find and run
+the tests.  For unified reporting reasons, the script runs all tests as
+unit tests, including the doctests.  Each file of doctests corresponds to
+a single unittest test case."""
+
+
 class DefaultOptions(object):
     """
     The default values that the OptionParser should use.

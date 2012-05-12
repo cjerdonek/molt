@@ -34,6 +34,9 @@ Runs all unit tests and doctests in the project.
 """
 
 # TODO: unit test this module.
+# TODO: use os.walk_packages instead of manually directory traversal.
+# TODO: pass a filter function instead of a glob pattern.
+# TODO: override unittest so as not to exit().
 
 import doctest
 import glob
@@ -47,26 +50,6 @@ from molt.common.error import Error
 
 
 _log = logging.getLogger(__name__)
-
-USAGE = """%prog [options]
-
-Runs the molt project's tests.
-
-The project's tests include all of the unit tests and doctests in the
-project.  Doctests, as described more fully in Python's doctest module,
-are example interactive code snippets that appear in project documenation.
-A doctest might look like this:
-
->>> 1 + 1
-2
-
-The script looks for doctests in essentially all project files, for example
-in the project's README file and in all of the Python code's docstrings.
-
-The script uses Python's unittest and doctest modules to find and run
-the tests.  For unified reporting reasons, the script runs all tests as
-unit tests, including the doctests.  Each file of doctests corresponds to
-a single unittest test case."""
 
 
 # TODO: finish documenting this method.
@@ -104,42 +87,16 @@ def configure_logging(logging_level):
     _log.debug("Verbose logging enabled.")
 
 
-def parse_args(sys_argv, usage=USAGE):
-    """
-    Parse the command arguments, and return (options, args).
-
-    This function may call exit() for some arguments (e.g. "--version" or
-    "--help").
-
-    Raises:
-    scanf.Error: if an error occurs while parsing.
-
-    """
-    parser = TesterOptionParser(usage)
-    add_parser_options(parser)
-
-    # The optparse module's parse_args() normally expects sys.argv[1:].
-    (options, args) = parser.parse_args(sys_argv[1:])
-
-    return (options, args)
-
-
-def create_doctest_suites(module_names, paths):
-    """
-    Return a list of TestSuite instances that contain the doctests.
-
-    """
-    suites = []
-
+def add_doctest_suites(suites, module_names):
     for module in module_names:
         suite = doctest.DocTestSuite(module)
         suites.append(suite)
 
+
+def add_doctest_files(suites, paths):
     for path in paths:
         suite = doctest.DocFileSuite(path, module_relative=False)
         suites.append(suite)
-
-    return suites
 
 
 def path_to_module_name(path):
@@ -217,16 +174,17 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     Run all tests, and return a unittest.TestResult instance.
 
     """
-    # TODO: change top_dir to source_dir.
-    top_dir = source_dir
-
+    # TODO: consider using unittest's test discovery functionality
+    #   added in Python 2.7.
+    #
     # Test discovery was not added to unittest until Python 2.7:
     #
     #   http://docs.python.org/library/unittest.html#test-discovery
     #
     # We use our own test discovery method here to support test discovery
     # in Python 2.6 and earlier.
-    module_names = find_unit_test_module_names(top_dir, unittest_module_pattern, module_name)
+    test_module_names = find_unit_test_module_names(source_dir, unittest_module_pattern, module_name)
+    all_module_names = find_unit_test_module_names(source_dir, "*.py", module_name)
 
     argv = ['']
 
@@ -234,7 +192,7 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     # unittest.main(), does not permit the defaultTest parameter to be
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
-    argv.extend(module_names)
+    argv.extend(test_module_names)
 
     # Python's unittest module didn't add a verbosity parameter to
     # unittest.main() until Python 2.7.  However, we can bypass this
@@ -252,7 +210,7 @@ def run_all_tests(source_dir, unittest_module_pattern, module_name,
     # docstring for more details.
     test_runner = UnittestTestRunner(verbosity=verbosity)
 
-    test_loader = UnittestTestLoader(doctest_paths)
+    test_loader = UnittestTestLoader(doctest_modules=all_module_names, doctest_paths=doctest_paths)
 
     _log.info("Running molt tests...")
 
@@ -329,7 +287,8 @@ class UnittestTestLoader(unittest.TestLoader):
 
     """
 
-    def __init__(self, doctest_paths):
+    def __init__(self, doctest_modules, doctest_paths):
+        self._doctest_modules = doctest_modules
         self._doctest_paths = doctest_paths
 
     def loadTestsFromNames(self, names, module=None):
@@ -353,9 +312,8 @@ an ImportError in the module being processed.
                 raise
             suites.append(suite)
 
-        doctest_suites = create_doctest_suites(module_names=names, paths=self._doctest_paths)
-
-        suites.extend(doctest_suites)
+        add_doctest_suites(suites, self._doctest_modules)
+        add_doctest_files(suites, self._doctest_paths)
 
         return self.suiteClass(suites)
 

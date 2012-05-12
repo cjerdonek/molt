@@ -142,7 +142,6 @@ def do_program_body(sys_argv, usage):
 
     if options.run_tests:
         test_result = run_tests(verbose=options.verbose)
-
         return 0 if test_result.wasSuccessful() else 1
 
 
