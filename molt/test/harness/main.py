@@ -29,22 +29,18 @@
 #
 
 """
-Runs all unit tests and doctests in the project.
+Exposes a function to run all tests in the project.
 
 """
-
-# TODO: unit test this module.
 
 import os
 
 import molt
-from molt.test.alltest import run_all_tests
+from molt.test.harness.alltest import run_all_tests
 
 
-LIBRARY_PACKAGE_NAME = 'molt'
 README_REL_PATH = 'README.md'  # relative to the project directory.
-IS_UNITTEST_MODULE = lambda name: (name.endswith('_unittest') or
-                                   name.endswith('_test'))
+IS_UNITTEST_MODULE = lambda name: name.endswith('_test')
 
 
 def run_tests(verbose=False):
@@ -54,11 +50,9 @@ def run_tests(verbose=False):
     """
     source_dir = os.path.dirname(molt.__file__)
     package_dir = os.path.join(source_dir, os.pardir)
-    package_name = molt.__name__
     readme_path = os.path.join(package_dir, README_REL_PATH)
     doctest_paths = [readme_path]
 
-    # TODO: pass verbosity via the caller of this function.
     test_result = run_all_tests(package=molt,
                                 is_unittest_module=IS_UNITTEST_MODULE,
                                 doctest_paths=doctest_paths,
