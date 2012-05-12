@@ -6,6 +6,15 @@ Molt is a Python implementation of [Groom](https://github.com/cjerdonek/groom).
 The project is still in progress and not yet usable.  Comments and
 suggestions are welcome.
 
+
+Requirements
+------------
+
+Molt requires Python 2.7.  Support for Python 3.x is planned for addition.
+Since Molt is a development tool, there are no plans to add support for
+Python 2.6 or earlier.
+
+
 Usage
 -----
 
