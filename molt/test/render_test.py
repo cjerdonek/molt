@@ -35,6 +35,7 @@ Unit tests for render.py.
 from datetime import datetime
 from filecmp import dircmp
 import os
+from textwrap import dedent, TextWrapper
 import unittest
 
 from pystache import Renderer
@@ -47,61 +48,29 @@ from molt.render import preprocess_filename, Molter
 ENCODING = 'utf-8'
 DECODE_ERRORS = 'strict'
 
+DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
+
 SOURCE_DIR = os.path.dirname(molt.__file__)
+PROJECT_DIR = os.path.normpath(os.path.join(SOURCE_DIR, os.pardir))
 TEMP_DIR = 'temp'
-TEMPLATES_DIR = os.path.join(SOURCE_DIR, os.path.normpath('test/data/templates'))
+TEMPLATES_DIR = os.path.join(PROJECT_DIR, os.path.normpath('submodules/groom/tests'))
+
+
+# The textwrap module does not expose an indent() method.
+# Also see this issue: http://bugs.python.org/issue13857
+def indent(text, indent_):
+    lines = text.splitlines(True)
+    def indent(line):
+        if not line.strip():
+            # Do not indent lines having only whitespace.
+            return line
+        return indent_ + line
+    lines = map(indent, lines)
+    return "".join(lines)
 
 
 class CompareError(Exception):
     pass
-
-
-def assert_false(c, attr, dirs):
-    """
-    Arguments:
-
-      c: a filecmp.dircmp instance.
-      attr: an attribute name.
-      dirs: a pair (expected_dir, actual_dir)
-
-    """
-    val = getattr(c, attr)
-    if not val:
-        return
-
-    expected, actual = dirs
-    msg = """\
-Attribute %s non-empty for directory compare--
-
-  Expected (left): %s
-  Actual  (right): %s
-
-  Value: %s""" % (repr(attr), expected, actual, val)
-
-    raise CompareError(msg)
-
-def assert_dirs_equal(expected_dir, actual_dir):
-    """
-    Raise a CompareError exception if the two directories are unequal.
-
-    """
-    dirs = expected_dir, actual_dir
-    c = dircmp(*dirs)
-
-    assert_false(c, 'left_only', dirs)
-    assert_false(c, 'right_only', dirs)
-    assert_false(c, 'diff_files', dirs)
-    assert_false(c, 'funny_files', dirs)
-
-    common_dirs = c.common_dirs
-
-    if not common_dirs:
-        return
-
-    for subdir in common_dirs:
-        expected_subdir = os.path.join(expected_dir, subdir)
-        actual_subdir = os.path.join(actual_dir, subdir)
-        assert_dirs_equal(expected_subdir, actual_subdir)
 
 
 class PreprocessFileNameTestCase(unittest.TestCase):
@@ -119,6 +88,96 @@ class PreprocessFileNameTestCase(unittest.TestCase):
 
 class TemplateTestCase(unittest.TestCase):
 
+    def _raise_compare_error(self, expected_dir, actual_dir, details):
+        details = indent(details, "  ")
+        msg = """\
+Directory contents differ:
+
+  Expected | Actual :
+    %s
+    %s
+
+%s
+
+  Context: %s
+
+Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
+                  self.template_name, self.description)
+        raise CompareError(msg)
+
+    def _assert_empty(self, dcmp, attr_name, dirs):
+        """
+        Arguments:
+
+          dcmp: a filecmp.dircmp ("directory comparison") instance.
+          attr: an attribute name.
+          dirs: a pair (expected_dir, actual_dir)
+
+        """
+        attr_val = getattr(dcmp, attr_name)
+        if not attr_val:
+            return
+
+        expected, actual = dirs
+
+        attr_details = "\n".join(["dircmp.%s = %s" % (attr, getattr(dcmp, attr)) for
+                                  attr in DIRCMP_ATTRS])
+        details = ("Attribute %s non-empty for directory compare:\n%s" %
+                   (repr(attr_name), indent(attr_details, "  ")))
+
+        self._raise_compare_error(expected, actual, details)
+
+    def _assert_diff_files_empty(self, dcmp, expected_dir, actual_dir):
+        """
+        Arguments:
+
+          dcmp: a filecmp.dircmp ("directory comparison") instance.
+          expected: the expected dir.
+          actual: the actual dir.
+
+        """
+        file_names = dcmp.diff_files
+        if not file_names:
+            return
+        file_name = file_names[0]
+
+        def read(dir_path):
+            file_path = os.path.join(dir_path, file_name)
+            u = io.read(file_path, encoding=ENCODING, errors=DECODE_ERRORS)
+            return u
+
+        details = dedent("""\
+        Differing files: %s
+        Showing first file: %s
+        Expected: %s
+        Actual:   %s""" % (repr(file_names), file_name,
+                         repr(read(expected_dir)),
+                         repr(read(actual_dir))))
+
+        self._raise_compare_error(expected_dir, actual_dir, details)
+
+    def _assert_dirs_equal(self, expected_dir, actual_dir):
+        """
+        Raise a CompareError exception if the two directories are unequal.
+
+        """
+        dirs = expected_dir, actual_dir
+        dcmp = dircmp(*dirs)
+
+        self._assert_diff_files_empty(dcmp, *dirs)
+        for attr in DIRCMP_ATTRS:
+            self._assert_empty(dcmp, attr, dirs)
+
+        common_dirs = dcmp.common_dirs
+
+        if not common_dirs:
+            return
+
+        for subdir in common_dirs:
+            expected_subdir = os.path.join(expected_dir, subdir)
+            actual_subdir = os.path.join(actual_dir, subdir)
+            self._assert_dirs_equal(expected_subdir, actual_subdir)
+
     def _assert_template(self, template_name):
         """
         Arguments:
@@ -133,28 +192,39 @@ class TemplateTestCase(unittest.TestCase):
         expected_dir = os.path.join(test_dir, 'expected')
 
         data = io.deserialize(config_path, ENCODING, DECODE_ERRORS)
-        data = data['context']
+        context = data['context']
+        description = data['description']
 
-        renderer = Renderer()
+        self.context = context
+        self.description = description
+        self.template_name = template_name
+
+        renderer = Renderer(file_encoding=ENCODING)
         molter = Molter(renderer)
 
         output_dir = os.path.join(TEST_RUN_DIR, template_name)
 
         os.mkdir(output_dir)
-        molter.molt_dir(template_dir, data, output_dir)
+        molter.molt_dir(template_dir, context, output_dir)
 
-        assert_dirs_equal(expected_dir, output_dir)
+        self._assert_dirs_equal(expected_dir, output_dir)
+
+
+def make_assert_template(name):
+    def assert_template(test_case):
+        test_case._assert_template(name)
+    return assert_template
 
 
 for name in os.listdir(TEMPLATES_DIR):
-    def assert_template(test_case):
-        test_case._assert_template(name)
-
+    assert_template = make_assert_template(name)
     setattr(TemplateTestCase, '_'.join(['test', name]), assert_template)
 
 
+if not os.path.exists(TEMP_DIR):
+    os.mkdir(TEMP_DIR)
+
 # TODO: allow configuring deletion of the test directory.
-i = 1
 while True:
     dt = datetime.now()
     dir_name = "test_run_%s" % dt.strftime("%Y%m%d-%H%M%S")

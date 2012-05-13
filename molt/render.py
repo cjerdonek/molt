@@ -56,10 +56,6 @@ _log = logging.getLogger(__name__)
 
 
 def preprocess_filename(filename):
-    """
-    Return the pair (new_filename, is_template).
-
-    """
     is_template = False
 
     root, ext = os.path.splitext(filename)
@@ -88,6 +84,41 @@ class Molter(object):
         """
         self.pystacher = pystacher
 
+    def _parse_basename(self, path, context, preprocess):
+        """
+        Arguments:
+
+          preprocess: a function that accepts a basename and returns a
+            (basename, is_template) pair.
+
+        """
+        dir_path, basename = os.path.split(path)
+
+        basename2, is_template = preprocess(basename)
+        basename3 = self.pystacher.render(basename2, context)
+
+        if not basename3:
+            raise Exception("Basename cannot be empty: %s > %s > %s\n"
+                            "  in path: %s" %
+                            (repr(basename), repr(basename2), repr(basename3), dir_path))
+        return basename3, is_template
+
+
+    def parse_filename(self, path, context):
+        """
+        Return the pair (filename, is_template).
+
+        """
+        return self._parse_basename(path, context, preprocess_filename)
+
+
+    def parse_dirname(self, path, context):
+        """
+        Return the pair (filename, is_template).
+
+        """
+        return self._parse_basename(path, context, lambda name: (name, False))
+
     def _render_path_to_string(self, path, context):
         """
         Render the template at a path to a unicode string.
@@ -104,11 +135,9 @@ class Molter(object):
         io.write(u, target_path, OUTPUT_ENCODING, ENCODE_ERRORS)
 
     def molt_file(self, path, context, output_dir):
-        dir_path, filename = os.path.split(path)
-        new_filename, is_template = preprocess_filename(filename)
-        new_filename = self.pystacher.render(new_filename, context)
+        filename, is_template = self.parse_filename(path, context)
 
-        new_path = os.path.join(output_dir, new_filename)
+        new_path = os.path.join(output_dir, filename)
 
         if not is_template:
             copyfile(path, new_path)
@@ -130,7 +159,7 @@ class Molter(object):
                 self.molt_file(path, context, output_dir)
                 continue
             # Otherwise, it is a directory.
-            new_name = preprocess_filename(name)[0]
+            new_name = self.parse_dirname(path, context)[0]
             new_output_dir = os.path.join(output_dir, new_name)
             os.mkdir(new_output_dir)
             self.molt_dir(path, context, new_output_dir)
