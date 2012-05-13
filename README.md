@@ -23,6 +23,10 @@ Usage
 
     molt your/groom/template/directory
 
+For help documentation and available options--
+
+    molt -h
+
 
 Develop
 -------
@@ -62,24 +66,10 @@ Features
 Examples
 --------
 
-This is a temporary test of a doctest failure:
+This is a temporary example for testing purposes:
 
     >>> 1 + 1
     2
-
-
-TODO's
-------
-
-  * Make the script Unicode aware using the guidance [here](http://docs.python.org/howto/unicode.html).
-
-  * Separate tester code from tester config, and put the tester code into
-    a subfolder.
-
-  * Consider running pylint, PyChecker, and/or pep8 in addition to the
-    doctests in each module.
-
-  * Add git files.
 
 
 Author
