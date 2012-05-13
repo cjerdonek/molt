@@ -41,7 +41,7 @@ class MockLogging(object):
 
     """Mock logging for testing purposes."""
 
-    def configure_logging(self, logging_level):
+    def configure_logging(self, logging_level, test_config):
         self.level = logging_level
 
 

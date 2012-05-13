@@ -14,6 +14,9 @@ Molt requires Python 2.7.  Support for Python 3.x is planned.
 Since Molt is a development tool, there are no plans to add support for
 Python 2.6 or earlier.
 
+It requires a current version of [Pystache](https://github.com/defunkt/pystache)
+which the installation process should handle automatically.
+
 
 Usage
 -----
@@ -24,13 +27,13 @@ Usage
 Develop
 -------
 
+To run unit tests--
+
+    python test_molt.py
+
 For help documentation from a source distribution--
 
     python -m molt.commands.molt -h
-
-To run unit tests--
-
-    python -m molt.commands.molt --run-tests
 
 Test it manually--
 
@@ -79,7 +82,12 @@ TODO's
   * Add git files.
 
 
-Chris Jerdonek
+Author
+------
+
+Molt is authored by [Chris Jerdonek](https://github.com/cjerdonek), also
+the author of [Groom](http://cjerdonek.github.com/groom/) and the current
+[Pystache](https://github.com/defunkt/pystache) maintainer.
 
 
 Copyright

@@ -35,6 +35,7 @@ Supports logging configuration.
 from __future__ import absolute_import
 
 import logging
+import os
 import sys
 
 
@@ -42,10 +43,34 @@ _log = logging.getLogger(__name__)
 
 
 # TODO: make this testable.
-def configure_logging(logging_level, sys_stderr=None):
-    """Configure logging."""
+# TODO: finish documenting this method.
+def configure_logging(logging_level, sys_stderr=None, test_config=False):
+    """
+    Configure logging.
+
+    If in test mode, configures a "black hole" log handler for the
+    root logger to prevent the following message from being written while
+    running tests:
+
+      'No handlers could be found for logger...'
+
+    It also prevents the handler from displaying any log messages by
+    configuring it to write to os.devnull instead of sys.stderr.
+
+    """
     if sys_stderr is None:
         sys_stderr = sys.stderr
+
+    root_logger = logging.getLogger()  # the root logger.
+    root_logger.setLevel(logging_level)
+
+    if test_config:
+        # Then swallow stdout.
+        stream = open(os.devnull,"w")
+        handler = logging.StreamHandler(stream)
+        root_logger.addHandler(handler)
+        # Configure this module's logger.
+        logger = _log
 
     formatter = logging.Formatter("%(name)s: [%(levelname)s] %(message)s")
 
@@ -53,8 +78,6 @@ def configure_logging(logging_level, sys_stderr=None):
     handler = logging.StreamHandler(stream)
     handler.setFormatter(formatter)
 
-    logger = logging.getLogger()  # the root logger.
-    logger.setLevel(logging_level)
     logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")

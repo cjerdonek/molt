@@ -54,44 +54,14 @@ from molt.common.error import Error
 _log = logging.getLogger(__name__)
 
 
-# TODO: finish documenting this method.
-def configure_logging(logging_level):
-    """
-    Configure logging for this script.
-
-    Configures a "black hole" log handler for the root logger to prevent the
-    following message from being written while running tests:
-
-      'No handlers could be found for logger...'
-
-    It also prevents the handler from displaying any log messages by
-    configuring it to write to os.devnull instead of sys.stderr.
-
-    """
-    # Configure the root logger.
-    logger = logging.getLogger()
-
-    logger.setLevel(logging_level)
-
-    stream = open(os.devnull,"w")
-    handler = logging.StreamHandler(stream)
-    logger.addHandler(handler)
-
-    # Configure this module's logger.
-    logger = _log
-
-    stream = sys.stderr
-    handler = logging.StreamHandler(stream)
-    formatter = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-    _log.debug("Verbose logging enabled.")
-
-
 def add_doctest_suites(suites, module_names):
     for module in module_names:
-        suite = doctest.DocTestSuite(module)
+
+        try:
+            suite = doctest.DocTestSuite(module)
+        except ImportError, err:
+            raise Exception("Error building doctests for %s:\n  %s: %s" %
+                            (module, err.__class__.__name__, err))
         suites.append(suite)
 
 

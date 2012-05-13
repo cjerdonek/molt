@@ -46,14 +46,16 @@ from molt import commandline
 from molt import config
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
-from molt.common.logging import configure_logging
+from molt.logconfig import configure_logging
 from molt.project_type import ProjectType
 from molt.render import Renderer
 from molt.test.harness.main import run_tests
 from molt.view import File
 
+
 _log = logging.getLogger("main")
 
+LOGGING_LEVEL_DEFAULT = logging.INFO
 
 ENCODING_DEFAULT = 'utf-8'
 
@@ -196,12 +198,21 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=do_prog
         more easily.
 
     """
+    logging_level = LOGGING_LEVEL_DEFAULT
+    is_running_tests = False
+
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
     # Configure logging before parsing options for real.
-    logging_level = logging.DEBUG if commandline.is_verbose_logging_enabled(sys_argv) else logging.INFO
-    configure_logging(logging_level)
+    options, args = commandline.preparse_args(sys_argv)
+    if options is not None:
+        if options.verbose:
+            logging_level = logging.DEBUG
+        if options.run_tests:
+            is_running_tests = True
+
+    configure_logging(logging_level, test_config=is_running_tests)
 
     try:
         status = process_args(sys_argv, commandline.USAGE)

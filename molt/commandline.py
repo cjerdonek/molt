@@ -147,24 +147,24 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
     return parser
 
 
-def is_verbose_logging_enabled(sys_argv):
+def preparse_args(sys_argv):
     """
-    Return whether verbose logging is enabled.
+    Parse command arguments without raising an exception (or exiting).
 
-    This function should never raise an Exception nor exit because it is
-    meant to be called before logging is configured (in particular,
-    before exception logging).
+    This function allows one to have access to the command-line options
+    before configuring logging (in particular before exception logging).
+
+    Returns: the pair (options, args).
 
     """
     try:
         # Suppress the help option to prevent exiting.
         options, args = parse_args(sys_argv, suppress_help_exit=True)
     except UsageError:
-        # Default to normal logging on error.  Any usage error will
-        # occur again during the second pars.
-        return False
+        # Any usage error will occur again during the real parse.
+        return None, None
 
-    return options.verbose
+    return options, args
 
 
 def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
