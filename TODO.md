@@ -1,7 +1,6 @@
 TODO
 ====
 
-* Combine the usage strings for the --run-tests option.
 * Add a --test-dir option that defaults to a temp directory.
 * Remove the stdout currently happening while running tests.
 * Add support for a -r or --root-dir option (for config and template).
