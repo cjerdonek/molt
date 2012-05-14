@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
-# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,24 +28,20 @@
 #
 
 """
-Runs all unit tests and doctests in the project.
+Exposes a generic run_tests() function to run all tests in a project.
 
 """
 
 # TODO: unit test this module.
-# TODO: use os.walk_packages instead of manually directory traversal.
-# TODO: pass a filter function instead of a glob pattern.
 
 from __future__ import absolute_import
 
 import doctest
-import glob
 import logging
-from optparse import OptionParser
 import os
 from pkgutil import walk_packages
 import sys
-import unittest
+from unittest import TestLoader, TestProgram
 
 from molt.common.error import Error
 
@@ -54,21 +49,43 @@ from molt.common.error import Error
 _log = logging.getLogger(__name__)
 
 
-def add_doctest_suites(suites, module_names):
-    for module in module_names:
+def make_doctest_test_suites(module_names):
+    """
+    Return a list of TestSuite instances for the doctests in the given modules.
 
+    """
+    suites = []
+    for module in module_names:
         try:
             suite = doctest.DocTestSuite(module)
         except ImportError, err:
             raise Exception("Error building doctests for %s:\n  %s: %s" %
                             (module, err.__class__.__name__, err))
         suites.append(suite)
+    return suites
 
 
-def add_doctest_files(suites, paths):
+def make_doctest_file_suites(paths):
+    """
+    Return a list of TestSuite instances for the doctests in the given text files.
+
+    """
+    suites = []
     for path in paths:
         suite = doctest.DocFileSuite(path, module_relative=False)
         suites.append(suite)
+    return suites
+
+
+def make_doctests(module_names, text_paths):
+    """
+    Return a list of TestSuite instances containing all project doctests.
+
+    """
+    suites = make_doctest_test_suites(module_names)
+    suites.extend(make_doctest_file_suites(text_paths))
+
+    return suites
 
 
 def find_modules(package):
@@ -87,7 +104,7 @@ def find_modules(package):
     return names
 
 
-def run_all_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
+def run_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
     """
     Run all tests, and return a unittest.TestResult instance.
 
@@ -105,6 +122,9 @@ def run_all_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
     # in Python 2.6 and earlier.
     module_names = find_modules(package)
     test_module_names = filter(is_unittest_module, module_names)
+
+    doctests = make_doctests(module_names, doctest_paths)
+    test_program_class = make_test_program_class(doctests)
 
     argv = ['']
 
@@ -125,14 +145,56 @@ def run_all_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
-    test_loader = UnittestTestLoader(doctest_modules=module_names, doctest_paths=doctest_paths)
-
-    test_program = unittest.main(testLoader=test_loader, module=None, argv=argv, exit=False)
+    test_loader = UnittestTestLoader()
+    test_program = test_program_class(testLoader=test_loader, module=None, argv=argv, exit=False)
 
     return test_program.result
 
 
-class UnittestTestLoader(unittest.TestLoader):
+def make_test_program_class(tests):
+    """
+    Return a unittest.TestProgram subclass that adds a list of custom tests.
+
+    Arguments:
+
+      tests: an iterable of TestCase and TestSuite instances to add in
+        addition to the usual tests loaded when calling createTests().
+
+    """
+    class PystacheTestProgram(TestProgram):
+
+        """
+        Instantiating an instance of this class runs all tests.
+
+        For example, calling unittest.main() is an alias for calling the
+        constructor unittest.TestProgram().
+
+        The TestProgram constructor does the following:
+
+        1. Calls self.parseArgs(argv),
+        2. which in turn calls self.createTests().
+        3. Then, the constructor calls self.runTests().
+
+        """
+
+        def createTests(self):
+            """
+            Load tests and set self.test to a unittest.TestSuite instance
+
+            The base class's TestProgram.createTests() sets the self.test
+            attribute by calling one of self.testLoader's "loadTests" methods.
+            Each loadTest method returns a unittest.TestSuite instance.
+            In particular, self.test is set to a TestSuite instance after
+            calling the base class's createTests().
+
+            """
+            super(PystacheTestProgram, self).createTests()
+            self.test.addTests(tests)
+
+    return PystacheTestProgram
+
+
+class UnittestTestLoader(TestLoader):
 
     """
     In addition to loading the doctests as unit tests, this TestLoader
@@ -147,10 +209,6 @@ class UnittestTestLoader(unittest.TestLoader):
     ImportError.
 
     """
-
-    def __init__(self, doctest_modules, doctest_paths):
-        self._doctest_modules = doctest_modules
-        self._doctest_paths = doctest_paths
 
     def loadTestsFromNames(self, names, module=None):
         """
@@ -172,9 +230,6 @@ an ImportError in the module being processed.
                 _log.error(msg)
                 raise
             suites.append(suite)
-
-        add_doctest_suites(suites, self._doctest_modules)
-        add_doctest_files(suites, self._doctest_paths)
 
         return self.suiteClass(suites)
 

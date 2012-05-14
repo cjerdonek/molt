@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # encoding: utf-8
 #
-# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,21 +28,21 @@
 #
 
 """
-Exposes a function to run all tests in the project.
+Exposes a run_tests() function to run all tests in this project.
 
 """
 
 import os
 
 import molt
-from molt.test.harness.alltest import run_all_tests
+from molt.test.harness.alltest import run_tests
 
 
 README_REL_PATH = 'README.md'  # relative to the project directory.
 IS_UNITTEST_MODULE = lambda name: name.endswith('_test')
 
 
-def run_tests(verbose=False):
+def run_molt_tests(verbose=False):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
@@ -53,8 +52,8 @@ def run_tests(verbose=False):
     readme_path = os.path.join(package_dir, README_REL_PATH)
     doctest_paths = [readme_path]
 
-    test_result = run_all_tests(package=molt,
-                                is_unittest_module=IS_UNITTEST_MODULE,
-                                doctest_paths=doctest_paths,
-                                verbose=verbose)
+    test_result = run_tests(package=molt,
+                            is_unittest_module=IS_UNITTEST_MODULE,
+                            doctest_paths=doctest_paths,
+                            verbose=verbose)
     return test_result

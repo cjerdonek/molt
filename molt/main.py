@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -49,7 +49,7 @@ from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
 from molt.project_type import ProjectType
 from molt.render import Renderer
-from molt.test.harness.main import run_tests
+from molt.test.harness.main import run_molt_tests
 from molt.view import File
 
 
@@ -143,9 +143,8 @@ def do_program_body(sys_argv, usage):
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
     if options.run_tests:
-        test_result = run_tests(verbose=options.verbose)
+        test_result = run_molt_tests(verbose=options.verbose)
         return 0 if test_result.wasSuccessful() else 1
-
 
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
