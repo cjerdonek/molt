@@ -44,7 +44,6 @@ import sys
 import molt
 from molt import io
 from molt import commandline
-from molt import config
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
@@ -64,6 +63,8 @@ ENCODING_CONFIG   = ENCODING_DEFAULT
 ENCODING_OUTPUT   = ENCODING_DEFAULT
 ENCODING_TEMPLATE = ENCODING_DEFAULT
 
+# TODO: pull this from the command-line options.
+OUTPUT_DIRECTORY = 'output'
 
 def get_project_directory():
     lib_directory = os.path.dirname(molt.__file__)
@@ -114,9 +115,6 @@ def make_output_directory_name(script_name, index):
 
 def render_project(project_directory, output_directory, config_path, extra_template_dirs):
 
-    render_config = config.read_render_config(config_path, encoding=ENCODING_CONFIG)
-    context = render_config.context
-
     renderer = Renderer(root_source_dir=project_directory, target_dir=output_directory,
                         context=context, extra_template_dirs=extra_template_dirs,
                         output_encoding=ENCODING_OUTPUT)
@@ -138,6 +136,11 @@ def generate_expected():
 
 
 def run_tests(options):
+    """
+    Run project tests.
+
+    """
+    # Suppress the display of standard out while tests are running.
     stdout = sys.stdout
     sys.stdout = StringIO()
     try:
@@ -147,14 +150,18 @@ def run_tests(options):
 
     return 0 if test_result.wasSuccessful() else 1
 
+
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
     defaults = create_defaults(current_working_directory)
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
-    if options.run_tests:
+    if options.run_test_mode:
         return run_tests(options)
+    if options.create_demo_mode:
+        exit("demo mode: not implemented")
+
 
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
@@ -168,19 +175,7 @@ def do_program_body(sys_argv, usage):
         project_type = get_default_project_type()
         extra_template_dirs = project_type.get_template_directories()
 
-        render_config = config.read_render_config(config_path, encoding=ENCODING_CONFIG)
-        script_name = render_config.project_label
-
-        # TODO: fix this hack.
-        index = 1
-        output_directory_name = script_name
-        while True:
-            output_directory = os.path.join(target_directory, output_directory_name)
-            if options.should_overwrite or not os.path.exists(output_directory):
-                break
-            output_directory_name = make_output_directory_name(script_name, index)
-            index += 1
-
+        output_directory = OUTPUT_DIRECTORY
         if not io.create_directory(output_directory):
             _log.info("Overwriting output directory: %s" % output_directory)
         _log.debug("Output directory: %s" % output_directory)
@@ -218,7 +213,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=do_prog
     if options is not None:
         if options.verbose:
             logging_level = logging.DEBUG
-        if options.run_tests:
+        if options.run_test_mode:
             is_running_tests = True
 
     configure_logging(logging_level, test_config=is_running_tests)

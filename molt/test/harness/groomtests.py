@@ -279,7 +279,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             self._assert_dirs_equal(expected_dir, test_output_dir)
         except BaseException:
             # Do not erase the test output if the test fails.
-            pass
+            raise
         else:
             rmtree(test_output_dir)
 

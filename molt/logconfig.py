@@ -80,6 +80,8 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
 
         # Configure this module's logger.
         loggers = [_log, test_logger]
+    else:
+        loggers = [root_logger]
 
     formatter = logging.Formatter(format)
 

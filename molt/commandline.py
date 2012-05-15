@@ -44,10 +44,12 @@ from .common.optionparser import OptionParser
 from .common.optionparser import UsageError
 
 
-OPTION_RUN_TESTS = "--run-tests"
-
 _log = logging.getLogger(__name__)
 
+DEMO_OUTPUT_DIR_DEFAULT = "molt-demo"
+
+OPTION_OUTPUT_DIR = "--output-dir"
+OPTION_RUN_TESTS = "--run-tests"
 
 # TODO: add a version option -V that reads the package version number.
 
@@ -97,11 +99,11 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
-    parser.add_option("-t", "--target", metavar='DIRECTORY', dest="target_directory",
+    parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
                       action="store", type='string', default=defaults.destination_directory,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
-    parser.add_option("-o", "--overwrite", dest="should_overwrite",
+    parser.add_option("--overwrite", dest="should_overwrite",
                       action="store_true", default=False,
                       help='whether to overwrite files in the target directory '
                            'if the target directory already exists.  Otherwise, '
@@ -116,7 +118,7 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'project template.  Regenerating versions does not '
                            'delete files but only overwrites them.  This option '
                            'is exposed mainly for molt development purposes.')
-    parser.add_option(OPTION_RUN_TESTS, dest="run_tests",
+    parser.add_option(OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
                       help='whether to run tests.  Runs all available project tests.  '
                            'This includes all unit tests, all available doctests, '
@@ -131,6 +133,11 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'When this option is provided, only test case failures '
                            'are not cleaned up.  '
                            'This allows for examination of test case failures.')
+    parser.add_option("--create-demo", dest="create_demo_mode",
+                      action="store_true", default=False,
+                      help='create a groom template directory to play with.  '
+                           'The directory outputs to %s, which defaults to %s '
+                           'for this option.' % (OPTION_OUTPUT_DIR, DEMO_OUTPUT_DIR_DEFAULT))
     parser.add_option("-h", "--help", action=help_action,
                       help="show this help message and exit.")
 
