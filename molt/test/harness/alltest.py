@@ -98,9 +98,13 @@ def find_modules(package):
     return names
 
 
-def run_tests(package, is_unittest_module, extra_tests=None, doctest_paths=None, verbose=False):
+def run_tests(package, is_unittest_module, extra_tests=None, doctest_paths=None, verbosity=1):
     """
     Run all tests, and return a unittest.TestResult instance.
+
+    Arguments:
+
+      verbosity: 0 for quiet, 1 for normal, 2 for verbose.  Defaults to 1.
 
     """
     if extra_tests is None:
@@ -133,20 +137,9 @@ def run_tests(package, is_unittest_module, extra_tests=None, doctest_paths=None,
     # instead using the argv parameter.
     argv.extend(test_module_names)
 
-    # Python's unittest module didn't add a verbosity parameter to
-    # unittest.main() until Python 2.7.  However, we can bypass this
-    # limitation by passing the verbosity to a test runner instance directly.
-    # That is how unittest.main() uses the parameter internally.  If we
-    # didn't have this option, we could instead have included "--verbose",
-    # etc. in the argv parameter that we pass.
-    #
-    # The verbosity parameter: 0 for quiet, 1 for the default, 2 for verbose.
-    # TODO: also add support for --quiet.
-    verbosity = 2 if verbose else 1
-
     test_loader = UnittestTestLoader()
-    # TODO: pass verbosity to unittest.main().
-    test_program = test_program_class(testLoader=test_loader, module=None, argv=argv, exit=False)
+
+    test_program = test_program_class(testLoader=test_loader, module=None, argv=argv, exit=False, verbosity=verbosity)
 
     return test_program.result
 

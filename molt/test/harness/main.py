@@ -64,6 +64,9 @@ def run_molt_tests(verbose=False):
     readme_path = os.path.join(package_dir, README_REL_PATH)
     doctest_paths = [readme_path]
 
+    # TODO: also add support for --quiet.
+    verbosity = 2 if verbose else 1
+
     groom_tests = make_groom_tests(groom_input_dir=_GROOM_INPUT_DIR,
                                    output_parent_dir=_OUTPUT_PARENT_DIR)
 
@@ -71,5 +74,5 @@ def run_molt_tests(verbose=False):
                             is_unittest_module=IS_UNITTEST_MODULE,
                             extra_tests=groom_tests,
                             doctest_paths=doctest_paths,
-                            verbose=verbose)
+                            verbosity=verbosity)
     return test_result
