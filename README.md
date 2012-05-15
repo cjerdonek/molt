@@ -18,8 +18,14 @@ It requires a current version of [Pystache](https://github.com/defunkt/pystache)
 which the installation process should handle automatically.
 
 
-Usage
------
+Try it
+------
+
+On the command-line--
+
+    $ molt --create-demo
+    main: [INFO] Created demo template directory: molt-demo
+    molt-demo
 
     molt your/groom/template/directory
 

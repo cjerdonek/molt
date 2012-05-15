@@ -100,7 +100,7 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
     parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
-                      action="store", type='string', default=defaults.destination_directory,
+                      action="store", type='string', default=None,
                       help='the directory in which to create the new project. '
                            'Defaults to the current working directory.')
     parser.add_option("--overwrite", dest="should_overwrite",
@@ -135,9 +135,9 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'This allows for examination of test case failures.')
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
-                      help='create a groom template directory to play with.  '
-                           'The directory outputs to %s, which defaults to %s '
-                           'for this option.' % (OPTION_OUTPUT_DIR, DEMO_OUTPUT_DIR_DEFAULT))
+                      help='create a Groom template directory to play with.  '
+                           'The directory outputs to %s.  If not specified, '
+                           'the output directory defaults to %s.' % (OPTION_OUTPUT_DIR, DEMO_OUTPUT_DIR_DEFAULT))
     parser.add_option("-h", "--help", action=help_action,
                       help="show this help message and exit.")
 
@@ -193,7 +193,7 @@ def read_args(sys_argv, usage, defaults):
 
     _log.debug("Configuration file: %s" % options.config_path)
     _log.debug("Project directory: %s" % options.project_directory)
-    _log.debug("Target directory: %s" % options.target_directory)
+    _log.debug("Output directory: %s" % options.output_directory)
 
     return options
 

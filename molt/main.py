@@ -38,12 +38,14 @@ import codecs
 from datetime import datetime
 import logging
 import os
+from shutil import copytree
 from StringIO import StringIO
 import sys
 
 import molt
 from molt import io
 from molt import commandline
+from molt.commandline import DEMO_OUTPUT_DIR_DEFAULT, OPTION_OUTPUT_DIR
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
@@ -57,6 +59,11 @@ _log = logging.getLogger("main")
 
 LOGGING_LEVEL_DEFAULT = logging.INFO
 
+EXIT_STATUS_SUCCESS = 0
+EXIT_STATUS_FAIL = 1
+
+DEMO_DIRECTORY = 'demo'  # relative to the source directory.
+
 ENCODING_DEFAULT = 'utf-8'
 
 ENCODING_CONFIG   = ENCODING_DEFAULT
@@ -65,6 +72,7 @@ ENCODING_TEMPLATE = ENCODING_DEFAULT
 
 # TODO: pull this from the command-line options.
 OUTPUT_DIRECTORY = 'output'
+
 
 def get_project_directory():
     lib_directory = os.path.dirname(molt.__file__)
@@ -148,8 +156,26 @@ def run_tests(options):
     finally:
         sys.stdout = stdout
 
-    return 0 if test_result.wasSuccessful() else 1
+    return EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else EXIT_STATUS_FAIL
 
+
+def create_demo(output_dir=None):
+    if output_dir is None:
+        output_dir = DEMO_OUTPUT_DIR_DEFAULT
+
+    if os.path.exists(output_dir):
+        s = """\
+Output directory already exists: %s
+You can specify a different output directory with %s.""" % (output_dir, OPTION_OUTPUT_DIR)
+        raise Error(s)
+
+    source_dir = os.path.dirname(molt.__file__)
+    demo_dir = os.path.join(source_dir, os.path.normpath(DEMO_DIRECTORY))
+
+    copytree(demo_dir, output_dir)
+    _log.info("Created demo template directory: %s" % output_dir)
+    print output_dir
+    return EXIT_STATUS_SUCCESS
 
 def do_program_body(sys_argv, usage):
 
@@ -160,8 +186,7 @@ def do_program_body(sys_argv, usage):
     if options.run_test_mode:
         return run_tests(options)
     if options.create_demo_mode:
-        exit("demo mode: not implemented")
-
+        return create_demo(options.output_directory)
 
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
@@ -186,7 +211,7 @@ def do_program_body(sys_argv, usage):
         print output_directory
 
     _log.info("Done.")
-    return 0
+    return EXIT_STATUS_SUCCESS
 
 
 def run_molt(sys_argv, configure_logging=configure_logging, process_args=do_program_body):

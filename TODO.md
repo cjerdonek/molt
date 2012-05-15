@@ -1,8 +1,6 @@
 TODO
 ====
 
-* Add a --create-demo option that recognizes the --output-dir option (but
-  defaults to molt-demo).
 * Change --test-output-dir to use --output-dir.
 * Add support for a -r or --root-dir option (for config and template).
 * Add an exception class that you can add messages to.
