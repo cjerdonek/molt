@@ -143,7 +143,7 @@ def do_program_body(sys_argv, usage):
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
     if options.run_tests:
-        test_result = run_molt_tests(verbose=options.verbose)
+        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.test_output_dir)
         return 0 if test_result.wasSuccessful() else 1
 
     # TODO: do something nicer than this if-else block.

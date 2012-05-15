@@ -122,6 +122,15 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
                            'This includes all unit tests, all available doctests, '
                            'and, if available, the template directory test cases '
                            'on the Groom project web site.')
+    parser.add_option("--test-output-dir", metavar='DIRECTORY',
+                      dest="test_output_dir", action="store", default=None,
+                      help='the directory to which to write test case output '
+                           '(e.g. for groom tests).  '
+                           'Defaults to a system temp location, in which case '
+                           'the directory is always cleaned up.  '
+                           'When this option is provided, only test case failures '
+                           'are not cleaned up.  '
+                           'This allows for examination of test case failures.')
     parser.add_option("-h", "--help", action=help_action,
                       help="show this help message and exit.")
 
