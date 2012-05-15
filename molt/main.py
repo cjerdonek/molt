@@ -38,6 +38,7 @@ import codecs
 from datetime import datetime
 import logging
 import os
+from StringIO import StringIO
 import sys
 
 import molt
@@ -136,6 +137,16 @@ def generate_expected():
     render_project(project_directory, output_directory, config_path, extra_template_dirs)
 
 
+def run_tests(options):
+    stdout = sys.stdout
+    sys.stdout = StringIO()
+    try:
+        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.test_output_dir)
+    finally:
+        sys.stdout = stdout
+
+    return 0 if test_result.wasSuccessful() else 1
+
 def do_program_body(sys_argv, usage):
 
     current_working_directory = os.curdir
@@ -143,8 +154,7 @@ def do_program_body(sys_argv, usage):
     options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
 
     if options.run_tests:
-        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.test_output_dir)
-        return 0 if test_result.wasSuccessful() else 1
+        return run_tests(options)
 
     # TODO: do something nicer than this if-else block.
     if options.should_generate_expected:
