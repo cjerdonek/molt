@@ -38,6 +38,8 @@ import logging
 import os
 import sys
 
+from molt.test.harness.common import test_logger
+
 
 _log = logging.getLogger(__name__)
 
@@ -61,24 +63,32 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
     if sys_stderr is None:
         sys_stderr = sys.stderr
 
+    format = "%(name)s: [%(levelname)s] %(message)s"
+
     root_logger = logging.getLogger()  # the root logger.
     root_logger.setLevel(logging_level)
 
     if test_config:
-        # Then swallow stdout.
+        # Then configure log messages to be swallowed by default.
         stream = open(os.devnull,"w")
         handler = logging.StreamHandler(stream)
         root_logger.addHandler(handler)
-        # Configure this module's logger.
-        logger = _log
 
-    formatter = logging.Formatter("%(name)s: [%(levelname)s] %(message)s")
+        # Make sure test log messages start at the beginning of a line (because
+        # of the dots ("........") that occur during test runs).
+        format = '\n' + format
+
+        # Configure this module's logger.
+        loggers = [_log, test_logger]
+
+    formatter = logging.Formatter(format)
 
     stream = sys_stderr
     handler = logging.StreamHandler(stream)
     handler.setFormatter(formatter)
 
-    logger.addHandler(handler)
+    for logger in loggers:
+        logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
 

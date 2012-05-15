@@ -36,7 +36,17 @@ import os
 
 import molt
 from molt.test.harness.alltest import run_tests
+from molt.test.harness.common import test_logger as _log
+from molt.test.harness.groomtests import make_groom_tests
 
+
+# TODO: replace this with a command-line specified directory.
+#_OUTPUT_PARENT_DIR = 'temp'
+_OUTPUT_PARENT_DIR = None
+
+_SOURCE_DIR = os.path.dirname(molt.__file__)
+_PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
+_GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('submodules/groom/tests'))
 
 README_REL_PATH = 'README.md'  # relative to the project directory.
 IS_UNITTEST_MODULE = lambda name: name.endswith('_test')
@@ -47,13 +57,19 @@ def run_molt_tests(verbose=False):
     Run all project tests, and return a unittest.TestResult instance.
 
     """
+    _log.info("running tests")
+
     source_dir = os.path.dirname(molt.__file__)
     package_dir = os.path.join(source_dir, os.pardir)
     readme_path = os.path.join(package_dir, README_REL_PATH)
     doctest_paths = [readme_path]
 
+    groom_tests = make_groom_tests(groom_input_dir=_GROOM_INPUT_DIR,
+                                   output_parent_dir=_OUTPUT_PARENT_DIR)
+
     test_result = run_tests(package=molt,
                             is_unittest_module=IS_UNITTEST_MODULE,
+                            extra_tests=groom_tests,
                             doctest_paths=doctest_paths,
                             verbose=verbose)
     return test_result

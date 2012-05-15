@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,23 +28,14 @@
 #
 
 """
-Unit tests for render.py.
+Exposes a generic run_tests() function to run all tests in a project.
 
 """
 
-import unittest
+from __future__ import absolute_import
 
-from molt.render import preprocess_filename
+import logging
 
+import molt.test
 
-class PreprocessFileNameTestCase(unittest.TestCase):
-
-    """Test preprocess_filename()."""
-
-    def _assert(self, input, expected):
-        self.assertEqual(preprocess_filename(input), expected)
-
-    def test(self):
-        self._assert('README.md', ('README.md', False))
-        self._assert('README.md.mustache', ('README.md', True))
-        self._assert('README.skip.mustache', ('README.mustache', False))
+test_logger = logging.getLogger(molt.test.__name__)

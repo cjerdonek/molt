@@ -37,16 +37,10 @@ Exposes a generic run_tests() function to run all tests in a project.
 from __future__ import absolute_import
 
 import doctest
-import logging
 import os
 from pkgutil import walk_packages
 import sys
 from unittest import TestLoader, TestProgram
-
-from molt.common.error import Error
-
-
-_log = logging.getLogger(__name__)
 
 
 def make_doctest_test_suites(module_names):
@@ -104,12 +98,15 @@ def find_modules(package):
     return names
 
 
-def run_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
+def run_tests(package, is_unittest_module, extra_tests=None, doctest_paths=None, verbose=False):
     """
     Run all tests, and return a unittest.TestResult instance.
 
     """
-    _log.info("Running molt tests.")
+    if extra_tests is None:
+        extra_tests = []
+    if doctest_paths is None:
+        doctest_paths = []
 
     # TODO: consider using unittest's test discovery functionality
     #   added in Python 2.7.
@@ -124,7 +121,9 @@ def run_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
     test_module_names = filter(is_unittest_module, module_names)
 
     doctests = make_doctests(module_names, doctest_paths)
-    test_program_class = make_test_program_class(doctests)
+
+    tests = extra_tests + doctests
+    test_program_class = make_test_program_class(tests)
 
     argv = ['']
 
@@ -146,6 +145,7 @@ def run_tests(package, is_unittest_module, doctest_paths=[], verbose=False):
     verbosity = 2 if verbose else 1
 
     test_loader = UnittestTestLoader()
+    # TODO: pass verbosity to unittest.main().
     test_program = test_program_class(testLoader=test_loader, module=None, argv=argv, exit=False)
 
     return test_program.result
@@ -227,8 +227,8 @@ class UnittestTestLoader(TestLoader):
 Due to a bug in Python's unittest module, the AttributeError may be masking
 an ImportError in the module being processed.
 """ % repr(name)
-                _log.error(msg)
-                raise
+                # TODO: add to the existing exception instead of raising a new one.
+                raise Exception(msg)
             suites.append(suite)
 
         return self.suiteClass(suites)
