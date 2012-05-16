@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,13 +28,12 @@
 #
 
 """
-Exposes a Renderer class to render project files from template files.
+Contains the command-line documenation and command-line parsing code.
 
 """
 
 from __future__ import absolute_import
 
-import codecs
 import logging
 import os
 
@@ -46,7 +45,8 @@ from .common.optionparser import UsageError
 
 _log = logging.getLogger(__name__)
 
-DEMO_OUTPUT_DIR_DEFAULT = "molt-demo"
+DEFAULT_OUTPUT_DIR = 'output'
+DEFAULT_DEMO_OUTPUT_DIR = "molt-demo"
 
 OPTION_OUTPUT_DIR = "--output-dir"
 OPTION_RUN_TESTS = "--run-tests"
@@ -57,9 +57,9 @@ OPTION_RUN_TESTS = "--run-tests"
 # a Python string formatting conversion specifier.  The optparse.OptionParser
 # class, however, recognizes "%prog" by replacing it with the current
 # script name when passed to the constructor as a usage string.
-USAGE = """%prog [options]
+USAGE = """%prog [options] [DIRECTORY]
 
-Create a new project from a Groom template.
+Create a new project from a Groom template in DIRECTORY.
 
 This script creates a new project from a Groom project template using
 values from a configuration file.  It prints the output directory to
@@ -77,7 +77,7 @@ class DefaultOptions(object):
         self.source_root_directory = ""
 
 
-def create_parser(defaults, suppress_help_exit, usage=USAGE):
+def create_parser(defaults, suppress_help_exit=False, usage=USAGE):
     """
     Return an OptionParser for the program.
 
@@ -89,55 +89,38 @@ def create_parser(defaults, suppress_help_exit, usage=USAGE):
     # when a help option is passed (e.g. "-h" or "--help").
     parser = OptionParser(usage=usage, add_help_option=False)
 
-    # TODO: explicitly add a version option?
-    parser.add_option("-g", "--groom-template", metavar='DIRECTORY', dest="project_directory",
-                      action="store", type='string', default=defaults.source_root_directory,
-                      help='the directory containing the groom project template.  '
-                           'Defaults to the default template directory.')
+    # TODO: explicitly add a version option.
+    parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
+                      action="store", type='string', default=None,
+                      help='the directory in which to create the new project. '
+                           'Defaults to the directory %s.' % repr(DEFAULT_OUTPUT_DIR))
     parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
                       action="store", type='string', default=defaults.config_path,
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
-    parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
-                      action="store", type='string', default=None,
-                      help='the directory in which to create the new project. '
-                           'Defaults to the current working directory.')
     parser.add_option("--overwrite", dest="should_overwrite",
                       action="store_true", default=False,
-                      help='whether to overwrite files in the target directory '
-                           'if the target directory already exists.  Otherwise, '
-                           'a new target directory is created by incrementing the '
-                           'target directory name, for example "target_name (2)".')
-    parser.add_option("-v", "--verbose", dest="verbose",
-                      action="store_true", default=False,
-                      help="log verbosely.")
-    parser.add_option("-e", "--expected", dest="should_generate_expected",
-                      action="store_true", default=False,
-                      help='whether to regenerate the "expected" version of each '
-                           'project template.  Regenerating versions does not '
-                           'delete files but only overwrites them.  This option '
-                           'is exposed mainly for molt development purposes.')
+                      help='whether to permit files in the output directory to be '
+                           'overwritten if the output directory already exists.')
     parser.add_option(OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
-                      help='whether to run tests.  Runs all available project tests.  '
-                           'This includes all unit tests, all available doctests, '
-                           'and, if available, the template directory test cases '
-                           'on the Groom project web site.')
-    parser.add_option("--test-output-dir", metavar='DIRECTORY',
-                      dest="test_output_dir", action="store", default=None,
-                      help='the directory to which to write test case output '
-                           '(e.g. for groom tests).  '
-                           'Defaults to a system temp location, in which case '
-                           'the directory is always cleaned up.  '
-                           'When this option is provided, only test case failures '
-                           'are not cleaned up.  '
-                           'This allows for examination of test case failures.')
+                      help='whether to run tests.  Runs all available project tests,  '
+                           'including unit tests, doctests, and, if available, '
+                           'the Groom project test cases.  If the %s option '
+                           'is provided, then test failure data is written '
+                           'to a subset of that directory.')
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a Groom template directory to play with.  '
                            'The directory outputs to %s.  If not specified, '
-                           'the output directory defaults to %s.' % (OPTION_OUTPUT_DIR, DEMO_OUTPUT_DIR_DEFAULT))
+                           'the output directory defaults to %s.' % (OPTION_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR))
+    parser.add_option("-v", "--verbose", dest="verbose",
+                      action="store_true", default=False,
+                      help="log verbosely.")
+    parser.add_option("-V", "--version", dest="version_mode",
+                      action="store_true", default=False,
+                      help="display version info.")
     parser.add_option("-h", "--help", action=help_action,
                       help="show this help message and exit.")
 
@@ -164,7 +147,7 @@ def preparse_args(sys_argv):
     return options, args
 
 
-def parse_args(sys_argv, suppress_help_exit, usage=None, defaults=None):
+def parse_args(sys_argv, suppress_help_exit=False, usage=None, defaults=None):
     """
     Parse arguments and return (options, args).
 

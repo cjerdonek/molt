@@ -40,11 +40,12 @@ import logging
 import optparse
 import sys
 
+from molt.common.error import Error
 
 _log = logging.getLogger(__name__)
 
 
-class UsageError(Exception):
+class UsageError(Error):
     """
     Exception class for command-line syntax errors.
 
@@ -67,4 +68,3 @@ class OptionParser(optparse.OptionParser):
 
         """
         raise UsageError(message)
-

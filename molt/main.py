@@ -45,12 +45,11 @@ import sys
 import molt
 from molt import io
 from molt import commandline
-from molt.commandline import DEMO_OUTPUT_DIR_DEFAULT, OPTION_OUTPUT_DIR
+from molt.commandline import OPTION_OUTPUT_DIR, DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
-from molt.project_type import ProjectType
-from molt.render import Renderer
+from molt.render import render
 from molt.test.harness.main import run_molt_tests
 from molt.view import File
 
@@ -62,7 +61,7 @@ LOGGING_LEVEL_DEFAULT = logging.INFO
 EXIT_STATUS_SUCCESS = 0
 EXIT_STATUS_FAIL = 1
 
-DEMO_DIRECTORY = 'demo'  # relative to the source directory.
+DEMO_DIR = 'demo'  # relative to the source directory.
 
 ENCODING_DEFAULT = 'utf-8'
 
@@ -70,8 +69,9 @@ ENCODING_CONFIG   = ENCODING_DEFAULT
 ENCODING_OUTPUT   = ENCODING_DEFAULT
 ENCODING_TEMPLATE = ENCODING_DEFAULT
 
-# TODO: pull this from the command-line options.
-OUTPUT_DIRECTORY = 'output'
+
+def get_version_info():
+    return "molt: version %s" % molt.__version__
 
 
 def get_project_directory():
@@ -81,16 +81,6 @@ def get_project_directory():
     project_directory = os.path.normpath(os.path.join(lib_directory, os.pardir))
 
     return project_directory
-
-
-def get_default_project_type():
-    """
-    Return the default project type as a ProjectType instance.
-
-    """
-    project_directory = get_project_directory()
-    project_type_dir = os.path.join(project_directory, "project_types", "default")
-    return ProjectType(project_type_dir)
 
 
 def create_defaults(current_working_directory):
@@ -121,28 +111,6 @@ def make_output_directory_name(script_name, index):
     return "%s (%d)" % (script_name, index)
 
 
-def render_project(project_directory, output_directory, config_path, extra_template_dirs):
-
-    renderer = Renderer(root_source_dir=project_directory, target_dir=output_directory,
-                        context=context, extra_template_dirs=extra_template_dirs,
-                        output_encoding=ENCODING_OUTPUT)
-
-    renderer.render()
-
-
-def generate_expected():
-    project_type = get_default_project_type()
-
-    _log.info("Generating expected for project type: %s" % project_type.label)
-
-    project_directory = project_type.get_project_directory()
-    config_path = project_type.get_config_path()
-    output_directory = project_type.get_expected_directory()
-    extra_template_dirs = project_type.get_template_directories()
-
-    render_project(project_directory, output_directory, config_path, extra_template_dirs)
-
-
 def run_tests(options):
     """
     Run project tests.
@@ -152,16 +120,17 @@ def run_tests(options):
     stdout = sys.stdout
     sys.stdout = StringIO()
     try:
-        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.test_output_dir)
+        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.output_directory)
     finally:
         sys.stdout = stdout
 
     return EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else EXIT_STATUS_FAIL
 
 
-def create_demo(output_dir=None):
+def create_demo(options):
+    output_dir = options.output_directory
     if output_dir is None:
-        output_dir = DEMO_OUTPUT_DIR_DEFAULT
+        output_dir = DEFAULT_DEMO_OUTPUT_DIR
 
     if os.path.exists(output_dir):
         s = """\
@@ -170,51 +139,102 @@ You can specify a different output directory with %s.""" % (output_dir, OPTION_O
         raise Error(s)
 
     source_dir = os.path.dirname(molt.__file__)
-    demo_dir = os.path.join(source_dir, os.path.normpath(DEMO_DIRECTORY))
+    demo_dir = os.path.join(source_dir, os.path.normpath(DEMO_DIR))
 
     copytree(demo_dir, output_dir)
     _log.info("Created demo template directory: %s" % output_dir)
-    print output_dir
-    return EXIT_STATUS_SUCCESS
 
-def do_program_body(sys_argv, usage):
+    return output_dir
 
-    current_working_directory = os.curdir
-    defaults = create_defaults(current_working_directory)
-    options = commandline.read_args(sys_argv, usage=usage, defaults=defaults)
+
+def try_make_dir(dir_path):
+    """
+    Make the given directory and return whether successful.
+
+    """
+    try:
+        os.mkdir(dir_path)
+    except OSError:
+        # Check for a fatal failure reason.
+        parent_dir, name = os.path.split(dir_path)
+        if parent_dir and not os.path.exists(parent_dir):
+            raise Error("Directory does not exist: %s" % parent_dir)
+        if not os.path.exists(dir_path):
+            # Then there was an unanticipated failure reason.
+            raise
+        return False
+    return True
+
+
+def make_output_dir(dir_path):
+    if try_make_dir(dir_path):
+        return dir_path
+    # Otherwise, we need to find an unused directory name.
+
+    index = 1
+    while True:
+        new_path = "%s (%s)" % (dir_path, index)
+        if try_make_dir(new_path):
+            return new_path
+        index += 1
+
+
+def _render(options, args):
+    try:
+        template_directory = args[0]
+    except IndexError:
+        raise UsageError("Template directory argument not provided.")
+
+    make_path = lambda base_name: os.path.join(template_directory, base_name)
+
+    project_dir = make_path('project')
+    if not os.path.exists(project_dir):
+        raise Error("Project directory not found: %s" % project_dir)
+
+    config_name = 'sample'
+    exts = ['json', 'yaml', 'yml']
+    paths = [make_path("%s.%s" % (config_name, ext)) for ext in exts]
+    for config_path in paths:
+        if os.path.exists(config_path):
+            break
+    else:
+        indent = "\n  "
+        raise Error("Config file not found in a default location:%s%s" %
+                    (indent, indent.join(paths)))
+
+    partials_dir = make_path('partials')
+    if not os.path.exists(partials_dir):
+        partials_dir = None
+
+    output_dir = options.output_directory
+    if output_dir is None:
+        output_dir = DEFAULT_OUTPUT_DIR
+    output_dir = make_output_dir(output_dir)
+
+    #render(project_dir=project_dir, partials_dir=partials_dir, config_path=config_path,
+    #       output_dir=output_dir)
+    return output_dir
+
+def process_args(sys_argv, usage):
+
+    options, args = commandline.parse_args(sys_argv, usage=usage)
 
     if options.run_test_mode:
-        return run_tests(options)
-    if options.create_demo_mode:
-        return create_demo(options.output_directory)
-
-    # TODO: do something nicer than this if-else block.
-    if options.should_generate_expected:
-        generate_expected()
+        result = run_tests(options)
+    elif options.create_demo_mode:
+        result = create_demo(options)
+    elif options.version_mode:
+        result = get_version_info()
     else:
-        project_directory = options.project_directory
-        config_path = options.config_path
-        target_directory = options.target_directory
+        result = _render(options, args)
 
-        # TODO: need to address extra_template_dirs for command-line-provided project templates.
-        project_type = get_default_project_type()
-        extra_template_dirs = project_type.get_template_directories()
+    if result is not None:
+        print result
 
-        output_directory = OUTPUT_DIRECTORY
-        if not io.create_directory(output_directory):
-            _log.info("Overwriting output directory: %s" % output_directory)
-        _log.debug("Output directory: %s" % output_directory)
-
-        render_project(project_directory, output_directory, config_path, extra_template_dirs)
-
-        _log.info("Printing output directory to stdout...")
-        print output_directory
-
-    _log.info("Done.")
     return EXIT_STATUS_SUCCESS
 
 
-def run_molt(sys_argv, configure_logging=configure_logging, process_args=do_program_body):
+def run_molt(sys_argv, configure_logging=configure_logging, process_args_=process_args):
     """
     Execute this script's main function, and return the exit status.
 
@@ -244,7 +264,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=do_prog
     configure_logging(logging_level, test_config=is_running_tests)
 
     try:
-        status = process_args(sys_argv, commandline.USAGE)
+        status = process_args_(sys_argv, commandline.USAGE)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         s = """\
