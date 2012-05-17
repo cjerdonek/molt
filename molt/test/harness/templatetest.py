@@ -57,15 +57,12 @@ DECODE_ERRORS = 'strict'
 DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 
 
-# TODO: eliminate references to groom.
-# TODO: accept prefix to guarantee unique directories inside the test run dir.
-
-def make_template_tests(test_group_name, groom_input_dir, test_run_dir):
+def make_template_tests(test_group_name, input_dir, test_run_dir):
     """
     Return a list of unittest.TestCase instances.
 
     """
-    test_case_class = _make_test_case_class(test_group_name, groom_input_dir, test_run_dir)
+    test_case_class = _make_test_case_class(test_group_name, input_dir, test_run_dir)
 
     # We create a closure around name using a function.  That way when
     # we iterate through the loop while changing "name", the previous
@@ -76,9 +73,9 @@ def make_template_tests(test_group_name, groom_input_dir, test_run_dir):
         return assert_template
 
     test_cases = []
-    for name in os.listdir(groom_input_dir):
+    for name in os.listdir(input_dir):
         assert_template = make_assert_template(name)
-        method_name = '_'.join(['test', name])
+        method_name = 'test_%s__%s' % (test_group_name.lower(), name)
         setattr(test_case_class, method_name, assert_template)
         test_case = test_case_class(method_name)
         test_cases.append(test_case)
@@ -97,7 +94,7 @@ def _make_test_case_class(group_name, input_dir, test_run_dir):
     """
     name = "%sTemplateTestCase" % group_name
     return type(name, (TemplateTestCaseBase,),
-                dict(input_dir=input_dir, test_run_dir=test_run_dir))
+                dict(group_name=group_name, input_dir=input_dir, test_run_dir=test_run_dir))
 
 
 # The textwrap module does not expose an indent() method.
@@ -123,7 +120,7 @@ class TemplateTestCaseBase(TestCase):
 
     def get_test_output_dir(self, template_name):
         run_output_dir = self.get_run_output_dir()
-        return os.path.join(run_output_dir, template_name)
+        return os.path.join(run_output_dir, "%s_%s" % (self.group_name.lower(), template_name))
 
     def _raise_compare_error(self, expected_dir, actual_dir, details):
         details = indent(details, "  ")
