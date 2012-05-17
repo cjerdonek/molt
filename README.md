@@ -26,8 +26,7 @@ On the command-line--
     $ molt --create-demo
     main: [INFO] Created demo template directory: molt-demo
     molt-demo
-
-    molt your/groom/template/directory
+    $ molt molt-demo
 
 For help documentation and available options--
 

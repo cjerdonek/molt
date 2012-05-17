@@ -55,29 +55,19 @@ SKIP_EXT = '.skip'
 _log = logging.getLogger(__name__)
 
 
-def render():
+def render(project_dir, partials_dir, config_path, output_dir):
     ENCODING = 'utf-8'
     DECODE_ERRORS = 'strict'
 
-    source_dir = os.path.dirname(molt.__file__)
-    project_dir = os.path.join(source_dir, os.pardir)
-    example_dir = os.path.join(project_dir, 'examples', 'PythonScript')
-    output_dir = 'output'
-
-    template_dir = os.path.join(example_dir, 'template')
-    config_path = os.path.join(example_dir, 'sample.json')
-
     data = io.deserialize(config_path, ENCODING, DECODE_ERRORS)
-    data = data['mustache']
+    context = data['context']
+
 
     pystacher = Pystacher()
 
     molter = Molter(pystacher)
 
-    test_path = os.path.join(template_dir, "{{project}}.py.mustache")
-
-    os.mkdir("output")
-    molter.molt_dir(template_dir, data, "output")
+    molter.molt_dir(dir_path=project_dir, context=context, output_dir=output_dir)
 
 
 def preprocess_filename(filename):

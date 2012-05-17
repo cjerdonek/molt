@@ -69,46 +69,8 @@ ENCODING_CONFIG   = ENCODING_DEFAULT
 ENCODING_OUTPUT   = ENCODING_DEFAULT
 ENCODING_TEMPLATE = ENCODING_DEFAULT
 
-
-def get_version_info():
-    return "molt: version %s" % molt.__version__
-
-
-def get_project_directory():
-    lib_directory = os.path.dirname(molt.__file__)
-    lib_directory = os.path.relpath(lib_directory)
-
-    project_directory = os.path.normpath(os.path.join(lib_directory, os.pardir))
-
-    return project_directory
-
-
-def create_defaults(current_working_directory):
-
-    project_type = get_default_project_type()
-
-    defaults = commandline.DefaultOptions()
-
-    defaults.config_path = project_type.get_config_path()
-    defaults.destination_directory = current_working_directory
-    defaults.source_root_directory = project_type.get_project_directory()
-
-    return defaults
-
-
-def read_file(path, encoding):
-    """
-    Return the contents of a file as a unicode string.
-
-    """
-    with codecs.open(path, "r", encoding=encoding) as f:
-        text = f.read()
-
-    return text
-
-
-def make_output_directory_name(script_name, index):
-    return "%s (%d)" % (script_name, index)
+OUTPUT_DIR_FORMAT = "%s (%s)"  # subsituted with (dir_path, index).
+VERSION_STRING = "molt: version %s" % molt.__version__
 
 
 def run_tests(options):
@@ -173,7 +135,7 @@ def make_output_dir(dir_path):
 
     index = 1
     while True:
-        new_path = "%s (%s)" % (dir_path, index)
+        new_path = OUTPUT_DIR_FORMAT % (dir_path, index)
         if try_make_dir(new_path):
             return new_path
         index += 1
@@ -181,11 +143,14 @@ def make_output_dir(dir_path):
 
 def _render(options, args):
     try:
-        template_directory = args[0]
+        template_dir = args[0]
     except IndexError:
         raise UsageError("Template directory argument not provided.")
 
-    make_path = lambda base_name: os.path.join(template_directory, base_name)
+    if not os.path.exists(template_dir):
+        raise Error("Template directory not found: %s" % template_dir)
+
+    make_path = lambda base_name: os.path.join(template_dir, base_name)
 
     project_dir = make_path('project')
     if not os.path.exists(project_dir):
@@ -211,9 +176,11 @@ def _render(options, args):
         output_dir = DEFAULT_OUTPUT_DIR
     output_dir = make_output_dir(output_dir)
 
-    #render(project_dir=project_dir, partials_dir=partials_dir, config_path=config_path,
-    #       output_dir=output_dir)
+    render(project_dir=project_dir, partials_dir=partials_dir, config_path=config_path,
+           output_dir=output_dir)
+
     return output_dir
+
 
 def process_args(sys_argv, usage):
 
@@ -224,7 +191,7 @@ def process_args(sys_argv, usage):
     elif options.create_demo_mode:
         result = create_demo(options)
     elif options.version_mode:
-        result = get_version_info()
+        result = VERSION_STRING
     else:
         result = _render(options, args)
 
