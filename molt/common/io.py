@@ -64,7 +64,7 @@ def write(u, path, encoding, errors):
     """
     b = u.encode(encoding=encoding, errors=errors)
 
-    _log.info("Writing: %s" % path)
+    _log.info("Writing: %s" % repr(str(path)))
     with open(path, 'wb') as f:
         f.write(b)
 

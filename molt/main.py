@@ -182,7 +182,7 @@ def _render(options, args):
     return output_dir
 
 
-def process_args(sys_argv, usage):
+def run_args(sys_argv, usage):
 
     options, args = commandline.parse_args(sys_argv, usage=usage)
 
@@ -201,7 +201,7 @@ def process_args(sys_argv, usage):
     return EXIT_STATUS_SUCCESS
 
 
-def run_molt(sys_argv, configure_logging=configure_logging, process_args_=process_args):
+def run_molt(sys_argv, configure_logging=configure_logging, process_args=run_args):
     """
     Execute this script's main function, and return the exit status.
 
@@ -231,7 +231,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args_=proces
     configure_logging(logging_level, test_config=is_running_tests)
 
     try:
-        status = process_args_(sys_argv, commandline.USAGE)
+        status = process_args(sys_argv, commandline.USAGE)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         s = """\

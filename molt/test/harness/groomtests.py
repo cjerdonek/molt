@@ -49,7 +49,7 @@ from pystache import Renderer
 
 import molt
 from molt.common import io
-from molt.render import preprocess_filename, Molter
+from molt.render import render
 from molt.test.harness.common import test_logger as _log
 
 
@@ -255,9 +255,10 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         """
         test_input_dir = self.get_test_input_dir(template_name)
 
-        template_dir = os.path.join(test_input_dir, 'template')
         config_path = os.path.join(test_input_dir, 'sample.json')
         expected_dir = os.path.join(test_input_dir, 'expected')
+        partials_dir = os.path.join(test_input_dir, 'partials')
+        project_dir = os.path.join(test_input_dir, 'project')
 
         data = io.deserialize(config_path, TEST_FILE_ENCODING, DECODE_ERRORS)
         context = data['context']
@@ -267,20 +268,16 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         self.description = description
         self.template_name = template_name
 
-        renderer = Renderer(file_encoding=TEST_FILE_ENCODING)
-        molter = Molter(renderer)
+        output_dir = self.get_test_output_dir(template_name)
 
-        test_output_dir = self.get_test_output_dir(template_name)
-
-        os.mkdir(test_output_dir)
-
+        os.mkdir(output_dir)
         try:
-            molter.molt_dir(template_dir, context, test_output_dir)
-            self._assert_dirs_equal(expected_dir, test_output_dir)
+            render(project_dir, partials_dir, config_path, output_dir)
+            self._assert_dirs_equal(expected_dir, output_dir)
         except BaseException:
             # Do not erase the test output if the test fails.
             raise
         else:
-            rmtree(test_output_dir)
+            rmtree(output_dir)
 
 

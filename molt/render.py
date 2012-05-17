@@ -38,10 +38,11 @@ import logging
 import os
 from shutil import copyfile
 
-from pystache import Renderer as Pystacher
+from pystache import Renderer
 
 import molt
 from molt.common import io
+from molt.common.error import Error
 from molt.view import File
 
 
@@ -55,19 +56,17 @@ SKIP_EXT = '.skip'
 _log = logging.getLogger(__name__)
 
 
-def render(project_dir, partials_dir, config_path, output_dir):
-    ENCODING = 'utf-8'
-    DECODE_ERRORS = 'strict'
-
-    data = io.deserialize(config_path, ENCODING, DECODE_ERRORS)
+def render(project_dir, partials_dir, config_path, output_dir, encoding='utf-8', decode_errors='strict'):
+    data = io.deserialize(config_path, encoding, decode_errors)
     context = data['context']
 
+    search_dirs = [partials_dir]
 
-    pystacher = Pystacher()
+    pystacher = Renderer(search_dirs=search_dirs, file_encoding=encoding)
 
     molter = Molter(pystacher)
 
-    molter.molt_dir(dir_path=project_dir, context=context, output_dir=output_dir)
+    molter.molt(project_dir=project_dir, context=context, output_dir=output_dir)
 
 
 def preprocess_filename(filename):
@@ -159,7 +158,7 @@ class Molter(object):
         else:
             self._render_path_to_file(path, context, new_path)
 
-    def molt_dir(self, dir_path, context, output_dir):
+    def _molt_dir(self, dir_path, context, output_dir):
         """
         Recursively render the contents of a directory to an output directory.
 
@@ -177,113 +176,20 @@ class Molter(object):
             new_name = self.parse_dirname(path, context)[0]
             new_output_dir = os.path.join(output_dir, new_name)
             os.mkdir(new_output_dir)
-            self.molt_dir(path, context, new_output_dir)
+            self._molt_dir(path, context, new_output_dir)
 
-
-class Renderer(object):
-
-    def __init__(self, root_source_dir, target_dir, context, extra_template_dirs, output_encoding):
-        self.context = context
-        self.encoding = output_encoding
-        self.extra_template_dirs = extra_template_dirs
-        self.root_source_dir = root_source_dir
-        self.target_dir = target_dir
-
-    def render(self):
-        root_dir = self.root_source_dir
-        target_dir = self.target_dir
-
-        # TODO: Eliminate cut-and-paste with similar log message below.
-        _log.info("""\
-Rendering template directory...
-  From: %s
-  To:   %s""" % (root_dir, target_dir))
-
-        if not os.path.exists(root_dir):
-            raise Exception("Source directory does not exist: %s" % root_dir)
-
-        for (dir_path, dir_names, file_names) in os.walk(self.root_source_dir):
-            # TODO: skip special files and directories.
-            # TODO: eliminate the cut-and-paste between the dir_name and file_name for loops.
-            for dir_name in dir_names:
-                source_dir = os.path.join(dir_path, dir_name)
-                # TODO: os.path.relpath() is available only as of Python 2.6.
-                # Make this work in Python 2.5.
-                rel_path = os.path.relpath(source_dir, self.root_source_dir)
-                target_dir = os.path.join(self.target_dir, rel_path)
-
-                io.create_directory(target_dir)
-
-            for file_name in file_names:
-                source_path = os.path.join(dir_path, file_name)
-                rel_path = os.path.relpath(source_path, self.root_source_dir)
-
-                # TODO: allow the template extension to be configurable.
-                extension = os.path.splitext(rel_path)[1]
-                if extension != ".mustache":
-                    _log.info("Skipping non-template file: %s" % rel_path)
-                    continue
-
-                self.render_rel_path(rel_path)
-
-    def render_rel_path(self, rel_path):
+    def molt(self, project_dir, context, output_dir):
         """
-        rel_path is a path relative to the source directory.
+        Recursively render the contents of a directory to an output directory.
+
+        Arguments:
+
+          output_dir: a path to an existing directory.
 
         """
-        # By bare path, we mean the path without the template extension, for
-        # example "README.md" for "README.md.mustache".
-        bare_rel_path, ext = os.path.splitext(rel_path)
-
-        source_path = os.path.join(self.root_source_dir, rel_path)
-        target_path = os.path.join(self.target_dir, bare_rel_path)
-
-        _log.debug("""\
-Rendering template:
-  From: %s
-  To:   %s""" % (source_path, target_path))
-        self.render_path(source_path, target_path)
-
-    def render_path(self, source_path, target_path):
-        source_dir, source_file_name = os.path.split(source_path)
-
-        # Pystache allows us to pass only the template name and not the
-        # template path.  Strip the template file extension to get the name.
-        template_name, ext = os.path.splitext(source_file_name)
-
-        source_dir = os.path.dirname(source_path)
-
-        template_dirs = [source_dir] + self.extra_template_dirs
-
-        view = File(context=self.context)
-        view.template_name = template_name
-        view.template_path = template_dirs
-
-        rendered = view.render()
-
-        io.write_file(rendered, target_path, encoding=self.encoding)
-
-
-if __name__ == "__main__":
-    ENCODING = 'utf-8'
-    DECODE_ERRORS = 'strict'
-
-    source_dir = os.path.dirname(molt.__file__)
-    project_dir = os.path.join(source_dir, os.pardir)
-    example_dir = os.path.join(project_dir, 'examples', 'PythonScript')
-    output_dir = 'output'
-
-    template_dir = os.path.join(example_dir, 'template')
-    config_path = os.path.join(example_dir, 'sample.json')
-
-    data = io.deserialize(config_path, ENCODING, DECODE_ERRORS)
-    data = data['mustache']
-
-    pystacher = Pystacher()
-
-    molter = Molter(pystacher)
-
-    test_path = os.path.join(template_dir, "{{project}}.py.mustache")
-
-    os.mkdir("output")
-    molter.molt_dir(template_dir, data, "output")
+        try:
+            self._molt_dir(project_dir, context, output_dir)
+        except OSError:
+            if not os.path.exists(project_dir):
+                raise (Error("Project directory missing: %s" % project_dir))
+            raise
