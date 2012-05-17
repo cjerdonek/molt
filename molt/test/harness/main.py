@@ -74,7 +74,8 @@ def make_test_run_dir(test_output_dir):
 
 
 def _run_tests(test_run_dir, doctest_paths, verbose):
-    groom_tests = make_template_tests(groom_input_dir=_GROOM_INPUT_DIR,
+    groom_tests = make_template_tests(test_group_name='Groom',
+                                      groom_input_dir=_GROOM_INPUT_DIR,
                                       test_run_dir=test_run_dir)
 
     # TODO: also add support for --quiet.

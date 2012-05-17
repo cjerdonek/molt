@@ -60,12 +60,12 @@ DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 # TODO: eliminate references to groom.
 # TODO: accept prefix to guarantee unique directories inside the test run dir.
 
-def make_template_tests(groom_input_dir, test_run_dir):
+def make_template_tests(test_group_name, groom_input_dir, test_run_dir):
     """
     Return a list of unittest.TestCase instances.
 
     """
-    test_case_class = _make_test_case_class(groom_input_dir, test_run_dir)
+    test_case_class = _make_test_case_class(test_group_name, groom_input_dir, test_run_dir)
 
     # We create a closure around name using a function.  That way when
     # we iterate through the loop while changing "name", the previous
@@ -90,17 +90,14 @@ class CompareError(Exception):
     pass
 
 
-def _make_test_case_class(groom_input_dir, test_run_dir):
+def _make_test_case_class(group_name, input_dir, test_run_dir):
+    """
+    Return a TemplateTestCase class with the given name.
 
-    class TemplateTestCase(TemplateTestCaseBase):
-
-        def get_run_output_dir(self):
-            return test_run_dir
-
-        def get_test_input_dir(self, template_name):
-            return os.path.join(groom_input_dir, template_name)
-
-    return TemplateTestCase
+    """
+    name = "%sTemplateTestCase" % group_name
+    return type(name, (TemplateTestCaseBase,),
+                dict(input_dir=input_dir, test_run_dir=test_run_dir))
 
 
 # The textwrap module does not expose an indent() method.
@@ -117,6 +114,12 @@ def indent(text, indent_):
 
 
 class TemplateTestCaseBase(TestCase):
+
+    def get_run_output_dir(self):
+        return self.test_run_dir
+
+    def get_test_input_dir(self, template_name):
+        return os.path.join(self.input_dir, template_name)
 
     def get_test_output_dir(self, template_name):
         run_output_dir = self.get_run_output_dir()
