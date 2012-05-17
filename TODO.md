@@ -1,6 +1,9 @@
 TODO
 ====
 
+* Add a unit test testing the demo.
+* Update copyright to 2012.
+* Consider switching from optparse to argparse.
 * Incorporate this advice:
     http://mail.python.org/pipermail/distutils-sig/2009-November/014370.html
 * Add an exception class that you can add messages to.

@@ -243,6 +243,6 @@ Pass -h or --help for help documentation and available options.""" % err
         status = 2
     except Error, err:
         _log.error(err)
-        status = 1
+        status = EXIT_STATUS_FAIL
 
     return status

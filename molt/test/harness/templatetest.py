@@ -28,7 +28,7 @@
 #
 
 """
-Exposes a make_groom_tests() to create Groom tests.
+Exposes make_template_tests() to check template directories.
 
 """
 
@@ -36,12 +36,10 @@ Exposes a make_groom_tests() to create Groom tests.
 
 from __future__ import absolute_import
 
-from datetime import datetime
 from filecmp import dircmp
 import logging
 import os
 from shutil import rmtree
-from tempfile import mkdtemp
 from textwrap import dedent, TextWrapper
 from unittest import TestCase
 
@@ -59,64 +57,15 @@ DECODE_ERRORS = 'strict'
 DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 
 
-class CompareError(Exception):
-    pass
+# TODO: eliminate references to groom.
+# TODO: accept prefix to guarantee unique directories inside the test run dir.
 
-
-def make_dir_prefix():
-    dt = datetime.now()
-    prefix = "testrun_%s" % dt.strftime("%Y%m%d-%H%M%S-")
-    return prefix
-
-
-def make_test_case_class(groom_input_dir, output_parent_dir):
-
-    # Create a container so we can set the temp directory inside
-    # the method below (since closures are read-only).
-    mutable_run_output_dir = []
-
-    def _get_run_output_dir():
-        return mutable_run_output_dir[0]
-
-    class TemplateTestCase(TemplateTestCaseBase):
-
-        @classmethod
-        def setUpClass(cls):
-            _log.info("groom tests: running %s" % groom_input_dir)
-            prefix = make_dir_prefix()
-            run_output_dir = mkdtemp(prefix=prefix, dir=output_parent_dir)
-            mutable_run_output_dir.append(run_output_dir)
-
-        @classmethod
-        def tearDownClass(cls):
-            run_output_dir = _get_run_output_dir()
-
-            if output_parent_dir is None:
-                # Then clean up the output directory.
-                _log.info("groom tests: cleaning up")
-                rmtree(run_output_dir)
-                return
-            # Otherwise, leave the output directory for inspection.
-            _log.info("groom tests: failures at: %s" % run_output_dir)
-
-        def get_run_output_dir(self):
-            return _get_run_output_dir()
-
-        def get_test_input_dir(self, template_name):
-            return os.path.join(groom_input_dir, template_name)
-
-    return TemplateTestCase
-
-
-def make_groom_tests(groom_input_dir, output_parent_dir):
+def make_template_tests(groom_input_dir, test_run_dir):
     """
     Return a list of unittest.TestCase instances.
 
     """
-    if output_parent_dir is not None and not os.path.exists(output_parent_dir):
-        os.mkdir(output_parent_dir)
-
-    test_case_class = make_test_case_class(groom_input_dir, output_parent_dir)
+    test_case_class = _make_test_case_class(groom_input_dir, test_run_dir)
 
     # We create a closure around name using a function.  That way when
     # we iterate through the loop while changing "name", the previous
@@ -135,6 +84,23 @@ def make_groom_tests(groom_input_dir, output_parent_dir):
         test_cases.append(test_case)
 
     return test_cases
+
+
+class CompareError(Exception):
+    pass
+
+
+def _make_test_case_class(groom_input_dir, test_run_dir):
+
+    class TemplateTestCase(TemplateTestCaseBase):
+
+        def get_run_output_dir(self):
+            return test_run_dir
+
+        def get_test_input_dir(self, template_name):
+            return os.path.join(groom_input_dir, template_name)
+
+    return TemplateTestCase
 
 
 # The textwrap module does not expose an indent() method.
@@ -279,5 +245,3 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             raise
         else:
             rmtree(output_dir)
-
-
