@@ -3,7 +3,6 @@ TODO
 
 * Add an option to enable stdout for tests.
 * Make the demo comprehensive (illustrate all examples).
-* Update copyright to 2012.
 * Make a list of minimum to release 0.1.0.
 * Consider switching from optparse to argparse.
 * Incorporate this advice:

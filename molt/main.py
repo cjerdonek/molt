@@ -44,7 +44,7 @@ import sys
 
 import molt
 from molt import commandline
-from molt.commandline import OPTION_OUTPUT_DIR, DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR
+from molt.commandline import OPTION_OUTPUT_DIR, DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, get_version_string
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
@@ -64,7 +64,6 @@ EXIT_STATUS_USAGE_ERROR = 2
 ENCODING_DEFAULT = 'utf-8'
 
 OUTPUT_DIR_FORMAT = "%s (%s)"  # subsituted with (dir_path, index).
-VERSION_STRING = "molt: version %s" % molt.__version__
 
 
 def run_tests(options):
@@ -191,7 +190,7 @@ def run_args(sys_argv, usage):
     if options.create_demo_mode:
         result = create_demo(options)
     elif options.version_mode:
-        result = VERSION_STRING
+        result = get_version_string()
     else:
         result = _render(options, args)
 

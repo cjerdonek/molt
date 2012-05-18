@@ -36,7 +36,9 @@ from __future__ import absolute_import
 
 import logging
 import os
+import sys
 
+from molt import __version__
 # TODO: use argparse instead of optparse:
 #   http://docs.python.org/library/argparse.html#module-argparse
 from .common.optionparser import OptionParser
@@ -51,20 +53,40 @@ DEFAULT_DEMO_OUTPUT_DIR = "molt-demo"
 OPTION_OUTPUT_DIR = "--output-dir"
 OPTION_RUN_TESTS = "--run-tests"
 
-# TODO: add a version option -V that reads the package version number.
+# TODO: move the version number to the end of the help text.  This probably
+#   requires hacking optparse or using argparse.
 
 # We escape the leading "%" so that the leading "%p" is not interpreted as
 # a Python string formatting conversion specifier.  The optparse.OptionParser
 # class, however, recognizes "%prog" by replacing it with the current
 # script name when passed to the constructor as a usage string.
-USAGE = """%prog [options] [DIRECTORY]
+USAGE = """%%prog [options] [DIRECTORY]
 
 Create a new project from a Groom template in DIRECTORY.
 
 This script creates a new project from a Groom project template using
 values from a configuration file.  It prints the output directory to
-standard output when complete."""
+standard output when complete.
 
+This is version %(version)s of Molt.""" % {'version': __version__}
+
+
+def get_version_string():
+    # TODO: move copyright string to a central location.
+    # TODO: add license info to end.
+    s = """\
+Molt %(version)s
+
+Using: Python %(sys_version)s
+ at %(sys_executable)s
+
+Copyright 2011-2012 Chris Jerdonek.""" % {
+    'version': __version__,
+    'sys_executable': sys.executable,
+    'sys_version': sys.version,
+}
+
+    return s
 
 class DefaultOptions(object):
     """
