@@ -43,13 +43,12 @@ from StringIO import StringIO
 import sys
 
 import molt
-from molt import io
 from molt import commandline
 from molt.commandline import OPTION_OUTPUT_DIR, DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
-from molt.render import render
+from molt.render import Molter
 from molt.test.harness.main import run_molt_tests
 from molt.view import File
 
@@ -60,14 +59,9 @@ LOGGING_LEVEL_DEFAULT = logging.INFO
 
 EXIT_STATUS_SUCCESS = 0
 EXIT_STATUS_FAIL = 1
-
-DEMO_DIR = 'demo'  # relative to the source directory.
+EXIT_STATUS_USAGE_ERROR = 2
 
 ENCODING_DEFAULT = 'utf-8'
-
-ENCODING_CONFIG   = ENCODING_DEFAULT
-ENCODING_OUTPUT   = ENCODING_DEFAULT
-ENCODING_TEMPLATE = ENCODING_DEFAULT
 
 OUTPUT_DIR_FORMAT = "%s (%s)"  # subsituted with (dir_path, index).
 VERSION_STRING = "molt: version %s" % molt.__version__
@@ -75,7 +69,7 @@ VERSION_STRING = "molt: version %s" % molt.__version__
 
 def run_tests(options):
     """
-    Run project tests.
+    Run project tests, and return the exit status to exit with.
 
     """
     # Suppress the display of standard out while tests are running.
@@ -156,6 +150,10 @@ def _render(options, args):
     if not os.path.exists(project_dir):
         raise Error("Project directory not found: %s" % project_dir)
 
+    partials_dir = make_path('partials')
+    if not os.path.exists(partials_dir):
+        partials = None
+
     config_name = 'sample'
     exts = ['json', 'yaml', 'yml']
     paths = [make_path("%s.%s" % (config_name, ext)) for ext in exts]
@@ -187,8 +185,10 @@ def run_args(sys_argv, usage):
     options, args = commandline.parse_args(sys_argv, usage=usage)
 
     if options.run_test_mode:
-        result = run_tests(options)
-    elif options.create_demo_mode:
+        # Do not print the result to standard out.
+        return run_tests(options)
+
+    if options.create_demo_mode:
         result = create_demo(options)
     elif options.version_mode:
         result = VERSION_STRING
@@ -240,7 +240,7 @@ Command-line usage error: %s
 Pass -h or --help for help documentation and available options.""" % err
         _log.error(s)
 
-        status = 2
+        status = EXIT_STATUS_USAGE_ERROR
     except Error, err:
         _log.error(err)
         status = EXIT_STATUS_FAIL

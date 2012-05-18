@@ -92,8 +92,12 @@ def create_parser(defaults, suppress_help_exit=False, usage=USAGE):
     # TODO: explicitly add a version option.
     parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
                       action="store", type='string', default=None,
-                      help='the directory in which to create the new project. '
-                           'Defaults to the directory %s.' % repr(DEFAULT_OUTPUT_DIR))
+                      help='the directory to which to write the new project. '
+                           'Defaults to the directory %s.  If the directory '
+                           'already exists, then the directory name is incremented '
+                           'until a new directory can be created.  '
+                           'The script writes the output directory to stdout '
+                           'when complete.' % repr(DEFAULT_OUTPUT_DIR))
     parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
                       action="store", type='string', default=defaults.config_path,
                       help='the path to the configuration file that contains, '

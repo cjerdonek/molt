@@ -43,11 +43,9 @@ from shutil import rmtree
 from textwrap import dedent, TextWrapper
 from unittest import TestCase
 
-from pystache import Renderer
-
 import molt
 from molt.common import io
-from molt.render import render
+from molt.render import Molter
 from molt.test.harness.common import test_logger as _log
 
 
@@ -56,27 +54,70 @@ DECODE_ERRORS = 'strict'
 
 DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 
+SKIPPED_FILES = ['.DS_Store']
 
-def make_template_tests(test_group_name, input_dir, test_run_dir):
+def make_template_test(group_name, input_dir, expected_dir, test_run_output_dir):
+    names = [None]
+
+    def make_full_name(group_name, name):
+        return group_name.lower()
+
+    def make_assert_template(group_name, name, parent_input_dir, test_run_output_dir):
+        long_name = make_full_name(group_name, name)
+
+        def assert_template(test_case):
+            test_case._assert_template(group_name, long_name, parent_input_dir, test_run_output_dir, expected_dir)
+
+        return assert_template
+
+    test_cases = _make_template_tests(group_name, names, input_dir, test_run_output_dir,
+                                      make_full_name, make_assert_template)
+
+    return test_cases[0]
+
+
+# TODO: rename test_run_dir to something else.
+def make_template_tests(group_name, parent_input_dir, test_run_output_dir):
     """
     Return a list of unittest.TestCase instances.
 
     """
-    test_case_class = _make_test_case_class(test_group_name, input_dir, test_run_dir)
+    names = os.listdir(parent_input_dir)
 
-    # We create a closure around name using a function.  That way when
-    # we iterate through the loop while changing "name", the previous
-    # name value will stick with the previously defined function.
-    def make_assert_template(name):
+    def make_full_name(group_name, name):
+        return '%s__%s' % (group_name.lower(), name)
+
+    def make_assert_template(group_name, name, parent_input_dir, test_run_output_dir):
+        input_dir = os.path.join(parent_input_dir, name)
+        long_name = make_full_name(group_name, name)
+        expected_dir = os.path.join(input_dir, 'expected')
+
         def assert_template(test_case):
-            test_case._assert_template(name)
+            test_case._assert_template(name, long_name, input_dir, test_run_output_dir, expected_dir)
+
         return assert_template
 
+    return _make_template_tests(group_name, names, parent_input_dir, test_run_output_dir,
+                                make_full_name, make_assert_template)
+
+
+# TODO: rename test_run_dir to something else.
+def _make_template_tests(group_name, names, parent_input_dir, test_run_output_dir,
+                         make_full_name, make_assert_template):
+    """
+    Return a list of unittest.TestCase instances.
+
+    """
+    class_name = "%sTemplateTestCase" % group_name
+    test_case_class = type(class_name, (TemplateTestCaseBase,), {})
+
     test_cases = []
-    for name in os.listdir(input_dir):
-        assert_template = make_assert_template(name)
-        method_name = 'test_%s__%s' % (test_group_name.lower(), name)
+    for name in names:
+        method_name = 'test_%s' % make_full_name(group_name, name)
+        assert_template = make_assert_template(group_name, name, parent_input_dir, test_run_output_dir)
+
         setattr(test_case_class, method_name, assert_template)
+
         test_case = test_case_class(method_name)
         test_cases.append(test_case)
 
@@ -85,16 +126,6 @@ def make_template_tests(test_group_name, input_dir, test_run_dir):
 
 class CompareError(Exception):
     pass
-
-
-def _make_test_case_class(group_name, input_dir, test_run_dir):
-    """
-    Return a TemplateTestCase class with the given name.
-
-    """
-    name = "%sTemplateTestCase" % group_name
-    return type(name, (TemplateTestCaseBase,),
-                dict(group_name=group_name, input_dir=input_dir, test_run_dir=test_run_dir))
 
 
 # The textwrap module does not expose an indent() method.
@@ -111,16 +142,6 @@ def indent(text, indent_):
 
 
 class TemplateTestCaseBase(TestCase):
-
-    def get_run_output_dir(self):
-        return self.test_run_dir
-
-    def get_test_input_dir(self, template_name):
-        return os.path.join(self.input_dir, template_name)
-
-    def get_test_output_dir(self, template_name):
-        run_output_dir = self.get_run_output_dir()
-        return os.path.join(run_output_dir, "%s_%s" % (self.group_name.lower(), template_name))
 
     def _raise_compare_error(self, expected_dir, actual_dir, details):
         details = indent(details, "  ")
@@ -139,6 +160,12 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
                   self.template_name, self.description)
         raise CompareError(msg)
 
+    def _get_dcmp_attr(self, dcmp, attr_name):
+        attr_val = getattr(dcmp, attr_name)
+        attr_val = filter(lambda file_name: file_name not in SKIPPED_FILES, attr_val)
+
+        return attr_val
+
     def _assert_empty(self, dcmp, attr_name, dirs):
         """
         Arguments:
@@ -148,7 +175,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
           dirs: a pair (expected_dir, actual_dir)
 
         """
-        attr_val = getattr(dcmp, attr_name)
+        attr_val = self._get_dcmp_attr(dcmp, attr_name)
         if not attr_val:
             return
 
@@ -170,7 +197,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
           actual: the actual dir.
 
         """
-        file_names = dcmp.diff_files
+        file_names = self._get_dcmp_attr(dcmp, 'diff_files')
         if not file_names:
             return
         file_name = file_names[0]
@@ -212,33 +239,38 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             actual_subdir = os.path.join(actual_dir, subdir)
             self._assert_dirs_equal(expected_subdir, actual_subdir)
 
-    def _assert_template(self, template_name):
+    def _assert_template(self, template_name, long_name, test_input_dir, test_run_output_dir, expected_dir):
         """
         Arguments:
 
           template_name: the name of the template directory.
 
+          input_dir: the directory containing the project directory,
+            partials directory, and config file.
+
+          test_run_output_dir: the directory containing the output for the
+            entire test run (i.e. all test cases).
+
         """
-        test_input_dir = self.get_test_input_dir(template_name)
-
-        config_path = os.path.join(test_input_dir, 'sample.json')
-        expected_dir = os.path.join(test_input_dir, 'expected')
-        partials_dir = os.path.join(test_input_dir, 'partials')
         project_dir = os.path.join(test_input_dir, 'project')
+        partials_dir = os.path.join(test_input_dir, 'partials')
+        config_path = os.path.join(test_input_dir, 'sample.json')
 
-        data = io.deserialize(config_path, TEST_FILE_ENCODING, DECODE_ERRORS)
-        context = data['context']
-        description = data['description']
+        output_dir = os.path.join(test_run_output_dir, long_name)
+
+        molter = Molter()
+
+        config = molter.read_config(config_path)
+        context = molter.get_context(config)
+        description = config['description']
 
         self.context = context
         self.description = description
         self.template_name = template_name
 
-        output_dir = self.get_test_output_dir(template_name)
-
         os.mkdir(output_dir)
         try:
-            render(project_dir, partials_dir, config_path, output_dir)
+            molter.molt(project_dir, partials_dir, config_path, output_dir)
             self._assert_dirs_equal(expected_dir, output_dir)
         except BaseException:
             # Do not erase the test output if the test fails.

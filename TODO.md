@@ -1,8 +1,10 @@
 TODO
 ====
 
-* Add a unit test testing the demo.
+* Add an option to enable stdout for tests.
+* Make the demo comprehensive (illustrate all examples).
 * Update copyright to 2012.
+* Make a list of minimum to release 0.1.0.
 * Consider switching from optparse to argparse.
 * Incorporate this advice:
     http://mail.python.org/pipermail/distutils-sig/2009-November/014370.html

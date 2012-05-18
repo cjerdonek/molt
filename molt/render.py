@@ -38,7 +38,7 @@ import logging
 import os
 from shutil import copyfile
 
-from pystache import Renderer
+from pystache import Renderer as PystacheRenderer
 
 import molt
 from molt.common import io
@@ -54,19 +54,6 @@ SKIP_EXT = '.skip'
 
 
 _log = logging.getLogger(__name__)
-
-
-def render(project_dir, partials_dir, config_path, output_dir, encoding='utf-8', decode_errors='strict'):
-    data = io.deserialize(config_path, encoding, decode_errors)
-    context = data['context']
-
-    search_dirs = [partials_dir]
-
-    pystacher = Renderer(search_dirs=search_dirs, file_encoding=encoding)
-
-    molter = Molter(pystacher)
-
-    molter.molt(project_dir=project_dir, context=context, output_dir=output_dir)
 
 
 def preprocess_filename(filename):
@@ -89,14 +76,58 @@ def preprocess_filename(filename):
 
 class Molter(object):
 
-    def __init__(self, pystacher):
+    def __init__(self, encoding='utf-8', decode_errors='strict'):
+        self.encoding = encoding
+        self.decode_errors = decode_errors
+
+    def read_config(self, path):
+        try:
+            return io.deserialize(path, self.encoding, self.decode_errors)
+        except Exception, err:
+            # TODO: reraise or add to existing exception
+            raise Error("Error loading config at: %s\n-->%s" % (path, err))
+
+    def get_context(self, config_data):
+        return config_data['context']
+
+    def molt(self, project_dir, partials_dir, config_path, output_dir):
+        _log.info("""\
+    Rendering--
+
+      project:  %s
+      partials: %s
+      config:   %s
+
+      To:       %s
+    """ % (project_dir, partials_dir, config_path, output_dir))
+
+        search_dirs = [partials_dir]
+
+        pystache_renderer = PystacheRenderer(search_dirs=search_dirs, file_encoding=self.encoding)
+
+        renderer = _Renderer(pystache_renderer)
+
+        config_data = self.read_config(config_path)
+        context = self.get_context(config_data)
+
+        renderer.render(project_dir=project_dir, context=context, output_dir=output_dir)
+
+
+class _Renderer(object):
+
+    """
+    Exposes a render() method responsible for raw rendering of a directory.
+
+    """
+
+    def __init__(self, pystache_renderer):
         """
         Arguments:
 
           pystacher: a pystache.Renderer instance.
 
         """
-        self.pystacher = pystacher
+        self.pystacher = pystache_renderer
 
     def _parse_basename(self, path, context, preprocess):
         """
@@ -178,7 +209,7 @@ class Molter(object):
             os.mkdir(new_output_dir)
             self._molt_dir(path, context, new_output_dir)
 
-    def molt(self, project_dir, context, output_dir):
+    def render(self, project_dir, context, output_dir):
         """
         Recursively render the contents of a directory to an output directory.
 

@@ -1,4 +1,5 @@
 {
+    "description": "Molt demo template",
     "context": {
         "project": "awesomeness",
         "author": "Mustachioed Maven",
