@@ -1,21 +1,29 @@
 Molt
 ====
 
-Molt is a Python implementation of [Groom](http://cjerdonek.github.com/groom/).
+Molt is a script to start projects instantly from
+[Mustache](http://mustache.github.com/)-based project templates.
 
-The project is still in progress and not yet usable.  Comments and
-suggestions are welcome.
+Molt is written in [Python](http://www.python.org/) and follows the
+[Groom](http://cjerdonek.github.com/groom/) rules for Mustache-based
+project templates.
 
 
 Requirements
 ------------
 
-Molt requires Python 2.7.  Support for Python 3.x is planned.
-Since Molt is a development tool, there are no plans to add support for
-Python 2.6 or earlier.
+Molt requires Python 2.7.  Python 3.x support is coming soon.  Since Molt is
+a development tool, there are no plans to support Python 2.6 or earlier.
 
-It requires a current version of [Pystache](https://github.com/defunkt/pystache)
-which the installation process should handle automatically.
+Molt requires [Pystache](https://github.com/defunkt/pystache) version
+[0.5.2](http://pypi.python.org/pypi/pystache), which the install process
+below will install automatically.
+
+
+Install It
+----------
+
+    pip install molt
 
 
 Try it
