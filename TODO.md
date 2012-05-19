@@ -1,9 +1,20 @@
 TODO
 ====
 
+Before releasing version 0.1.0:
+
+ * finalize README.
+ * Stub out a logo.
+ * finalize help options and help strings.
+ * stub out history file
+ * make setup.py file
+ * support Python 2.7.
+ * demo should illustrate all syntactic aspects.
+ * make an "end-to-end" test using os.system.
+ * Generate a GitHub page just before the release to PyPI.
+ * Mention the API on the README.
+
 * Add an option to enable stdout for tests.
-* Make the demo comprehensive (illustrate all examples).
-* Make a list of minimum to release 0.1.0.
 * Consider switching from optparse to argparse.
 * Incorporate this advice:
     http://mail.python.org/pipermail/distutils-sig/2009-November/014370.html
