@@ -45,6 +45,7 @@ import sys
 import molt
 from molt import commandline
 from molt.commandline import OPTION_OUTPUT_DIR, DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, get_version_string
+from molt.common.common import get_demo_template_dir
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt.logconfig import configure_logging
@@ -93,10 +94,9 @@ Output directory already exists: %s
 You can specify a different output directory with %s.""" % (output_dir, OPTION_OUTPUT_DIR)
         raise Error(s)
 
-    source_dir = os.path.dirname(molt.__file__)
-    demo_dir = os.path.join(source_dir, os.path.normpath(DEMO_DIR))
+    demo_template_dir = get_demo_template_dir()
 
-    copytree(demo_dir, output_dir)
+    copytree(demo_template_dir, output_dir)
     _log.info("Created demo template directory: %s" % output_dir)
 
     return output_dir

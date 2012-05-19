@@ -80,7 +80,7 @@ Molt %(version)s
 Using: Python %(sys_version)s
  at %(sys_executable)s
 
-Copyright 2011-2012 Chris Jerdonek.""" % {
+Copyright (C) 2011-2012 Chris Jerdonek.""" % {
     'version': __version__,
     'sys_executable': sys.executable,
     'sys_version': sys.version,
