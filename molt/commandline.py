@@ -53,22 +53,20 @@ DEFAULT_DEMO_OUTPUT_DIR = "molt-demo"
 OPTION_OUTPUT_DIR = "--output-dir"
 OPTION_RUN_TESTS = "--run-tests"
 
-# TODO: move the version number to the end of the help text.  This probably
-#   requires hacking optparse or using argparse.
-
 # We escape the leading "%" so that the leading "%p" is not interpreted as
 # a Python string formatting conversion specifier.  The optparse.OptionParser
 # class, however, recognizes "%prog" by replacing it with the current
 # script name when passed to the constructor as a usage string.
-USAGE = """%%prog [options] [DIRECTORY]
+OPTPARSE_USAGE = "%prog [options] [DIRECTORY]"
 
+OPTPARSE_DESCRIPTION = """\
 Create a new project from a Groom template in DIRECTORY.
 
 This script creates a new project from a Groom project template using
 values from a configuration file.  It prints the output directory to
-standard output when complete.
+standard output when complete."""
 
-This is version %(version)s of Molt.""" % {'version': __version__}
+OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
 
 
 def get_version_string():
@@ -99,17 +97,23 @@ class DefaultOptions(object):
         self.source_root_directory = ""
 
 
-def create_parser(defaults, suppress_help_exit=False, usage=USAGE):
+def create_parser(defaults, suppress_help_exit=False, usage=None):
     """
     Return an OptionParser for the program.
 
     """
+    if usage is None:
+        usage = OPTPARSE_USAGE
+
     help_action = "store_true" if suppress_help_exit else "help"
 
     # We prevent the help option from being added automatically so that
     # we can add our own optional manually.  This lets us prevent exiting
     # when a help option is passed (e.g. "-h" or "--help").
-    parser = OptionParser(usage=usage, add_help_option=False)
+    parser = OptionParser(usage=usage,
+                          description=OPTPARSE_DESCRIPTION,
+                          epilog=OPTPARSE_EPILOG,
+                          add_help_option=False)
 
     # TODO: explicitly add a version option.
     parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",

@@ -4,6 +4,7 @@ TODO
 Before releasing version 0.1.0:
 
  * finalize README.
+ * add --copyright option.
  * finalize help options and help strings.
  * stub out history file
  * make setup.py file

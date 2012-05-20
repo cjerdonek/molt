@@ -179,9 +179,9 @@ def _render(options, args):
     return output_dir
 
 
-def run_args(sys_argv, usage):
+def run_args(sys_argv):
 
-    options, args = commandline.parse_args(sys_argv, usage=usage)
+    options, args = commandline.parse_args(sys_argv)
 
     if options.run_test_mode:
         # Do not print the result to standard out.
@@ -230,7 +230,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=run_arg
     configure_logging(logging_level, test_config=is_running_tests)
 
     try:
-        status = process_args(sys_argv, commandline.USAGE)
+        status = process_args(sys_argv)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         s = """\
