@@ -241,6 +241,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=run_arg
 
     """
     verbose = configure_logging(sys_argv)
+    _log.debug(sys_argv)
 
     try:
         status = process_args(sys_argv)

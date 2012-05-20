@@ -3,6 +3,9 @@ TODO
 
 Before releasing version 0.1.0:
 
+ * Define a context manager (and that recognizes test mode).
+ * Make README examples use explicit paths.
+ * Define an Option class with display(), long_name, etc.
  * finalize README.
  * add --copyright option.
  * finalize help options and help strings.

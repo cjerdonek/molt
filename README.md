@@ -31,19 +31,31 @@ Install It
     pip install molt
 
 
+Test it
+-------
+
+    molt --run-tests
+
+
 Try it
 ------
 
 On the command-line--
 
     $ molt --create-demo
-    main: [INFO] Created demo template directory: molt-demo
-    molt-demo
+    temp/molt-demo
     $ molt molt-demo
+    temp/output
+    $ python temp/output/hello.py world
+    Hello, world!
 
 For help documentation and available options--
 
     molt -h
+
+If using Python, you can also use Molt as a library.  See the `Molter` class
+in the [`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
+module.
 
 
 Develop
@@ -53,13 +65,11 @@ To run unit tests--
 
     python test_molt.py
 
-For help documentation from a source distribution--
+Which is equivalent to--
 
-    python -m molt.commands.molt -h
+    python -m molt.commands.molt --run-tests
 
-Test it manually--
-
-    python -m molt.commands.molt -c molt/test/example/sample.json -o output molt/test/example/PythonApp
+TODO: add info about submodules.
 
 
 Features

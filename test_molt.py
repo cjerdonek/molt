@@ -16,7 +16,7 @@ from molt.commands import molt
 
 
 def main(sys_argv=sys.argv):
-    sys_argv.insert(1, OPTION_RUN_TESTS)
+    sys_argv.insert(1, OPTION_RUN_TESTS[0])
     return molt.main(sys_argv)
 
 

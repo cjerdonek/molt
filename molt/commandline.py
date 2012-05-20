@@ -54,12 +54,12 @@ DEFAULT_DEMO_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'molt-demo')
 
 OPTION_HELP = ('-h', '--help')
 OPTION_OUTPUT_DIR = ('-o', '--output-dir')
-OPTION_RUN_TESTS = ("--run-tests", )
+OPTION_RUN_TESTS = ('--run-tests', )
 OPTION_VERBOSE = ('-v', '--verbose')
 
 OPTPARSE_USAGE = """%prog [options] [DIRECTORY]
 
-Create a new project from a Groom template in DIRECTORY.
+Create a new project from the Groom template in DIRECTORY.
 
 This script creates a new project from a Groom project template using
 values from a configuration file.  It prints the output directory to
