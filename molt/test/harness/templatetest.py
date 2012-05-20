@@ -45,7 +45,7 @@ from unittest import TestCase
 
 import molt
 from molt.common import io
-from molt.render import Molter
+from molt.molter import Molter
 from molt.test.harness.common import test_logger as _log
 
 

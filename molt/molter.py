@@ -28,7 +28,7 @@
 #
 
 """
-Exposes a Renderer class to render a project template.
+Exposes a Molter class to render a project template.
 
 """
 
@@ -92,13 +92,13 @@ class Molter(object):
 
     def molt(self, project_dir, partials_dir, config_path, output_dir):
         _log.info("""\
-    Rendering--
+Rendering:
 
-      project:  %s
-      partials: %s
-      config:   %s
+  Project directory:   %s
+  Partial directory:   %s
+  Config file:         %s
 
-      To:       %s
+  Destination: %s
     """ % (project_dir, partials_dir, config_path, output_dir))
 
         search_dirs = [partials_dir]
@@ -111,6 +111,7 @@ class Molter(object):
         context = self.get_context(config_data)
 
         renderer.render(project_dir=project_dir, context=context, output_dir=output_dir)
+        _log.info("Wrote new project to: %s" % repr(output_dir))
 
 
 class _Renderer(object):

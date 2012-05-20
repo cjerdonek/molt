@@ -1,7 +1,7 @@
 {
     "description": "Molt demo template",
     "context": {
-        "project": "awesomeness",
+        "project": "hello",
         "author": "Mustachioed Maven",
         "year": 2012
     }

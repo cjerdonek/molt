@@ -13,7 +13,11 @@ Before releasing version 0.1.0:
  * make an "end-to-end" test using os.system.
  * Generate a GitHub page just before the release to PyPI.
  * Mention the API on the README.
+ * Rename submodules directory to sub.
 
+* Make log messages begin with a newline on some condition.
+* Add an --overwrite option to write over (but not delete) existing output
+  directories.
 * Add an option to enable stdout for tests.
 * Consider switching from optparse to argparse.
 * Incorporate this advice:

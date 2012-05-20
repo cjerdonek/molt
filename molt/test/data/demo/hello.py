@@ -1,8 +1,8 @@
-{{>copyright}}
+# Copyright (C) 2012 Mustachioed Maven.
 
 import sys
 
-from {{project}}.main import run
+from hello.main import run
 
 def main():
     run(sys.argv)

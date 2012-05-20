@@ -70,7 +70,7 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
 
     if test_config:
         # Then configure log messages to be swallowed by default.
-        stream = open(os.devnull,"w")
+        stream = open(os.devnull, "w")
         handler = logging.StreamHandler(stream)
         root_logger.addHandler(handler)
 
@@ -93,4 +93,3 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
         logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
-

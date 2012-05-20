@@ -28,13 +28,13 @@
 #
 
 """
-Unit tests for render.py.
+Unit tests for molter.py.
 
 """
 
 import unittest
 
-from molt.render import preprocess_filename
+from molt.molter import preprocess_filename
 
 
 class PreprocessFileNameTestCase(unittest.TestCase):

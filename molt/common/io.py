@@ -28,7 +28,7 @@
 #
 
 """
-Exposes a Renderer class to render project files from template files.
+Exposes wrapper functions for file IO.
 
 """
 

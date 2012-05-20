@@ -47,19 +47,18 @@ from .common.optionparser import UsageError
 
 _log = logging.getLogger(__name__)
 
-DEFAULT_OUTPUT_DIR = 'output'
-DEFAULT_DEMO_OUTPUT_DIR = "molt-demo"
+# Move these directories to a defaults module.
+ROOT_OUTPUT_DIR = 'temp'
+DEFAULT_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'output')
+DEFAULT_DEMO_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'molt-demo')
 
-OPTION_OUTPUT_DIR = "--output-dir"
-OPTION_RUN_TESTS = "--run-tests"
+OPTION_HELP = ('-h', '--help')
+OPTION_OUTPUT_DIR = ('-o', '--output-dir')
+OPTION_RUN_TESTS = ("--run-tests", )
+OPTION_VERBOSE = ('-v', '--verbose')
 
-# We escape the leading "%" so that the leading "%p" is not interpreted as
-# a Python string formatting conversion specifier.  The optparse.OptionParser
-# class, however, recognizes "%prog" by replacing it with the current
-# script name when passed to the constructor as a usage string.
-OPTPARSE_USAGE = "%prog [options] [DIRECTORY]"
+OPTPARSE_USAGE = """%prog [options] [DIRECTORY]
 
-OPTPARSE_DESCRIPTION = """\
 Create a new project from a Groom template in DIRECTORY.
 
 This script creates a new project from a Groom project template using
@@ -67,6 +66,10 @@ values from a configuration file.  It prints the output directory to
 standard output when complete."""
 
 OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
+
+
+def option_to_string(option):
+    return " or ".join(option)
 
 
 def get_version_string():
@@ -111,12 +114,11 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
     # we can add our own optional manually.  This lets us prevent exiting
     # when a help option is passed (e.g. "-h" or "--help").
     parser = OptionParser(usage=usage,
-                          description=OPTPARSE_DESCRIPTION,
                           epilog=OPTPARSE_EPILOG,
                           add_help_option=False)
 
     # TODO: explicitly add a version option.
-    parser.add_option("-o", OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
+    parser.add_option(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
                       action="store", type='string', default=None,
                       help='the directory to which to write the new project. '
                            'Defaults to the directory %s.  If the directory '
@@ -129,11 +131,7 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
-    parser.add_option("--overwrite", dest="should_overwrite",
-                      action="store_true", default=False,
-                      help='whether to permit files in the output directory to be '
-                           'overwritten if the output directory already exists.')
-    parser.add_option(OPTION_RUN_TESTS, dest="run_test_mode",
+    parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
                       help='whether to run tests.  Runs all available project tests,  '
                            'including unit tests, doctests, and, if available, '
@@ -142,16 +140,17 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                            'to a subset of that directory.')
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
-                      help='create a Groom template directory to play with.  '
-                           'The directory outputs to %s.  If not specified, '
-                           'the output directory defaults to %s.' % (OPTION_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR))
-    parser.add_option("-v", "--verbose", dest="verbose",
+                      help='create a Groom template to play with that demonstrates '
+                           'most features of Groom.  '
+                           'The directory outputs to the %s option.  '
+                           'If not specified, the output directory defaults to %s.' % (OPTION_OUTPUT_DIR[1], DEFAULT_DEMO_OUTPUT_DIR))
+    parser.add_option(*OPTION_VERBOSE, dest="verbose",
                       action="store_true", default=False,
                       help="log verbosely.")
     parser.add_option("-V", "--version", dest="version_mode",
                       action="store_true", default=False,
                       help="display version info.")
-    parser.add_option("-h", "--help", action=help_action,
+    parser.add_option(*OPTION_HELP, action=help_action,
                       help="show this help message and exit.")
 
     return parser

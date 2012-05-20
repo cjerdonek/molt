@@ -41,8 +41,8 @@ class MockLogging(object):
 
     """Mock logging for testing purposes."""
 
-    def configure_logging(self, logging_level, test_config):
-        self.level = logging_level
+    def configure_logging(self, sys_argv):
+        self.argv = sys_argv
 
 
 class MainTestCase(unittest.TestCase):
@@ -57,11 +57,12 @@ class MainTestCase(unittest.TestCase):
         self.logging = MockLogging()
 
     def test_error(self):
-        def process_args(sys_argv, usage):
+        def process_args(sys_argv):
             raise Error("test")
 
-        result = run_molt([], configure_logging=self.logging.configure_logging,
+        sys_argv = []
+        result = run_molt(sys_argv, configure_logging=self.logging.configure_logging,
                           process_args=process_args)
         self.assertEquals(result, 1)
-        self.assertEquals(self.logging.level, logging.INFO)
+        self.assertTrue(self.logging.argv is sys_argv)
 
