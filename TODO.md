@@ -4,7 +4,6 @@ TODO
 Before releasing version 0.1.0:
 
  * finalize README.
- * Stub out a logo.
  * finalize help options and help strings.
  * stub out history file
  * make setup.py file

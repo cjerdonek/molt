@@ -1,6 +1,11 @@
 Molt
 ====
 
+<!-- We leave the brackets empty.  Otherwise, text shows up in the reST
+  version converted by pandoc. -->
+
+![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
+
 Molt is a script to start projects instantly from
 [Mustache](http://mustache.github.com/)-based project templates.
 
