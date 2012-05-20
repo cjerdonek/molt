@@ -46,7 +46,7 @@ from molt.test.harness.templatetest import make_template_test, make_template_tes
 
 _SOURCE_DIR = os.path.dirname(molt.__file__)
 _PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
-_GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('submodules/groom/tests'))
+_GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groom/tests'))
 
 README_REL_PATH = 'README.md'  # relative to the project directory.
 IS_UNITTEST_MODULE = lambda name: name.endswith('_test')

@@ -83,6 +83,8 @@ def make_template_tests(group_name, parent_input_dir, test_run_output_dir):
 
     """
     names = os.listdir(parent_input_dir)
+    # Filter out '.DS_Store'.
+    names = filter(lambda dir_name: not dir_name.startswith('.'), names)
 
     def make_full_name(group_name, name):
         return '%s__%s' % (group_name.lower(), name)

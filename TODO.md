@@ -8,12 +8,9 @@ Before releasing version 0.1.0:
  * finalize help options and help strings.
  * stub out history file
  * make setup.py file
- * support Python 2.7.
- * demo should illustrate all syntactic aspects.
  * make an "end-to-end" test using os.system.
  * Generate a GitHub page just before the release to PyPI.
  * Mention the API on the README.
- * Rename submodules directory to sub.
 
 * Make log messages begin with a newline on some condition.
 * Add an --overwrite option to write over (but not delete) existing output
