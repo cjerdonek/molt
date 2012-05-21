@@ -41,8 +41,7 @@ import sys
 from molt import __version__
 # TODO: use argparse instead of optparse:
 #   http://docs.python.org/library/argparse.html#module-argparse
-from .common.optionparser import OptionParser
-from .common.optionparser import UsageError
+from .common.optionparser import Option, OptionParser, UsageError
 
 
 _log = logging.getLogger(__name__)
@@ -52,10 +51,10 @@ ROOT_OUTPUT_DIR = 'temp'
 DEFAULT_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'output')
 DEFAULT_DEMO_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'molt-demo')
 
-OPTION_HELP = ('-h', '--help')
-OPTION_OUTPUT_DIR = ('-o', '--output-dir')
-OPTION_RUN_TESTS = ('--run-tests', )
-OPTION_VERBOSE = ('-v', '--verbose')
+OPTION_HELP = Option(('-h', '--help'))
+OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
+OPTION_RUN_TESTS = Option(('--run-tests',))
+OPTION_VERBOSE = Option(('-v', '--verbose'))
 
 OPTPARSE_USAGE = """%prog [options] [DIRECTORY]
 
@@ -142,8 +141,10 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='create a Groom template to play with that demonstrates '
                            'most features of Groom.  '
-                           'The directory outputs to the %s option.  '
-                           'If not specified, the output directory defaults to %s.' % (OPTION_OUTPUT_DIR[1], DEFAULT_DEMO_OUTPUT_DIR))
+                           'The command writes to the directory specified by '
+                           'the %s option.  '
+                           'If not specified, the output directory defaults to %s.' %
+                           (OPTION_OUTPUT_DIR.display(' or '), repr(DEFAULT_DEMO_OUTPUT_DIR)))
     parser.add_option(*OPTION_VERBOSE, dest="verbose",
                       action="store_true", default=False,
                       help="log verbosely.")

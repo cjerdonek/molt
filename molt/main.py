@@ -45,8 +45,7 @@ import traceback
 
 import molt
 from molt import commandline
-from molt.commandline import option_to_string
-from molt.commandline import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR
+from molt.commandline import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, OPTION_HELP, OPTION_VERBOSE
 from molt.common.common import get_demo_template_dir
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
@@ -223,7 +222,7 @@ def log_error(details, verbose):
     else:
         msg = """\
 %s
-Pass %s for the stack trace.""" % (details, option_to_string(commandline.OPTION_VERBOSE))
+Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
     _log.error(msg)
 
 
@@ -250,7 +249,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=run_arg
         details = """\
 Command-line usage error: %s
 
-Pass %s for help documentation and available options.""" % (err, option_to_string(commandline.OPTION_HELP))
+Pass %s for help documentation and available options.""" % (err, OPTION_HELP.display(' or '))
         log_error(details, verbose)
         status = EXIT_STATUS_USAGE_ERROR
     except Error, err:

@@ -53,6 +53,15 @@ class UsageError(Error):
     pass
 
 
+class Option(tuple):
+    """
+    Encapsulates a command option (e.g. "-h" and "--help", or "--run-tests").
+
+    """
+    def display(self, glue):
+        return glue.join(self)
+
+
 # We subclass optparse.OptionParser to customize the behavior of error().
 # The base class's implementation of error() prints the usage string
 # and exits with status code 2.
