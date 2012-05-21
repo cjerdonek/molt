@@ -46,9 +46,9 @@ import traceback
 import molt
 from molt import commandline
 from molt.commandline import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, OPTION_HELP, OPTION_VERBOSE
-from molt.common.common import get_demo_template_dir
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
+from molt.defaults import get_demo_template_dir
 from molt import logconfig
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests

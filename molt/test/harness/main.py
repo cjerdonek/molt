@@ -38,7 +38,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 
 import molt
-from molt.common.common import get_demo_template_dir, get_demo_expected_dir
+from molt.defaults import get_demo_template_dir, get_demo_expected_dir
 from molt.test.harness.alltest import run_tests
 from molt.test.harness.common import test_logger as _log
 from molt.test.harness.templatetest import make_template_test, make_template_tests

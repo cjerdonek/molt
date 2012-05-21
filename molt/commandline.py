@@ -41,7 +41,7 @@ import sys
 from molt import __version__
 # TODO: use argparse instead of optparse:
 #   http://docs.python.org/library/argparse.html#module-argparse
-from .common.optionparser import Option, OptionParser, UsageError
+from molt.common.optionparser import Option, OptionParser, UsageError
 
 
 _log = logging.getLogger(__name__)
@@ -61,8 +61,9 @@ OPTPARSE_USAGE = """%prog [options] [DIRECTORY]
 Create a new project from the Groom template in DIRECTORY.
 
 This script creates a new project from a Groom project template using
-values from a configuration file.  It prints the output directory to
-standard output when complete."""
+values from a configuration file.
+
+The script writes the output directory to stdout when complete."""
 
 OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
 
@@ -116,27 +117,17 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                           epilog=OPTPARSE_EPILOG,
                           add_help_option=False)
 
-    # TODO: explicitly add a version option.
     parser.add_option(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
                       action="store", type='string', default=None,
                       help='the directory to which to write the new project. '
-                           'Defaults to the directory %s.  If the directory '
-                           'already exists, then the directory name is incremented '
-                           'until a new directory can be created.  '
-                           'The script writes the output directory to stdout '
-                           'when complete.' % repr(DEFAULT_OUTPUT_DIR))
+                           'Defaults to %s.  If the directory already exists, '
+                           'then the directory name is incremented until a '
+                           'new directory can be created.' % repr(DEFAULT_OUTPUT_DIR))
     parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
                       action="store", type='string', default=defaults.config_path,
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
-    parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
-                      action="store_true", default=False,
-                      help='whether to run tests.  Runs all available project tests,  '
-                           'including unit tests, doctests, and, if available, '
-                           'the Groom project test cases.  If the %s option '
-                           'is provided, then test failure data is written '
-                           'to a subset of that directory.')
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a Groom template to play with that demonstrates '
@@ -145,6 +136,13 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                            'the %s option.  '
                            'If not specified, the output directory defaults to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(DEFAULT_DEMO_OUTPUT_DIR)))
+    parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
+                      action="store_true", default=False,
+                      help='whether to run tests.  Runs all available project tests,  '
+                           'including unit tests, doctests, and, if available, '
+                           'the Groom project test cases.  If the %s option '
+                           'is provided, then test failure data is written '
+                           'to a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
     parser.add_option(*OPTION_VERBOSE, dest="verbose",
                       action="store_true", default=False,
                       help="log verbosely.")

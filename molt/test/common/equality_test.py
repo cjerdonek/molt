@@ -36,7 +36,7 @@ from __future__ import absolute_import
 
 import unittest
 
-from ...common.equality import Equalable
+from molt.common.equality import Equalable
 
 
 class Foo(Equalable):

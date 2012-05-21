@@ -28,7 +28,7 @@
 #
 
 """
-Supplies the main method for the molt project.
+Exposes package-wide defaults.
 
 """
 
