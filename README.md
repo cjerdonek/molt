@@ -28,30 +28,36 @@ below installs Pystache automatically.
 Install It
 ----------
 
-    pip install molt
+    $ pip install molt
 
 
 Test it
 -------
 
-    molt --run-tests
+    $ molt --run-tests
 
 
 Try it
 ------
 
-On the command-line--
+Start with a demo Groom template to play with:
 
-    $ molt --create-demo
-    temp/molt-demo
-    $ molt molt-demo
-    temp/output
-    $ python temp/output/hello.py world
+    $ molt --create-demo -o demo
+    $ ls demo
+    partials	project		sample.json
+
+Render it with the sample context (creating a new project):
+
+    $ molt -o output demo
+
+Run the newly-created project:
+
+    $ python output/hello.py world
     Hello, world!
 
 For help documentation and available options--
 
-    molt -h
+    $ molt -h
 
 If using Python, you can also use Molt as a library.  See the `Molter` class
 in the [`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
@@ -63,11 +69,11 @@ Develop
 
 To run unit tests--
 
-    python test_molt.py
+    $ python test_molt.py
 
 Which is equivalent to--
 
-    python -m molt.commands.molt --run-tests
+    $ python -m molt.commands.molt --run-tests
 
 TODO: add info about submodules.
 

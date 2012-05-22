@@ -3,7 +3,6 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Make README examples use explicit paths.
  * finalize README.
  * add --copyright option.
  * finalize help options and help strings.
