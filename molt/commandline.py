@@ -42,14 +42,10 @@ from molt import __version__
 # TODO: use argparse instead of optparse:
 #   http://docs.python.org/library/argparse.html#module-argparse
 from molt.common.optionparser import Option, OptionParser, UsageError
+from molt.defaults import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR
 
 
 _log = logging.getLogger(__name__)
-
-# Move these directories to a defaults module.
-ROOT_OUTPUT_DIR = 'temp'
-DEFAULT_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'output')
-DEFAULT_DEMO_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'molt-demo')
 
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
@@ -116,19 +112,7 @@ def get_license_string():
     return s
 
 
-# TODO: Remove this class?
-class DefaultOptions(object):
-    """
-    The default values that the OptionParser should use.
-
-    """
-    def __init__(self):
-        self.config_path = ""
-        self.destination_directory = ""
-        self.source_root_directory = ""
-
-
-def create_parser(defaults, suppress_help_exit=False, usage=None):
+def create_parser(suppress_help_exit=False, usage=None):
     """
     Return an OptionParser for the program.
 
@@ -147,12 +131,12 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
 
     parser.add_option(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
                       action="store", type='string', default=None,
-                      help='the directory to which to write the new project. '
-                           'Defaults to %s.  If the directory already exists, '
-                           'then the directory name is incremented until a '
-                           'new directory can be created.' % repr(DEFAULT_OUTPUT_DIR))
+                      help='the directory to use when an output directory is '
+                           'required.  Defaults to %s.  If the directory already '
+                           'exists, then the directory name is incremented '
+                           'until a new directory can be created.' % repr(DEFAULT_OUTPUT_DIR))
     parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
-                      action="store", type='string', default=defaults.config_path,
+                      action="store", type='string', default='TODO',
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
                            'Defaults to the default configuration file.')
@@ -160,9 +144,9 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='create a Groom template to play with that demonstrates '
                            'most features of Groom.  '
-                           'The command writes to the directory specified by '
-                           'the %s option.  '
-                           'If not specified, the output directory defaults to %s.' %
+                           'The command writes to the directory specified by the '
+                           '%s option.  If not specified, the output directory '
+                           'defaults to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(DEFAULT_DEMO_OUTPUT_DIR)))
     parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
@@ -206,36 +190,17 @@ def preparse_args(sys_argv):
     return options, args
 
 
-def parse_args(sys_argv, suppress_help_exit=False, usage=None, defaults=None):
+def parse_args(sys_argv, suppress_help_exit=False, usage=None):
     """
     Parse arguments and return (options, args).
 
     Raises UsageError on command-line usage error.
 
     """
-    if defaults is None:
-        defaults = DefaultOptions()
-
-    parser = create_parser(defaults, suppress_help_exit=suppress_help_exit, usage=usage)
+    parser = create_parser(suppress_help_exit=suppress_help_exit, usage=usage)
 
     # The optparse module's parse_args() normally expects sys.argv[1:].
     args = sys_argv[1:]
     options, args = parser.parse_args(args)
 
     return options, args
-
-
-def read_args(sys_argv, usage, defaults):
-    """
-    Raises UsageError on bad arguments.
-
-
-    """
-    options, args = parse_args(sys_argv, suppress_help_exit=False, usage=usage, defaults=defaults)
-
-    _log.debug("Configuration file: %s" % options.config_path)
-    _log.debug("Project directory: %s" % options.project_directory)
-    _log.debug("Output directory: %s" % options.output_directory)
-
-    return options
-

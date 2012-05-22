@@ -70,6 +70,10 @@ def make_util_load_tests():
 
     """
     def load_tests(loader, tests, pattern):
+        """
+        Return a unittest.TestSuite instance.
+
+        """
         for test in test_gen(tests):
             test.util = loader.util
 

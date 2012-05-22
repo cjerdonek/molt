@@ -35,18 +35,19 @@ Exposes tests that test the Groom template in the demo directory.
 import logging
 import unittest
 
-from molt.defaults import get_demo_template_dir, get_demo_expected_dir
+from molt.defaults import DEMO_TEMPLATE_DIR, DEMO_EXPECTED_DIR
 from molt.test.harness.templatetest import make_template_test
 from molt.test.harness.util import make_util_load_tests
 
 
 def load_tests(loader, tests, pattern):
-    demo_expected_dir = get_demo_expected_dir()
-    demo_template_dir = get_demo_template_dir()
+    """
+    Return a unittest.TestSuite instance testing the demo template.
 
+    """
     demo_test = make_template_test(group_name='Demo',
-                                   input_dir=demo_template_dir,
-                                   expected_dir=demo_expected_dir)
+                                   input_dir=DEMO_TEMPLATE_DIR,
+                                   expected_dir=DEMO_EXPECTED_DIR)
     tests = [demo_test]
 
     load_tests = make_util_load_tests()

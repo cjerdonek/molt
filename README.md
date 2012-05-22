@@ -18,8 +18,8 @@ project templates.
 Requirements
 ------------
 
-Molt requires Python 2.7.  Python 3.x support is coming soon.  Since Molt is
-a development tool, there are no plans to support Python 2.6 or earlier.
+Molt requires Python 2.7.  Python 3.x support is coming soon.  As Molt is a
+development tool, there are no plans to support Python 2.6 or earlier.
 
 Molt requires [Pystache](https://github.com/defunkt/pystache) version
 [0.5.2](http://pypi.python.org/pypi/pystache).  The install process

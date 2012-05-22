@@ -28,7 +28,11 @@
 #
 
 """
-Exposes package-wide defaults.
+Exposes package-wide constants.
+
+The constants are divided roughly into (1) hard-coded values that will
+never change, and (2) default values for values that the user can
+specify through the application (e.g. using a command-line option).
 
 """
 
@@ -38,17 +42,24 @@ import os
 
 import molt
 
+# Constants
+
+_SOURCE_DIR = os.path.dirname(molt.__file__)
+_PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
 
 _DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
 _DEMO_EXPECTED_DIR = 'test/data/demo'
 
-SOURCE_DIR = os.path.dirname(molt.__file__)
-PROJECT_DIR = os.path.normpath(os.path.join(SOURCE_DIR, os.pardir))
+DEMO_EXPECTED_DIR = os.path.join(_SOURCE_DIR, _DEMO_EXPECTED_DIR)
+DEMO_TEMPLATE_DIR = os.path.join(_SOURCE_DIR, _DEMO_TEMPLATE_DIR)
+
 GROOM_INPUT_DIR = os.path.join(PROJECT_DIR, os.path.normpath('sub/groom/tests'))
 
+# Defaults
 
-def get_demo_expected_dir():
-    return os.path.join(SOURCE_DIR, _DEMO_EXPECTED_DIR)
+_DEFAULT_OUTPUT_PARENT_DIR = 'temp'
+_DEFAULT_OUTPUT_DIR_NAME = 'output'
+_DEFAULT_OUTPUT_DIR_NAME_DEMO = 'demo'
 
-def get_demo_template_dir():
-    return os.path.join(SOURCE_DIR, _DEMO_TEMPLATE_DIR)
+DEFAULT_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME)
+DEFAULT_DEMO_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME_DEMO)

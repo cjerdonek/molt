@@ -45,10 +45,10 @@ import traceback
 
 import molt
 from molt import commandline
-from molt.commandline import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, OPTION_HELP, OPTION_VERBOSE
+from molt.commandline import OPTION_HELP, OPTION_VERBOSE
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
-from molt.defaults import get_demo_template_dir
+from molt.defaults import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, DEMO_TEMPLATE_DIR
 from molt import logconfig
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests
@@ -112,10 +112,9 @@ def run_tests(options):
 
 def create_demo(options):
     output_dir = generate_output_dir(options, DEFAULT_DEMO_OUTPUT_DIR)
-    demo_template_dir = get_demo_template_dir()
 
     os.rmdir(output_dir)
-    copytree(demo_template_dir, output_dir)
+    copytree(DEMO_TEMPLATE_DIR, output_dir)
     _log.info("Created demo template directory: %s" % output_dir)
 
     return output_dir

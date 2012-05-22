@@ -4,6 +4,7 @@ TODO
 Before releasing version 0.1.0:
 
  * finalize README.
+ * make the demo like Groom's "Advanced Example".
  * finalize help options and help strings.
  * make setup.py file
  * make an "end-to-end" test using subprocess.
