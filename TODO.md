@@ -3,16 +3,15 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Define a context manager (and that recognizes test mode).
+ * Switch the Groom tests and demo test to the load_tests protocol.
  * Make README examples use explicit paths.
  * finalize README.
  * add --copyright option.
  * finalize help options and help strings.
- * stub out history file
  * make setup.py file
  * make an "end-to-end" test using os.system.
  * Generate a GitHub page just before the release to PyPI.
- * Mention the API on the README.
+ * Make sure HISTORY file, etc. is included in the MANIFEST.
 
 * Make log messages begin with a newline on some condition.
 * Add an --overwrite option to write over (but not delete) existing output
