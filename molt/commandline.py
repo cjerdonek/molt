@@ -52,6 +52,7 @@ DEFAULT_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'output')
 DEFAULT_DEMO_OUTPUT_DIR = os.path.join(ROOT_OUTPUT_DIR, 'molt-demo')
 
 OPTION_HELP = Option(('-h', '--help'))
+OPTION_LICENSE = Option(('--license', ))
 OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
 OPTION_RUN_TESTS = Option(('--run-tests',))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
@@ -67,28 +68,55 @@ The script writes the output directory to stdout when complete."""
 
 OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
 
+COPYRIGHT_LINE = "Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved."
+
+LICENSE_STRING = """\
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* The names of the copyright holders may not be used to endorse or promote
+  products derived from this software without specific prior written
+  permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+"""
+
 
 def option_to_string(option):
     return " or ".join(option)
 
 
+def get_version_header():
+    return "Molt %s" % __version__
+
+
 def get_version_string():
-    # TODO: move copyright string to a central location.
-    # TODO: add license info to end.
-    s = """\
-Molt %(version)s
-
-Using: Python %(sys_version)s
- at %(sys_executable)s
-
-Copyright (C) 2011-2012 Chris Jerdonek.""" % {
-    'version': __version__,
-    'sys_executable': sys.executable,
-    'sys_version': sys.version,
-}
-
+    using_string = "Using: Python %s\n at %s" % (sys.version, sys.executable)
+    s = "\n\n".join([get_version_header(), using_string, COPYRIGHT_LINE])
     return s
 
+
+def get_license_string():
+    s = "\n\n".join([get_version_header(), COPYRIGHT_LINE, LICENSE_STRING])
+    return s
+
+
+# TODO: Remove this class?
 class DefaultOptions(object):
     """
     The default values that the OptionParser should use.
@@ -143,12 +171,15 @@ def create_parser(defaults, suppress_help_exit=False, usage=None):
                            'the Groom project test cases.  If the %s option '
                            'is provided, then test failure data is written '
                            'to a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
-    parser.add_option(*OPTION_VERBOSE, dest="verbose",
+    parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
-                      help="log verbosely.")
+                      help="display license info.")
     parser.add_option("-V", "--version", dest="version_mode",
                       action="store_true", default=False,
                       help="display version info.")
+    parser.add_option(*OPTION_VERBOSE, dest="verbose",
+                      action="store_true", default=False,
+                      help="log verbosely.")
     parser.add_option(*OPTION_HELP, action=help_action,
                       help="show this help message and exit.")
 
