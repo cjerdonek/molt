@@ -3,7 +3,6 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Switch the Groom tests and demo test to the load_tests protocol.
  * Make README examples use explicit paths.
  * finalize README.
  * add --copyright option.

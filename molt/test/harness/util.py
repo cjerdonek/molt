@@ -36,6 +36,7 @@ from __future__ import absolute_import
 
 from contextlib import contextmanager
 import os
+from shutil import rmtree
 import unittest
 
 
@@ -92,10 +93,14 @@ def sandbox_dir(dir_path):
     """
     os.mkdir(dir_path)
     yield dir_path
-    # We do not delete the directory if an exception (e.g. a test failure)
-    # occurs in the with block.  That is why we do not put rmdir()
-    # inside the finally block of a try-finally construct.
-    os.rmdir(dir_path)
+    # We do not put rmtree() in a try-finally because we do not want to
+    # delete the directory if an exception (e.g. a test failure) occurs
+    # in the with block.
+    #
+    # Also, it is safe to use rmtree because we created the directory
+    # ourselves above.  In other words, it does not contain anything
+    # that we do not already know about.
+    rmtree(dir_path)
 
 
 class TestUtil(object):

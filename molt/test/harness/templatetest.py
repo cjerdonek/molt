@@ -39,7 +39,6 @@ from __future__ import absolute_import
 from filecmp import dircmp
 import logging
 import os
-from shutil import rmtree
 from textwrap import dedent, TextWrapper
 from unittest import TestCase
 
@@ -56,28 +55,27 @@ DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 
 SKIPPED_FILES = ['.DS_Store']
 
-def make_template_test(group_name, input_dir, expected_dir, test_run_output_dir):
+def make_template_test(group_name, input_dir, expected_dir):
     names = [None]
 
     def make_full_name(group_name, name):
         return group_name.lower()
 
-    def make_assert_template(group_name, name, parent_input_dir, test_run_output_dir):
+    def make_assert_template(group_name, name, parent_input_dir):
         long_name = make_full_name(group_name, name)
 
         def assert_template(test_case):
-            test_case._assert_template(group_name, long_name, parent_input_dir, test_run_output_dir, expected_dir)
+            test_case._assert_template(group_name, long_name, parent_input_dir, expected_dir)
 
         return assert_template
 
-    test_cases = _make_template_tests(group_name, names, input_dir, test_run_output_dir,
-                                      make_full_name, make_assert_template)
+    test_cases = _make_template_tests(group_name, names, input_dir, make_full_name, make_assert_template)
 
     return test_cases[0]
 
 
 # TODO: rename test_run_dir to something else.
-def make_template_tests(group_name, parent_input_dir, test_run_output_dir):
+def make_template_tests(group_name, parent_input_dir):
     """
     Return a list of unittest.TestCase instances.
 
@@ -89,23 +87,22 @@ def make_template_tests(group_name, parent_input_dir, test_run_output_dir):
     def make_full_name(group_name, name):
         return '%s__%s' % (group_name.lower(), name)
 
-    def make_assert_template(group_name, name, parent_input_dir, test_run_output_dir):
+    def make_assert_template(group_name, name, parent_input_dir):
         input_dir = os.path.join(parent_input_dir, name)
         long_name = make_full_name(group_name, name)
         expected_dir = os.path.join(input_dir, 'expected')
 
         def assert_template(test_case):
-            test_case._assert_template(name, long_name, input_dir, test_run_output_dir, expected_dir)
+            test_case._assert_template(name, long_name, input_dir, expected_dir)
 
         return assert_template
 
-    return _make_template_tests(group_name, names, parent_input_dir, test_run_output_dir,
-                                make_full_name, make_assert_template)
+    return _make_template_tests(group_name, names, parent_input_dir, make_full_name,
+                                make_assert_template)
 
 
 # TODO: rename test_run_dir to something else.
-def _make_template_tests(group_name, names, parent_input_dir, test_run_output_dir,
-                         make_full_name, make_assert_template):
+def _make_template_tests(group_name, names, parent_input_dir, make_full_name, make_assert_template):
     """
     Return a list of unittest.TestCase instances.
 
@@ -116,7 +113,7 @@ def _make_template_tests(group_name, names, parent_input_dir, test_run_output_di
     test_cases = []
     for name in names:
         method_name = 'test_%s' % make_full_name(group_name, name)
-        assert_template = make_assert_template(group_name, name, parent_input_dir, test_run_output_dir)
+        assert_template = make_assert_template(group_name, name, parent_input_dir)
 
         setattr(test_case_class, method_name, assert_template)
 
@@ -241,7 +238,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             actual_subdir = os.path.join(actual_dir, subdir)
             self._assert_dirs_equal(expected_subdir, actual_subdir)
 
-    def _assert_template(self, template_name, long_name, test_input_dir, test_run_output_dir, expected_dir):
+    def _assert_template(self, template_name, long_name, test_input_dir, expected_dir):
         """
         Arguments:
 
@@ -250,15 +247,10 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
           input_dir: the directory containing the project directory,
             partials directory, and config file.
 
-          test_run_output_dir: the directory containing the output for the
-            entire test run (i.e. all test cases).
-
         """
         project_dir = os.path.join(test_input_dir, 'project')
         partials_dir = os.path.join(test_input_dir, 'partials')
         config_path = os.path.join(test_input_dir, 'sample.json')
-
-        output_dir = os.path.join(test_run_output_dir, long_name)
 
         molter = Molter()
 
@@ -270,12 +262,6 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         self.description = description
         self.template_name = template_name
 
-        os.mkdir(output_dir)
-        try:
+        with self.util.sandbox_dir(self, template_name) as output_dir:
             molter.molt(project_dir, partials_dir, config_path, output_dir)
             self._assert_dirs_equal(expected_dir, output_dir)
-        except BaseException:
-            # Do not erase the test output if the test fails.
-            raise
-        else:
-            rmtree(output_dir)

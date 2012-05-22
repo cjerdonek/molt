@@ -44,14 +44,9 @@ def load_tests(loader, tests, pattern):
     demo_expected_dir = get_demo_expected_dir()
     demo_template_dir = get_demo_template_dir()
 
-    test_run_dir = loader.util.test_run_dir
-
-    # TODO: use TestUtil.sandbox_dir() here.
     demo_test = make_template_test(group_name='Demo',
                                    input_dir=demo_template_dir,
-                                   expected_dir=demo_expected_dir,
-                                   test_run_output_dir=test_run_dir)
-
+                                   expected_dir=demo_expected_dir)
     tests = [demo_test]
 
     load_tests = make_util_load_tests()
