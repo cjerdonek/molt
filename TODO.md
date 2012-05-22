@@ -8,7 +8,6 @@ Before releasing version 0.1.0:
  * finalize help options and help strings.
  * make setup.py file
  * make an "end-to-end" test using subprocess.
- * Generate a GitHub page just before the release to PyPI.
  * Make sure HISTORY file, etc. is included in the MANIFEST.
 
 * Make log messages begin with a newline on some condition.

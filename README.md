@@ -6,8 +6,9 @@ Molt
 
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
-Molt is a script to start projects instantly using
-[Mustache](http://mustache.github.com/)-based project templates.
+[Molt](http://cjerdonek.github.com/molt/) is a script to start projects
+instantly using [Mustache](http://mustache.github.com/)-based
+project templates.
 
 Molt is written in [Python](http://www.python.org/) and follows the
 [Groom](http://cjerdonek.github.com/groom/) rules for Mustache-based
