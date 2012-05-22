@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,57 +28,33 @@
 #
 
 """
-Unit tests for the main module.
+Exposes tests that test the Groom template in the demo directory.
 
 """
 
 import logging
 import unittest
 
-from molt.main import Error, run_molt
+from molt.defaults import get_demo_template_dir, get_demo_expected_dir
+from molt.test.harness.templatetest import make_template_test
 from molt.test.harness.util import make_util_load_tests
 
 
-load_tests = make_util_load_tests()
+def load_tests(loader, tests, pattern):
+    demo_expected_dir = get_demo_expected_dir()
+    demo_template_dir = get_demo_template_dir()
 
-class MockLogging(object):
+    test_run_dir = loader.util.test_run_dir
 
-    """Mock logging for testing purposes."""
+    # TODO: use TestUtil.sandbox_dir() here.
+    demo_test = make_template_test(group_name='Demo',
+                                   input_dir=demo_template_dir,
+                                   expected_dir=demo_expected_dir,
+                                   test_run_output_dir=test_run_dir)
 
-    def configure_logging(self, sys_argv):
-        self.argv = sys_argv
+    tests = [demo_test]
 
+    load_tests = make_util_load_tests()
+    tests = load_tests(loader, tests, pattern)
 
-class CreateDemoTestCase(unittest.TestCase):
-
-    """Test --create-demo mode."""
-
-    def test_load_tests(self):
-        with self.util.sandbox_dir(self, "abc") as dir_path:
-            self.assertEquals("foo2", "foo")
-
-    def test_output_directory(self):
-        pass
-
-
-class MainTestCase(unittest.TestCase):
-
-    """Test the main() function."""
-
-    # TODO: test cases for UsageError and Exception.
-    # TODO: prevent the 'No handlers could be found for logger "molt"'
-    # message from showing up.
-
-    def setUp(self):
-        self.logging = MockLogging()
-
-    def test_error(self):
-        def process_args(sys_argv):
-            raise Error("test")
-
-        sys_argv = []
-        result = run_molt(sys_argv, configure_logging=self.logging.configure_logging,
-                          process_args=process_args)
-        self.assertEquals(result, 1)
-        self.assertTrue(self.logging.argv is sys_argv)
-
+    return tests

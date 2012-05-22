@@ -28,57 +28,6 @@
 #
 
 """
-Unit tests for the main module.
+TODO: add a docstring.
 
 """
-
-import logging
-import unittest
-
-from molt.main import Error, run_molt
-from molt.test.harness.util import make_util_load_tests
-
-
-load_tests = make_util_load_tests()
-
-class MockLogging(object):
-
-    """Mock logging for testing purposes."""
-
-    def configure_logging(self, sys_argv):
-        self.argv = sys_argv
-
-
-class CreateDemoTestCase(unittest.TestCase):
-
-    """Test --create-demo mode."""
-
-    def test_load_tests(self):
-        with self.util.sandbox_dir(self, "abc") as dir_path:
-            self.assertEquals("foo2", "foo")
-
-    def test_output_directory(self):
-        pass
-
-
-class MainTestCase(unittest.TestCase):
-
-    """Test the main() function."""
-
-    # TODO: test cases for UsageError and Exception.
-    # TODO: prevent the 'No handlers could be found for logger "molt"'
-    # message from showing up.
-
-    def setUp(self):
-        self.logging = MockLogging()
-
-    def test_error(self):
-        def process_args(sys_argv):
-            raise Error("test")
-
-        sys_argv = []
-        result = run_molt(sys_argv, configure_logging=self.logging.configure_logging,
-                          process_args=process_args)
-        self.assertEquals(result, 1)
-        self.assertTrue(self.logging.argv is sys_argv)
-

@@ -38,10 +38,9 @@ from shutil import rmtree
 from tempfile import mkdtemp
 
 import molt
-from molt.defaults import get_demo_template_dir, get_demo_expected_dir
 from molt.test.harness.alltest import run_tests
 from molt.test.harness.common import test_logger as _log
-from molt.test.harness.templatetest import make_template_test, make_template_tests
+from molt.test.harness.templatetest import make_template_tests
 
 
 _SOURCE_DIR = os.path.dirname(molt.__file__)
@@ -75,19 +74,12 @@ def make_test_run_dir(test_output_dir):
 
 
 def _run_tests(test_run_dir, doctest_paths, verbose):
-    demo_template_dir = get_demo_template_dir()
-    demo_expected_dir = get_demo_expected_dir()
-
-    demo_test = make_template_test(group_name='Demo',
-                                   input_dir=demo_template_dir,
-                                   expected_dir=demo_expected_dir,
-                                   test_run_output_dir=test_run_dir)
-
+    # TODO: load these tests instead using the load_tests protocol.
     groom_tests = make_template_tests(group_name='Groom',
                                       parent_input_dir=_GROOM_INPUT_DIR,
                                       test_run_output_dir=test_run_dir)
 
-    extra_tests = [demo_test] + groom_tests
+    extra_tests = groom_tests
 
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
