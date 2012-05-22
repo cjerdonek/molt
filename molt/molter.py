@@ -37,13 +37,13 @@ from __future__ import absolute_import
 import logging
 import os
 from shutil import copyfile
+from subprocess import Popen, PIPE, STDOUT
 
 from pystache import Renderer as PystacheRenderer
 
 import molt
 from molt.common import io
 from molt.common.error import Error
-from molt.view import File
 
 
 OUTPUT_ENCODING = 'utf-8'
@@ -74,6 +74,26 @@ def preprocess_filename(filename):
     return filename, is_template
 
 
+def _lambda_from_script(path):
+    def func(u):
+        b = u.encode(OUTPUT_ENCODING)
+        # See this page:
+        #   http://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
+
+        # TODO: reraise exception including path, for example in case of--
+        # OSError: [Errno 13] Permission denied
+        try:
+            p = Popen(path, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False,
+                      universal_newlines=False)
+        except:
+            raise Exception("path: %s" % path)
+        stdout_data, stderr_data = p.communicate(input=b)
+
+        return stdout_data
+
+    return func
+
+
 class Molter(object):
 
     def __init__(self, encoding='utf-8', decode_errors='strict'):
@@ -90,16 +110,36 @@ class Molter(object):
     def get_context(self, config_data):
         return config_data['context']
 
-    def molt(self, project_dir, partials_dir, config_path, output_dir):
+    def get_lambdas(self, dir_path):
+        lambdas = {}
+        for file_name in os.listdir(dir_path):
+            if file_name.startswith('.'):
+                # For example, skip .DS_Store.
+                continue
+
+            script_path = os.path.join(dir_path, file_name)
+            func = _lambda_from_script(script_path)
+            root_name, ext = os.path.splitext(file_name)
+
+            root_name = unicode(root_name)
+
+            lambdas[root_name] = func
+
+        return lambdas
+
+    # TODO: create a class to hold and pass the arguments along.
+    def molt(self, project_dir, config_path, output_dir,
+             partials_dir=None, lambdas_dir=None):
         _log.info("""\
 Rendering:
 
   Project directory:   %s
   Partial directory:   %s
+  Lambdas directory:   %s
   Config file:         %s
 
   Destination: %s
-    """ % (project_dir, partials_dir, config_path, output_dir))
+    """ % (project_dir, partials_dir, lambdas_dir, config_path, output_dir))
 
         search_dirs = [partials_dir]
 
@@ -110,10 +150,17 @@ Rendering:
         config_data = self.read_config(config_path)
         context = self.get_context(config_data)
 
+        lambdas = [] if lambdas_dir is None else self.get_lambdas(lambdas_dir)
+
+        # TODO: raise an exception if lambdas and context intersect?
+
+        context.update(lambdas)
+
         renderer.render(project_dir=project_dir, context=context, output_dir=output_dir)
         _log.info("Wrote new project to: %s" % repr(output_dir))
 
 
+# TODO: combine this class with the Molter class.
 class _Renderer(object):
 
     """

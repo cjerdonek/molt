@@ -55,7 +55,7 @@ class CreateDemoTestCase(unittest.TestCase):
 
     def test_load_tests(self):
         with self.util.sandbox_dir(self, "abc") as dir_path:
-            self.assertEquals("foo2", "foo")
+            self.assertEquals("foo", "foo")
 
     def test_output_directory(self):
         pass

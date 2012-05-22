@@ -52,7 +52,6 @@ from molt.defaults import get_demo_template_dir
 from molt import logconfig
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests
-from molt.view import File
 
 
 _log = logging.getLogger(__name__)

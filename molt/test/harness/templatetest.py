@@ -250,7 +250,11 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         """
         project_dir = os.path.join(test_input_dir, 'project')
         partials_dir = os.path.join(test_input_dir, 'partials')
+        lambdas_dir = os.path.join(test_input_dir, 'lambdas')
         config_path = os.path.join(test_input_dir, 'sample.json')
+
+        if not os.path.exists(lambdas_dir):
+            lambdas_dir = None
 
         molter = Molter()
 
@@ -263,5 +267,6 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         self.template_name = template_name
 
         with self.util.sandbox_dir(self, template_name) as output_dir:
-            molter.molt(project_dir, partials_dir, config_path, output_dir)
+            molter.molt(project_dir, config_path, output_dir, partials_dir=partials_dir,
+                        lambdas_dir=lambdas_dir)
             self._assert_dirs_equal(expected_dir, output_dir)
