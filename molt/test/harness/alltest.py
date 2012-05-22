@@ -43,6 +43,7 @@ import sys
 from unittest import TestLoader, TestProgram
 
 from molt.test.harness.common import test_logger as _log
+from molt.test.harness.util import TestUtil
 
 
 def make_doctest_test_suites(module_names):
@@ -100,7 +101,7 @@ def find_modules(package):
     return names
 
 
-def run_tests(package, is_unittest_module, extra_tests=None, doctest_paths=None, verbosity=1):
+def run_tests(package, is_unittest_module, test_run_dir, extra_tests=None, doctest_paths=None, verbosity=1):
     """
     Run all tests, and return a unittest.TestResult instance.
 
@@ -139,7 +140,10 @@ def run_tests(package, is_unittest_module, extra_tests=None, doctest_paths=None,
     # instead using the argv parameter.
     argv.extend(test_module_names)
 
+    util = TestUtil(test_run_dir)
+
     test_loader = UnittestTestLoader()
+    test_loader.util = util
 
     test_program = test_program_class(testLoader=test_loader, module=None, argv=argv, exit=False, verbosity=verbosity)
 
@@ -192,13 +196,12 @@ def make_test_program_class(tests):
 class UnittestTestLoader(TestLoader):
 
     """
-    In addition to loading the doctests as unit tests, this TestLoader
-    differs from unittest's default TestLoader by providing additional
-    diagnostic information when an AttributeError occurs while loading a
-    module.
+    This TestLoader differs from unittest's default TestLoader by providing
+    additional diagnostic information when an AttributeError occurs while
+    loading a module.
 
     Because of Python issue 7559 ( http://bugs.python.org/issue7559# ),
-    the unittest module masks ImportErrors andthe name of the offending
+    the unittest module masks ImportErrors and the name of the offending
     module.  This TestLoader reports the name of the offending module
     along with a reminder that the AttributeError may be masking an
     ImportError.

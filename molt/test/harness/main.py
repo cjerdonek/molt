@@ -94,6 +94,7 @@ def _run_tests(test_run_dir, doctest_paths, verbose):
 
     test_result = run_tests(package=molt,
                             is_unittest_module=IS_UNITTEST_MODULE,
+                            test_run_dir=test_run_dir,
                             extra_tests=extra_tests,
                             doctest_paths=doctest_paths,
                             verbosity=verbosity)
@@ -107,7 +108,8 @@ def run_molt_tests(verbose=False, test_output_dir=None):
     Arguments:
 
       test_output_dir: the directory in which to leave test expectation
-        failures.  If None, test expectation failures are deleted.
+        failures.  If None, test runs are written to a system temp
+        directory and test expectation failures deleted.
 
     """
     _log.info("running tests")
