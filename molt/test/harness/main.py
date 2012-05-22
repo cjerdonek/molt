@@ -43,10 +43,6 @@ from molt.test.harness.common import test_logger as _log
 from molt.test.harness.templatetest import make_template_tests
 
 
-_SOURCE_DIR = os.path.dirname(molt.__file__)
-_PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
-_GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groom/tests'))
-
 README_REL_PATH = 'README.md'  # relative to the project directory.
 IS_UNITTEST_MODULE = lambda name: name.endswith('_test')
 
@@ -74,20 +70,12 @@ def make_test_run_dir(test_output_dir):
 
 
 def _run_tests(test_run_dir, doctest_paths, verbose):
-    # TODO: load these tests instead using the load_tests protocol.
-    groom_tests = make_template_tests(group_name='Groom',
-                                      parent_input_dir=_GROOM_INPUT_DIR,
-                                      test_run_output_dir=test_run_dir)
-
-    extra_tests = groom_tests
-
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
     test_result = run_tests(package=molt,
                             is_unittest_module=IS_UNITTEST_MODULE,
                             test_run_dir=test_run_dir,
-                            extra_tests=extra_tests,
                             doctest_paths=doctest_paths,
                             verbosity=verbosity)
     return test_result

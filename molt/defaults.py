@@ -39,11 +39,16 @@ import os
 import molt
 
 
-SOURCE_DIR = os.path.dirname(molt.__file__)
-DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
+_DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
+_DEMO_EXPECTED_DIR = 'test/data/demo'
 
-def get_demo_template_dir():
-    return os.path.join(SOURCE_DIR, DEMO_TEMPLATE_DIR)
+SOURCE_DIR = os.path.dirname(molt.__file__)
+PROJECT_DIR = os.path.normpath(os.path.join(SOURCE_DIR, os.pardir))
+GROOM_INPUT_DIR = os.path.join(PROJECT_DIR, os.path.normpath('sub/groom/tests'))
+
 
 def get_demo_expected_dir():
-    return os.path.join(SOURCE_DIR, 'test/data/demo')
+    return os.path.join(SOURCE_DIR, _DEMO_EXPECTED_DIR)
+
+def get_demo_template_dir():
+    return os.path.join(SOURCE_DIR, _DEMO_TEMPLATE_DIR)

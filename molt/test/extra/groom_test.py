@@ -35,7 +35,20 @@ Exposes tests that test the Groom project test cases.
 import logging
 import unittest
 
-from molt.main import Error, run_molt
+from molt.defaults import get_demo_template_dir, get_demo_expected_dir, GROOM_INPUT_DIR
+from molt.test.harness.templatetest import make_template_tests
 from molt.test.harness.util import make_util_load_tests
 
-# TODO: finish this module.
+
+def load_tests(loader, tests, pattern):
+    test_run_dir = loader.util.test_run_dir
+
+    # TODO: use TestUtil.sandbox_dir() here.
+    tests = make_template_tests(group_name='Groom',
+                                parent_input_dir=GROOM_INPUT_DIR,
+                                test_run_output_dir=test_run_dir)
+
+    load_tests = make_util_load_tests()
+    tests = load_tests(loader, tests, pattern)
+
+    return tests
