@@ -28,17 +28,53 @@
 #
 
 """
-Exposes a generic run_tests() function to run all tests in a project.
+Exposes some unittest-related utility classes/functions.
 
 """
 
 from __future__ import absolute_import
 
 from contextlib import contextmanager
-import logging
 import os
+import unittest
 
-import molt.test
+
+def test_gen(tests):
+    """
+    Return a generator over all TestCase instances recursively in tests.
+
+    For example--
+
+    for test in test_gen(tests):
+        print test
+
+    Arguments:
+
+      tests: a TestCase instance, TestSuite instance, or iterable of
+        TestCase and TestSuite instances.
+
+    """
+    if isinstance(tests, unittest.TestCase):
+        yield tests
+        return
+    # Otherwise, we have an iterable or a TestSuite instance.
+    for test in tests:
+        for test2 in test_gen(test):
+            yield test2
+
+
+def make_util_load_tests():
+    """
+    Return a load_tests() function that sets the util attribute.
+
+    """
+    def load_tests(loader, tests, pattern):
+        for test in test_gen(tests):
+            test.util = loader.util
+
+        return unittest.TestSuite(tests)
+
+    return load_tests
 
 
 @contextmanager

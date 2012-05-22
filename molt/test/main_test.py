@@ -34,41 +34,11 @@ Unit tests for the main module.
 
 import logging
 import unittest
-from unittest import TestCase
 
 from molt.main import Error, run_molt
+from molt.test.harness.util import make_util_load_tests
 
-
-def test_gen(tests):
-    """
-    Return a generator over all TestCase instances recursively in tests.
-
-    For example--
-
-    for test in test_gen(tests):
-        print test
-
-    Arguments:
-
-      tests: a TestCase instance, TestSuite instance, or iterable of
-        TestCase and TestSuite instances.
-
-    """
-    if isinstance(tests, TestCase):
-        yield tests
-        return
-    # Otherwise, we have an iterable or a TestSuite instance.
-    for test in tests:
-        for test2 in test_gen(test):
-            yield test2
-
-
-def load_tests(loader, tests, pattern):
-    for test in test_gen(tests):
-        test.util = loader.util
-
-    return unittest.TestSuite(tests)
-
+load_tests = make_util_load_tests()
 
 class MockLogging(object):
 
@@ -84,7 +54,7 @@ class CreateDemoTestCase(unittest.TestCase):
 
     def test_load_tests(self):
         with self.util.sandbox_dir(self, "abc") as dir_path:
-            self.assertEquals("foo", "foo")
+            self.assertEquals("foo2", "foo")
 
     def test_output_directory(self):
         pass
