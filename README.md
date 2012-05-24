@@ -14,6 +14,8 @@ Molt is written in [Python](http://www.python.org/) and follows the
 [Groom](http://cjerdonek.github.com/groom/) rules for Mustache-based
 project templates.
 
+See the Groom page for project template syntax.
+
 
 Requirements
 ------------
@@ -43,13 +45,13 @@ Try it
 
 Start with a demo Groom template to play with:
 
-    $ molt --create-demo -o demo
-    $ ls demo
-    partials    project    sample.json
+    $ molt --create-demo --output demo
+    $ ls -p demo
+    lambdas/    partials/    project/    sample.json
 
-Render it with the sample context (creating a new project):
+Render the template with the sample context provided:
 
-    $ molt -o output -c demo/sample.json demo
+    $ molt --output output --config demo/sample.json demo
 
 Run the newly-created project:
 
@@ -61,7 +63,7 @@ For help documentation and available options--
     $ molt -h
 
 If using Python, you can also use Molt as a library (though the API is
-immature).  See the `Molter` class in the
+not stable).  See the `Molter` class in the
 [`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
 module.
 
@@ -69,9 +71,9 @@ module.
 Contribute
 ----------
 
-After forking--
+If using [GitHub](https://github.com/), after forking--
 
-    $ git clone git@github.com:_yourusername_/molt.git
+    $ git clone git@github.com:yourusername/molt.git
     $ cd molt
     $ git remote add upstream git://github.com/cjerdonek/molt.git
     $ git fetch upstream
@@ -80,11 +82,11 @@ To run unit tests--
 
     $ python test_molt.py
 
-which is equivalent to--
+This is equivalent to--
 
     $ python -m molt.commands.molt --run-tests
 
-In particular, to test from source any molt command of the following form--
+In particular, to test from source any molt command (of the form)--
 
     $ molt [options] [DIRECTORY]
 
@@ -92,8 +94,8 @@ simply type--
 
     $ python -m molt.commands.molt [options] [DIRECTORY]
 
-Finally, to include the Groom tests in your test run, bring in the Groom
-project submodule--
+To include the Groom [tests](https://github.com/cjerdonek/groom/tree/master/tests)
+in your test runs, initialize and update the Groom project submodule--
 
     $ git submodule init
     $ git submodule update
@@ -102,9 +104,9 @@ project submodule--
 Author
 ------
 
-Molt is authored by [Chris Jerdonek](https://github.com/cjerdonek), also
-the author of [Groom](http://cjerdonek.github.com/groom/) and the current
-[Pystache](https://github.com/defunkt/pystache) maintainer.
+Molt is authored by [Chris Jerdonek](https://github.com/cjerdonek).
+Chris is also the author of [Groom](http://cjerdonek.github.com/groom/) and
+currently maintains [Pystache](https://github.com/defunkt/pystache).
 
 
 Copyright

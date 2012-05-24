@@ -3,12 +3,12 @@ TODO
 
 Before releasing version 0.1.0:
 
- * finalize README.
  * finalize help options and help strings.
  * make setup.py file
  * make an "end-to-end" test using subprocess.
  * Make sure HISTORY file, etc. is included in the MANIFEST.
 
+* Link to PyPI in the README.
 * Make log messages begin with a newline on some condition.
 * Add an --overwrite option to write over (but not delete) existing output
   directories.
