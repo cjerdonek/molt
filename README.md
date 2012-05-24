@@ -45,11 +45,11 @@ Start with a demo Groom template to play with:
 
     $ molt --create-demo -o demo
     $ ls demo
-    partials	project		sample.json
+    partials    project    sample.json
 
 Render it with the sample context (creating a new project):
 
-    $ molt -o output demo
+    $ molt -o output -c demo/sample.json demo
 
 Run the newly-created project:
 
@@ -60,8 +60,9 @@ For help documentation and available options--
 
     $ molt -h
 
-If using Python, you can also use Molt as a library.  See the `Molter` class
-in the [`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
+If using Python, you can also use Molt as a library (though the API is
+immature).  See the `Molter` class in the
+[`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
 module.
 
 
