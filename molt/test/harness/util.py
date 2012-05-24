@@ -116,10 +116,20 @@ class TestUtil(object):
         """
         Return a sandbox directory contextmanager.
 
+        Creates a directory using the test case to construct the
+        directory name.
+
         """
-        name = test_case.__class__.__name__
+        # TestCase.id() is the fully-qualified name of the method, e.g.--
+        #   molt.test.dirchooser_test.GenerateOutputDirTestCase.test_foo
+        case_id = test_case.id()
+        parts = case_id.split(".")
+        parts = parts[-2:]  # the class name and method name.
+
         if suffix is not None:
-            name += "_" + suffix
+            parts.append(suffix)
+
+        name = "_".join(parts)
 
         dir_path = os.path.join(self.test_run_dir, name)
 

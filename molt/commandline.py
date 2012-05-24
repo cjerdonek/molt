@@ -42,7 +42,8 @@ from molt import __version__
 # TODO: use argparse instead of optparse:
 #   http://docs.python.org/library/argparse.html#module-argparse
 from molt.common.optionparser import Option, OptionParser, UsageError
-from molt.defaults import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR
+from molt import defaults
+from molt.dirchooser import DirectoryChooser
 
 
 _log = logging.getLogger(__name__)
@@ -112,11 +113,14 @@ def get_license_string():
     return s
 
 
-def create_parser(suppress_help_exit=False, usage=None):
+def create_parser(chooser, suppress_help_exit=False, usage=None):
     """
     Return an OptionParser for the program.
 
     """
+    if chooser is None:
+        chooser = DirectoryChooser()
+
     if usage is None:
         usage = OPTPARSE_USAGE
 
@@ -134,12 +138,12 @@ def create_parser(suppress_help_exit=False, usage=None):
                       help='the directory to use when an output directory is '
                            'required.  Defaults to %s.  If the directory already '
                            'exists, then the directory name is incremented '
-                           'until a new directory can be created.' % repr(DEFAULT_OUTPUT_DIR))
+                           'until a new directory can be created.' % repr(defaults.OUTPUT_DIR))
     parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
-                      action="store", type='string', default='TODO',
+                      action="store", type='string', default=None,
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '
-                           'Defaults to the default configuration file.')
+                           'Defaults to %s' % chooser.get_config_path_string())
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a Groom template to play with that demonstrates '
@@ -147,7 +151,7 @@ def create_parser(suppress_help_exit=False, usage=None):
                            'The command writes to the directory specified by the '
                            '%s option.  If not specified, the output directory '
                            'defaults to %s.' %
-                           (OPTION_OUTPUT_DIR.display(' or '), repr(DEFAULT_DEMO_OUTPUT_DIR)))
+                           (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
     parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
                       help='whether to run tests.  Runs all available project tests,  '
@@ -157,10 +161,10 @@ def create_parser(suppress_help_exit=False, usage=None):
                            'to a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
-                      help="display license info.")
+                      help="print license info to stdout.")
     parser.add_option("-V", "--version", dest="version_mode",
                       action="store_true", default=False,
-                      help="display version info.")
+                      help="print version info to stdout.")
     parser.add_option(*OPTION_VERBOSE, dest="verbose",
                       action="store_true", default=False,
                       help="log verbosely.")
@@ -182,7 +186,7 @@ def preparse_args(sys_argv):
     """
     try:
         # Suppress the help option to prevent exiting.
-        options, args = parse_args(sys_argv, suppress_help_exit=True)
+        options, args = parse_args(sys_argv, None, suppress_help_exit=True)
     except UsageError:
         # Any usage error will occur again during the real parse.
         return None, None
@@ -190,14 +194,14 @@ def preparse_args(sys_argv):
     return options, args
 
 
-def parse_args(sys_argv, suppress_help_exit=False, usage=None):
+def parse_args(sys_argv, chooser, suppress_help_exit=False, usage=None):
     """
     Parse arguments and return (options, args).
 
     Raises UsageError on command-line usage error.
 
     """
-    parser = create_parser(suppress_help_exit=suppress_help_exit, usage=usage)
+    parser = create_parser(chooser, suppress_help_exit=suppress_help_exit, usage=usage)
 
     # The optparse module's parse_args() normally expects sys.argv[1:].
     args = sys_argv[1:]

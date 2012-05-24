@@ -28,27 +28,23 @@
 #
 
 """
-Exposes tests that test the Groom project test cases.
+Exposes default functionality.
 
 """
 
-import logging
-import unittest
+from __future__ import absolute_import
 
-from molt.constants import GROOM_INPUT_DIR
-from molt.test.harness.templatetest import make_template_tests
-from molt.test.harness.util import make_util_load_tests
+import os
 
 
-def load_tests(loader, tests, pattern):
-    """
-    Return a unittest.TestSuite instance of all Groom project tests.
+_OUTPUT_PARENT_DIR = 'temp'
+_OUTPUT_DIR_NAME = 'output'
+_OUTPUT_DIR_NAME_DEMO = 'demo'
 
-    """
-    tests = make_template_tests(group_name='Groom',
-                                parent_input_dir=GROOM_INPUT_DIR)
+CONFIG_FILE_NAME = 'sample'  # without extension
+CONFIG_FILE_EXTENSIONS = ['.json', '.yaml', '.yml']
 
-    load_tests = make_util_load_tests()
-    tests = load_tests(loader, tests, pattern)
+OUTPUT_DIR_FORMAT = "%s (%s)"  # subsituted with (dir_path, index).
 
-    return tests
+OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME)
+DEMO_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME_DEMO)

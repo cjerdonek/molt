@@ -35,7 +35,7 @@ Exposes tests that test the Groom template in the demo directory.
 import logging
 import unittest
 
-from molt.defaults import DEMO_TEMPLATE_DIR, DEMO_EXPECTED_DIR
+from molt.constants import DEMO_TEMPLATE_DIR, DEMO_EXPECTED_DIR
 from molt.test.harness.templatetest import make_template_test
 from molt.test.harness.util import make_util_load_tests
 

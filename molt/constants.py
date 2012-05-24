@@ -30,10 +30,6 @@
 """
 Exposes package-wide constants.
 
-The constants are divided roughly into (1) hard-coded values that will
-never change, and (2) default values for values that the user can
-specify through the application (e.g. using a command-line option).
-
 """
 
 from __future__ import absolute_import
@@ -53,13 +49,4 @@ _DEMO_EXPECTED_DIR = 'test/data/demo'
 DEMO_EXPECTED_DIR = os.path.join(_SOURCE_DIR, _DEMO_EXPECTED_DIR)
 DEMO_TEMPLATE_DIR = os.path.join(_SOURCE_DIR, _DEMO_TEMPLATE_DIR)
 
-GROOM_INPUT_DIR = os.path.join(PROJECT_DIR, os.path.normpath('sub/groom/tests'))
-
-# Defaults
-
-_DEFAULT_OUTPUT_PARENT_DIR = 'temp'
-_DEFAULT_OUTPUT_DIR_NAME = 'output'
-_DEFAULT_OUTPUT_DIR_NAME_DEMO = 'demo'
-
-DEFAULT_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME)
-DEFAULT_DEMO_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME_DEMO)
+GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groom/tests'))

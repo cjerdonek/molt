@@ -3,6 +3,7 @@ TODO
 
 Before releasing version 0.1.0:
 
+ * refactor and clean up code and logic around partials and lambdas directory.
  * finalize README.
  * make the demo like Groom's "Advanced Example".
  * finalize help options and help strings.

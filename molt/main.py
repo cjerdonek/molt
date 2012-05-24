@@ -48,7 +48,9 @@ from molt import commandline
 from molt.commandline import OPTION_HELP, OPTION_VERBOSE
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
-from molt.defaults import DEFAULT_OUTPUT_DIR, DEFAULT_DEMO_OUTPUT_DIR, DEMO_TEMPLATE_DIR
+from molt.constants import DEMO_TEMPLATE_DIR
+from molt import defaults
+from molt.dirchooser import make_output_dir, DirectoryChooser
 from molt import logconfig
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests
@@ -63,8 +65,6 @@ EXIT_STATUS_FAIL = 1
 EXIT_STATUS_USAGE_ERROR = 2
 
 ENCODING_DEFAULT = 'utf-8'
-
-OUTPUT_DIR_FORMAT = "%s (%s)"  # subsituted with (dir_path, index).
 
 
 def configure_logging(sys_argv):
@@ -109,9 +109,12 @@ def run_tests(options):
 
     return EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else EXIT_STATUS_FAIL
 
+def _make_output_directory(options, default_output_dir):
+    output_dir = options.output_directory
+    return make_output_dir(output_dir, default_output_dir)
 
 def create_demo(options):
-    output_dir = generate_output_dir(options, DEFAULT_DEMO_OUTPUT_DIR)
+    output_dir = _make_output_directory(options, defaults.DEMO_OUTPUT_DIR)
 
     os.rmdir(output_dir)
     copytree(DEMO_TEMPLATE_DIR, output_dir)
@@ -120,37 +123,7 @@ def create_demo(options):
     return output_dir
 
 
-def try_make_dir(dir_path):
-    """
-    Make the given directory and return whether successful.
-
-    """
-    try:
-        os.makedirs(dir_path)  # this creates recursively.
-    except OSError:
-        # Then most likely the leaf directory exists.
-        if not os.path.exists(dir_path):
-            # Then there was an unanticipated failure reason.
-            raise
-        return False
-    return True
-
-
-def generate_output_dir(options, default_output_dir):
-    output_dir = options.output_directory
-    if output_dir is None:
-        output_dir = default_output_dir
-
-    starting_dir = output_dir
-    index = 1
-    while True:
-        if try_make_dir(output_dir):
-            return output_dir
-        output_dir = OUTPUT_DIR_FORMAT % (starting_dir, index)
-        index += 1
-
-
-def _render(options, args):
+def _render(options, args, chooser):
     try:
         template_dir = args[0]
     except IndexError:
@@ -169,22 +142,15 @@ def _render(options, args):
     if not os.path.exists(partials_dir):
         partials = None
 
-    config_name = 'sample'
-    exts = ['json', 'yaml', 'yml']
-    paths = [make_path("%s.%s" % (config_name, ext)) for ext in exts]
-    for config_path in paths:
-        if os.path.exists(config_path):
-            break
-    else:
-        indent = "\n  "
-        raise Error("Config file not found in a default location:%s%s" %
-                    (indent, indent.join(paths)))
+    config_path = chooser.get_config_path(options.config_path, template_dir)
+
+    raise Exception("config: %s" % config_path)
 
     partials_dir = make_path('partials')
     if not os.path.exists(partials_dir):
         partials_dir = None
 
-    output_dir = generate_output_dir(options, DEFAULT_OUTPUT_DIR)
+    output_dir = _make_output_directory(options, defaults.OUTPUT_DIR)
 
     molter = Molter()
     molter.molt(project_dir=project_dir, partials_dir=partials_dir, config_path=config_path,
@@ -193,9 +159,11 @@ def _render(options, args):
     return output_dir
 
 
-def run_args(sys_argv):
+def run_args(sys_argv, chooser=None):
+    if chooser is None:
+        chooser = DirectoryChooser()
 
-    options, args = commandline.parse_args(sys_argv)
+    options, args = commandline.parse_args(sys_argv, chooser)
 
     if options.run_test_mode:
         # Do not print the result to standard out.
@@ -208,7 +176,7 @@ def run_args(sys_argv):
     elif options.license_mode:
         result = commandline.get_license_string()
     else:
-        result = _render(options, args)
+        result = _render(options, args, chooser)
 
     if result is not None:
         print result
