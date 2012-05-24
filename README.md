@@ -69,15 +69,34 @@ module.
 Develop
 -------
 
+After forking--
+
+    $ git clone git@github.com:_yourusername_/molt.git
+    $ cd molt
+    $ git remote add upstream git://github.com/cjerdonek/molt.git
+    $ git fetch upstream
+
 To run unit tests--
 
     $ python test_molt.py
 
-Which is equivalent to--
+which is equivalent to--
 
     $ python -m molt.commands.molt --run-tests
 
-TODO: add info about submodules.
+In particular, to test from source any molt command of the following form--
+
+    $ molt [options] [DIRECTORY]
+
+simply type--
+
+    $ python -m molt.commands.molt [options] [DIRECTORY]
+
+Finally, to include the Groom tests in your test run, bring in the Groom
+project submodule--
+
+    $ git submodule init
+    $ git submodule update
 
 
 Author

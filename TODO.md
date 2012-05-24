@@ -24,3 +24,4 @@ Before releasing version 0.1.0:
   doctests in each module.
 * [move to groom-python] Add git files.
 * Support YAML configuration files.
+* Add a tox environment that does not have Groom tests.
