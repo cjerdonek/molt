@@ -180,7 +180,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
 
         expected, actual = dirs
 
-        attr_details = "\n".join(["dircmp.%s = %s" % (attr, getattr(dcmp, attr)) for
+        attr_details = "\n".join(["dircmp.%s = %s" % (attr, self._get_dcmp_attr(dcmp, attr)) for
                                   attr in DIRCMP_ATTRS])
         details = ("Attribute %s non-empty for directory compare:\n%s" %
                    (repr(attr_name), indent(attr_details, "  ")))

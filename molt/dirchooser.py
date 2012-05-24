@@ -89,30 +89,37 @@ class DirectoryChooser(object):
     def _make_path(self, template_dir, base_path):
         return os.path.join(template_dir, base_path)
 
+    def _get_dir(self, template_dir, dir_name, is_required=False, display_name=None):
+        """
+        Arguments:
+
+          display_name: the display name, suitable for beginning a sentence.
+
+        """
+        path = self._make_path(template_dir, dir_name)
+
+        if os.path.exists(path):
+            return path
+        if not is_required:
+            return None
+        raise Error("%s not found in default location\n"
+                    "  in template directory: %s" % (display_name, path))
+
+    def get_project_dir(self, template_dir):
+        return self._get_dir(template_dir, defaults.PROJECT_DIR_NAME,
+                             is_required=True, display_name="Project directory")
+
+    def get_partials_dir(self, template_dir):
+        return self._get_dir(template_dir, defaults.PARTIALS_DIR_NAME)
+
+    def get_lambdas_dir(self, template_dir):
+        return self._get_dir(template_dir, defaults.LAMBDAS_DIR_NAME)
+
     def get_config_path_string(self):
         s = ("looking in the template directory for one of: %s." %
              ", ".join(get_default_config_files()))
 
         return s
-
-    def get_project_dir(self, template_dir):
-        path = make_path(template_dir, defaults.PROJECT_DIR_NAME)
-
-        if os.path.exists(path):
-            return path
-        # The project directory is required.
-        raise Error("Project directory not found in default location\n"
-                    "  in template directory: %s" % path)
-
-    def get_partials_dir(self, template_dir):
-        path = make_path(template_dir, defaults.PARTIALS_DIR_NAME)
-        # The partials directory is optional.
-        return path if os.path.exists(path) else None
-
-    def get_lambdas_dir(self, template_dir):
-        path = make_path(template_dir, defaults.LAMBDAS_DIR_NAME)
-        # The partials directory is optional.
-        return path if os.path.exists(path) else None
 
     def get_config_path(self, path, template_dir):
         """

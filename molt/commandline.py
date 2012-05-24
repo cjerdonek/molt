@@ -147,18 +147,17 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a Groom template to play with that demonstrates '
-                           'most features of Groom.  '
-                           'The command writes to the directory specified by the '
-                           '%s option.  If not specified, the output directory '
-                           'defaults to %s.' %
+                           'most features of Groom.  The command writes '
+                           'to the directory provided by the %s option.  '
+                           'If not provided, the command writes to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
     parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
-                      help='whether to run tests.  Runs all available project tests,  '
-                           'including unit tests, doctests, and, if available, '
-                           'the Groom project test cases.  If the %s option '
-                           'is provided, then test failure data is written '
-                           'to a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
+                      help='whether to run project tests.  Tests include '
+                           'unit tests, doctests, and, if present, Groom '
+                           'project test cases.  If the %s option is provided, '
+                           'then test failure data is saved for inspection '
+                           'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
                       help="print license info to stdout.")

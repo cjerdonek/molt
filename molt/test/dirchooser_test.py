@@ -65,12 +65,12 @@ class GenerateOutputDirTestCase(unittest.TestCase):
             os.mkdir(output_dir)
 
             actual = make_output_dir(output_dir, 'bar')
-            expected = "%s (1)" % output_dir
+            expected = "%s_1" % output_dir
             self.assertEqual(expected, actual)
 
             # Test iterating a second time.
             actual = make_output_dir(output_dir, 'bar')
-            expected = "%s (2)" % output_dir
+            expected = "%s_2" % output_dir
             self.assertEqual(expected, actual)
 
 

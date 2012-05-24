@@ -1,3 +1,4 @@
+# encoding: utf-8
 # Copyright (C) 2012 Mustachioed Maven.
 
 import os

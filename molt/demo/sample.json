@@ -1,7 +1,8 @@
 {
-    "description": "Molt demo template",
+    "description": "A template that demonstrates the main features of Groom.",
     "context": {
         "project": "hello",
+        "encoding": "utf-8",
         "author": "Mustachioed Maven",
         "year": 2012
     }
