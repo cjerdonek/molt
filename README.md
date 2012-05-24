@@ -43,7 +43,8 @@ Test it
 Try it
 ------
 
-Start with a demo Groom template to play with:
+Start with the [demo](https://github.com/cjerdonek/molt/tree/master/molt/demo)
+Groom template to play with:
 
     $ molt --create-demo --output demo
     $ ls -p demo
@@ -53,7 +54,8 @@ Render the template with the sample context provided:
 
     $ molt --output output --config demo/sample.json demo
 
-Run the newly-created project:
+Run the newly-created project (can also be seen
+[here](https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo)):
 
     $ python output/hello.py world
     Hello, world!
@@ -63,7 +65,7 @@ For help documentation and available options--
     $ molt -h
 
 If using Python, you can also use Molt as a library (though the API is
-not stable).  See the `Molter` class in the
+not yet stable).  See the `Molter` class in the
 [`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
 module.
 
