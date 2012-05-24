@@ -132,28 +132,18 @@ def _render(options, args, chooser):
     if not os.path.exists(template_dir):
         raise Error("Template directory not found: %s" % template_dir)
 
-    make_path = lambda base_name: os.path.join(template_dir, base_name)
-
-    project_dir = make_path('project')
-    if not os.path.exists(project_dir):
-        raise Error("Project directory not found: %s" % project_dir)
-
-    partials_dir = make_path('partials')
-    if not os.path.exists(partials_dir):
-        partials = None
-
+    project_dir = chooser.get_project_dir(template_dir)
+    partials_dir = chooser.get_partials_dir(template_dir)
+    lambdas_dir = chooser.get_lambdas_dir(template_dir)
     config_path = chooser.get_config_path(options.config_path, template_dir)
-
-    raise Exception("config: %s" % config_path)
-
-    partials_dir = make_path('partials')
-    if not os.path.exists(partials_dir):
-        partials_dir = None
 
     output_dir = _make_output_directory(options, defaults.OUTPUT_DIR)
 
     molter = Molter()
-    molter.molt(project_dir=project_dir, partials_dir=partials_dir, config_path=config_path,
+    molter.molt(project_dir=project_dir,
+                partials_dir=partials_dir,
+                lambdas_dir=lambdas_dir,
+                config_path=config_path,
                 output_dir=output_dir)
 
     return output_dir

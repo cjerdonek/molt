@@ -139,7 +139,7 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                            'required.  Defaults to %s.  If the directory already '
                            'exists, then the directory name is incremented '
                            'until a new directory can be created.' % repr(defaults.OUTPUT_DIR))
-    parser.add_option("-c", "--config", metavar='FILE', dest="config_path",
+    parser.add_option("-c", "--config-file", metavar='FILE', dest="config_path",
                       action="store", type='string', default=None,
                       help='the path to the configuration file that contains, '
                            'for example, the values with which to populate the template.  '

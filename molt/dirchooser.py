@@ -78,6 +78,7 @@ def make_output_dir(output_dir, default_output_dir):
         index += 1
 
 
+
 class DirectoryChooser(object):
 
     """
@@ -85,11 +86,33 @@ class DirectoryChooser(object):
 
     """
 
+    def _make_path(self, template_dir, base_path):
+        return os.path.join(template_dir, base_path)
+
     def get_config_path_string(self):
         s = ("looking in the template directory for one of: %s." %
              ", ".join(get_default_config_files()))
 
         return s
+
+    def get_project_dir(self, template_dir):
+        path = make_path(template_dir, defaults.PROJECT_DIR_NAME)
+
+        if os.path.exists(path):
+            return path
+        # The project directory is required.
+        raise Error("Project directory not found in default location\n"
+                    "  in template directory: %s" % path)
+
+    def get_partials_dir(self, template_dir):
+        path = make_path(template_dir, defaults.PARTIALS_DIR_NAME)
+        # The partials directory is optional.
+        return path if os.path.exists(path) else None
+
+    def get_lambdas_dir(self, template_dir):
+        path = make_path(template_dir, defaults.LAMBDAS_DIR_NAME)
+        # The partials directory is optional.
+        return path if os.path.exists(path) else None
 
     def get_config_path(self, path, template_dir):
         """
@@ -103,16 +126,15 @@ class DirectoryChooser(object):
         # Otherwise, choose a default.
 
         default_config_files = get_default_config_files()
-        paths = [os.path.join(template_dir, path) for path in default_config_files]
+        paths = [self._make_path(template_dir, file_name) for file_name in default_config_files]
 
         for path in paths:
             if os.path.exists(path):
-                break
-        else:
-            indent = "    "
-            path_strings = indent + ("\n" + indent).join(default_config_files)
-            raise Error("""Config file not found at any of the default locations
+                return path
+        # Otherwise, not found.
+
+        indent = "    "
+        path_strings = indent + ("\n" + indent).join(default_config_files)
+        raise Error("""Config file not found at any of the default locations
   in template directory: %s
 %s""" % (template_dir, path_strings))
-
-        return path
