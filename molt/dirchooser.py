@@ -28,11 +28,7 @@
 #
 
 """
-Exposes package-wide constants.
-
-The constants are divided roughly into (1) hard-coded values that will
-never change, and (2) default values for values that the user can
-specify through the application (e.g. using a command-line option).
+Exposes functionality to choose directories to use based on user input.
 
 """
 
