@@ -33,6 +33,7 @@ Exposes tests that test the Groom project test cases.
 """
 
 import logging
+import os
 import unittest
 
 from molt.constants import GROOM_INPUT_DIR
@@ -45,8 +46,13 @@ def load_tests(loader, tests, pattern):
     Return a unittest.TestSuite instance of all Groom project tests.
 
     """
+    groom_dir = GROOM_INPUT_DIR
+    if not os.path.exists(groom_dir):
+        # Then the Groom test cases are not available.
+        return tests
+
     tests = make_template_tests(group_name='Groom',
-                                parent_input_dir=GROOM_INPUT_DIR)
+                                parent_input_dir=groom_dir)
 
     load_tests = make_util_load_tests()
     tests = load_tests(loader, tests, pattern)
