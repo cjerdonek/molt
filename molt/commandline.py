@@ -54,14 +54,41 @@ OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
 OPTION_RUN_TESTS = Option(('--run-tests',))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
 
-OPTPARSE_USAGE = """%prog [options] [DIRECTORY]
+# We escape the leading "%" so that the leading "%p" is not interpreted as
+# a Python string formatting conversion specifier.  The optparse.OptionParser
+# class, however, recognizes "%prog" by replacing it with the current
+# script name when passed to the constructor as a usage string.
+# TODO: use argparse's description argument for the description portion
+#   of the below.  We will need to use a custom formatter_class as
+#   described here:
+#
+#     http://docs.python.org/dev/library/argparse.html#description
+#
+OPTPARSE_USAGE = """%%prog [options] [DIRECTORY]
 
 Create a new project from the Groom template in DIRECTORY.
 
-This script creates a new project from a Groom project template using
-values from a configuration file.
+A Groom template is a Mustache-based project template.  See the Groom
+web page for details on Groom templates:
 
-The script writes the output directory to stdout when complete."""
+  http://cjerdonek.github.com/groom/
+
+Per the Groom guidelines, when creating a new project from a Groom template
+directory, the script looks for the project structure in a directory named
+"%(project_dir)s" in the template directory.  It also looks in the template
+directory for optional directories named "%(partials_dir)s" and "%(lambdas_dir)s", for
+partials and lambdas, respectively.
+
+Also per the guidelines, the rendering context should be the value of
+the key "%(context_key)s" in the input configuration file.
+
+The script writes the name of the output directory to stdout when
+complete.""" % {
+    'context_key': defaults.CONFIG_CONTEXT_KEY,
+    'project_dir': defaults.PROJECT_DIR_NAME,
+    'partials_dir': defaults.PARTIALS_DIR_NAME,
+    'lambdas_dir': defaults.LAMBDAS_DIR_NAME,
+}
 
 OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
 
@@ -138,25 +165,27 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       help='the directory to use when an output directory is '
                            'required.  Defaults to %s.  If the directory already '
                            'exists, then the directory name is incremented '
-                           'until a new directory can be created.' % repr(defaults.OUTPUT_DIR))
+                           'until the resulting directory would be new.' % repr(defaults.OUTPUT_DIR))
     parser.add_option("-c", "--config-file", metavar='FILE', dest="config_path",
                       action="store", type='string', default=None,
-                      help='the path to the configuration file that contains, '
-                           'for example, the values with which to populate the template.  '
+                      help='the path to the JSON or YAML configuration file '
+                           'containing the rendering context to use.  '
                            'Defaults to %s' % chooser.get_config_path_string())
     parser.add_option("--create-demo", dest="create_demo_mode",
                       action="store_true", default=False,
-                      help='create a Groom template to play with that demonstrates '
-                           'most features of Groom.  The command writes '
-                           'to the directory provided by the %s option.  '
-                           'If not provided, the command writes to %s.' %
+                      help='create a copy of the Molt demo template to play with, '
+                           'instead of creating a new project.  '
+                           'The demo illustrates most major features of Groom.  '
+                           'The command writes the demo template to the directory '
+                           'provided by the %s option or, if the option is not '
+                           'provided, to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
     parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
-                      help='whether to run project tests.  Tests include '
-                           'unit tests, doctests, and, if present, Groom '
-                           'project test cases.  If the %s option is provided, '
-                           'then test failure data is saved for inspection '
+                      help='run project tests, instead of creating a new project.  '
+                           'Tests include unit tests, doctests, and, if present, '
+                           'Groom project test cases.  If the %s option is provided, '
+                           'then test failure data is retained for inspection '
                            'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,

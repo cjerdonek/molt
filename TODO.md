@@ -3,7 +3,6 @@ TODO
 
 Before releasing version 0.1.0:
 
- * finalize help options and help strings.
  * make an "end-to-end" test using subprocess.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.

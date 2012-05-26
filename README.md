@@ -57,7 +57,7 @@ Render the template with the sample context provided:
 
     $ molt --output output --config demo/sample.json demo
 
-Run the newly-created project (can also be seen
+Run the newly-created project (which can also be seen
 [here](https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo)):
 
     $ python output/hello.py world
@@ -111,7 +111,7 @@ Author
 
 Molt is authored by [Chris Jerdonek](https://github.com/cjerdonek).
 Chris is also the author of [Groom](http://cjerdonek.github.com/groom/) and
-currently maintains [Pystache](https://github.com/defunkt/pystache).
+is the current [Pystache](https://github.com/defunkt/pystache) maintainer.
 
 
 Copyright

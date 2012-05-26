@@ -47,6 +47,7 @@ LAMBDAS_DIR_NAME = 'lambdas'
 
 CONFIG_FILE_NAME = 'sample'  # without extension
 CONFIG_FILE_EXTENSIONS = ['.json', '.yaml', '.yml']
+CONFIG_CONTEXT_KEY = 'context'
 
 OUTPUT_DIR_FORMAT = "%s_%s"  # subsituted with (dir_path, index).
 

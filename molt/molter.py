@@ -44,6 +44,7 @@ from pystache import Renderer as PystacheRenderer
 import molt
 from molt.common import io
 from molt.common.error import Error
+from  molt import defaults
 
 
 OUTPUT_ENCODING = 'utf-8'
@@ -108,7 +109,7 @@ class Molter(object):
             raise Error("Error loading config at: %s\n-->%s" % (path, err))
 
     def get_context(self, config_data):
-        return config_data['context']
+        return config_data[defaults.CONFIG_CONTEXT_KEY]
 
     def get_lambdas(self, dir_path):
         lambdas = {}
