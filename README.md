@@ -10,11 +10,14 @@ Molt
 instantly using [Mustache](http://mustache.github.com/)-based
 project templates.
 
+You can use Molt to decrease the amount of boiler-plate code you need to write
+when starting any new project: the README, copyright notices, license
+info, logging configuration, test harness, packaging information (i.e.
+setup.py in the case of Python), .gitignore, directory hierarchy, etc.
+
 Molt is written in [Python](http://www.python.org/) and follows the
 [Groom](http://cjerdonek.github.com/groom/) rules for Mustache-based
-project templates.
-
-See the Groom page for project template syntax.
+project templates.  See the Groom page for project template syntax.
 
 
 Requirements
