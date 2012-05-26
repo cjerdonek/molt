@@ -22,5 +22,4 @@ Before releasing version 0.1.0:
 * Consider running pylint, PyChecker, and/or pep8 in addition to the
   doctests in each module.
 * [move to groom-python] Add git files.
-* Support YAML configuration files.
 * Add a tox environment that does not have Groom tests.

@@ -39,11 +39,9 @@ import os
 from shutil import copytree
 from StringIO import StringIO
 import sys
-import traceback
 
 import molt
 from molt import commandline
-from molt.commandline import OPTION_HELP
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt import constants

@@ -42,9 +42,10 @@ would not get configured after all those imports have already taken place.
 from __future__ import absolute_import
 
 import logging
+import traceback
 
 from molt import commandline
-from molt.commandline import OPTION_VERBOSE
+from molt.commandline import OPTION_HELP, OPTION_VERBOSE
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt import constants
