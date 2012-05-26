@@ -44,12 +44,10 @@ from pystache import Renderer as PystacheRenderer
 import molt
 from molt.common import io
 from molt.common.error import Error
+from molt.common.popen import call_script
 from  molt import defaults
 from molt.dirchooser import DirectoryChooser
 
-
-OUTPUT_ENCODING = 'utf-8'
-ENCODE_ERRORS = 'strict'
 
 TEMPLATE_EXT = '.mustache'
 SKIP_EXT = '.skip'
@@ -77,21 +75,14 @@ def preprocess_filename(filename):
 
 
 def _lambda_from_script(path):
-    def func(u):
-        b = u.encode(OUTPUT_ENCODING)
-        # See this page:
-        #   http://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
+    def func(u=None):
+        if u is None:
+            u = ''
+        bytes_in = u.encode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
 
-        # TODO: reraise exception including path, for example in case of--
-        # OSError: [Errno 13] Permission denied
-        try:
-            p = Popen(path, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False,
-                      universal_newlines=False)
-        except:
-            raise Exception("path: %s" % path)
-        stdout_data, stderr_data = p.communicate(input=b)
+        bytes_out = call_script(path, bytes_in)
 
-        return stdout_data
+        return bytes_out.decode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
 
     return func
 
@@ -118,17 +109,31 @@ class Molter(object):
             #   of swallowing caught exception and raising a new one.
             raise Error("Error loading config at: %s\n-->%s" % (path, err))
 
-    def get_context(self, config_data):
-        return config_data[defaults.CONFIG_CONTEXT_KEY]
+    def get_context(self, template_dir, config_path=None):
+        """"
+        Return the context (including lambdas) for the given template.
 
-    def get_lambdas(self, dir_path):
+        """
+        data = self.read_config(template_dir, config_path)
+
+        context = data[defaults.CONFIG_CONTEXT_KEY]
+
+        lambdas_dir = self.chooser.get_lambdas_dir(template_dir)
+        lambdas = [] if lambdas_dir is None else self.get_lambdas(lambdas_dir)
+
+        # TODO: raise an exception if lambdas and context intersect?
+        context.update(lambdas)
+
+        return context
+
+    def get_lambdas(self, lambda_dir):
         lambdas = {}
-        for file_name in os.listdir(dir_path):
+        for file_name in os.listdir(lambda_dir):
             if file_name.startswith('.'):
                 # For example, skip .DS_Store.
                 continue
 
-            script_path = os.path.join(dir_path, file_name)
+            script_path = os.path.join(lambda_dir, file_name)
             func = _lambda_from_script(script_path)
             root_name, ext = os.path.splitext(file_name)
 
@@ -147,6 +152,8 @@ class Molter(object):
         lambdas_dir = chooser.get_lambdas_dir(template_dir)
         config_path = self._get_config_path(template_dir, config_path)
 
+        context = self.get_context(template_dir, config_path)
+
         _log.info("""\
 Rendering:
 
@@ -164,14 +171,6 @@ Rendering:
 
         renderer = _Renderer(pystache_renderer)
 
-        config_data = self.read_config(template_dir=template_dir, config_path=config_path)
-        context = self.get_context(config_data)
-
-        lambdas = [] if lambdas_dir is None else self.get_lambdas(lambdas_dir)
-
-        # TODO: raise an exception if lambdas and context intersect?
-
-        context.update(lambdas)
 
         renderer.render(project_dir=project_dir, context=context, output_dir=output_dir)
         _log.info("Wrote new project to: %s" % repr(output_dir))
@@ -242,7 +241,7 @@ class _Renderer(object):
 
         """
         u = self._render_path_to_string(path, context)
-        io.write(u, target_path, OUTPUT_ENCODING, ENCODE_ERRORS)
+        io.write(u, target_path, defaults.OUTPUT_FILE_ENCODING, defaults.ENCODING_ERRORS)
 
     def molt_file(self, path, context, output_dir):
         filename, is_template = self.parse_filename(path, context)

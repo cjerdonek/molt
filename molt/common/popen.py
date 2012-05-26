@@ -28,52 +28,32 @@
 #
 
 """
-Provides test-related code that can be used by all tests.
+Exposes a utility function to call a shell script as a Python function.
 
 """
 
 from __future__ import absolute_import
 
-import logging
-
-import molt.test
-
-test_logger = logging.getLogger(molt.test.__name__)
+from subprocess import Popen, PIPE, STDOUT
 
 
-class AssertStringMixin:
+def call_script(path, b):
+    """
+    Call the script at the given path with the given bytes.
 
-    """A unittest.TestCase mixin to check string equality."""
+    Returns a byte string.
 
-    def assertString(self, actual, expected, format=None):
-        """
-        Assert that the given strings are equal and have the same type.
+    """
+    # See this page:
+    #   http://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
 
-        Arguments:
+    # TODO: reraise exception including path, for example in case of--
+    # OSError: [Errno 13] Permission denied
+    try:
+        p = Popen(path, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False,
+                  universal_newlines=False)
+    except:
+        raise Exception("Error calling script at: %s" % path)
+    stdout_data, stderr_data = p.communicate(input=b)
 
-          format: a format string containing a single conversion specifier %s.
-            This method will replace %s with an informative message on
-            failure.  Defaults to the trivial "%s".
-
-        """
-        if format is None:
-            format = "%s"
-
-        # Show both friendly and literal versions.
-        details = """String mismatch: %%s\
-
-
-        Expected: \"""%s\"""
-        Actual:   \"""%s\"""
-
-        Expected: %s
-        Actual:   %s""" % (expected, actual, repr(expected), repr(actual))
-
-        def make_message(reason):
-            description = details % reason
-            return format % description
-
-        self.assertEqual(actual, expected, make_message("different characters"))
-
-        reason = "types different: %s != %s (actual)" % (repr(type(expected)), repr(type(actual)))
-        self.assertEqual(type(expected), type(actual), make_message(reason))
+    return stdout_data

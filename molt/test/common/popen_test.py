@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,52 +28,47 @@
 #
 
 """
-Provides test-related code that can be used by all tests.
+TODO: add a docstring.
 
 """
 
 from __future__ import absolute_import
 
-import logging
+import os
+import unittest
 
-import molt.test
+from molt.common.popen import call_script
+from molt.constants import TEST_DATA_DIR
+from molt.test.harness.common import AssertStringMixin
 
-test_logger = logging.getLogger(molt.test.__name__)
+class CallScriptTestCase(unittest.TestCase, AssertStringMixin):
 
+    def _get_script_path(self, script_name):
+        return os.path.join(TEST_DATA_DIR, 'lambdas', script_name + ".sh")
 
-class AssertStringMixin:
-
-    """A unittest.TestCase mixin to check string equality."""
-
-    def assertString(self, actual, expected, format=None):
+    def test_constant(self):
         """
-        Assert that the given strings are equal and have the same type.
-
-        Arguments:
-
-          format: a format string containing a single conversion specifier %s.
-            This method will replace %s with an informative message on
-            failure.  Defaults to the trivial "%s".
+        Test calling a script that echoes a constant.
 
         """
-        if format is None:
-            format = "%s"
+        path = self._get_script_path('foo')
+        self.assertEqual('bar', call_script(path, ''))
 
-        # Show both friendly and literal versions.
-        details = """String mismatch: %%s\
+    def test_hash_comment(self):
+        path = self._get_script_path('hash_comment')
 
+        actual = call_script(path, '')
+        expected = ''
+        self.assertString(actual, expected)
 
-        Expected: \"""%s\"""
-        Actual:   \"""%s\"""
+        actual = call_script(path, 'line1\nline2')
+        expected = '# line1\n'
+        self.assertString(actual, expected)
 
-        Expected: %s
-        Actual:   %s""" % (expected, actual, repr(expected), repr(actual))
+        actual = call_script(path, 'line1\nline2\n')
+        expected = '# line1\n# line2\n'
+        self.assertString(actual, expected)
 
-        def make_message(reason):
-            description = details % reason
-            return format % description
-
-        self.assertEqual(actual, expected, make_message("different characters"))
-
-        reason = "types different: %s != %s (actual)" % (repr(type(expected)), repr(type(actual)))
-        self.assertEqual(type(expected), type(actual), make_message(reason))
+        actual = call_script(path, 'line1\nline2\n\n')
+        expected = '# line1\n# line2\n# \n'
+        self.assertString(actual, expected)

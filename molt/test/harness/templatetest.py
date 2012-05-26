@@ -199,6 +199,8 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         file_names = self._get_dcmp_attr(dcmp, 'diff_files')
         if not file_names:
             return
+        # Otherwise, check whether each individual file may still be the same
+        # because of the presence of ellipses  "...".
         file_name = file_names[0]
 
         def read(dir_path):
@@ -251,13 +253,13 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         molter = Molter()
 
         config = molter.read_config(template_dir)
-        context = molter.get_context(config)
+        context = molter.get_context(template_dir)
         description = config['description']
 
         self.context = context
         self.description = description
         self.template_name = template_name
 
-        with self.util.sandbox_dir(self, template_name) as output_dir:
+        with self.util.sandbox_dir(self) as output_dir:
             molter.molt(template_dir=template_dir, output_dir=output_dir)
             self._assert_dirs_equal(expected_dir, output_dir)

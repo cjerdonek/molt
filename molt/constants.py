@@ -37,13 +37,14 @@ from __future__ import absolute_import
 import os
 
 import molt
-
+import molt.test
 
 EXIT_STATUS_SUCCESS = 0
 EXIT_STATUS_FAIL = 1
 EXIT_STATUS_USAGE_ERROR = 2
 
 _SOURCE_DIR = os.path.dirname(molt.__file__)
+_TEST_DIR = os.path.dirname(molt.test.__file__)
 _PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
 
 _DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
@@ -53,3 +54,4 @@ DEMO_EXPECTED_DIR = os.path.join(_SOURCE_DIR, _DEMO_EXPECTED_DIR)
 DEMO_TEMPLATE_DIR = os.path.join(_SOURCE_DIR, _DEMO_TEMPLATE_DIR)
 
 GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groom/tests'))
+TEST_DATA_DIR = os.path.join(_TEST_DIR, 'data')

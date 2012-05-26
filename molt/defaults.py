@@ -37,6 +37,10 @@ from __future__ import absolute_import
 import os
 
 
+LAMBDA_ENCODING = 'utf-8'
+OUTPUT_FILE_ENCODING = 'utf-8'
+ENCODING_ERRORS = 'strict'
+
 _OUTPUT_PARENT_DIR = 'temp'
 _OUTPUT_DIR_NAME = 'output'
 _OUTPUT_DIR_NAME_DEMO = 'demo-template'
