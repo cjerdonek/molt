@@ -45,6 +45,7 @@ import molt
 from molt.common import io
 from molt.common.error import Error
 from  molt import defaults
+from molt.dirchooser import DirectoryChooser
 
 
 OUTPUT_ENCODING = 'utf-8'
@@ -97,15 +98,24 @@ def _lambda_from_script(path):
 
 class Molter(object):
 
-    def __init__(self, encoding='utf-8', decode_errors='strict'):
-        self.encoding = encoding
-        self.decode_errors = decode_errors
+    def __init__(self, encoding='utf-8', decode_errors='strict', chooser=None):
+        if chooser is None:
+            chooser = DirectoryChooser()
 
-    def read_config(self, path):
+        self.chooser = chooser
+        self.decode_errors = decode_errors
+        self.encoding = encoding
+
+    def _get_config_path(self, template_dir, config_path):
+        return self.chooser.get_config_path(config_path, template_dir)
+
+    def read_config(self, template_dir, config_path=None):
+        path = self._get_config_path(template_dir, config_path)
         try:
             return io.deserialize(path, self.encoding, self.decode_errors)
         except Exception, err:
-            # TODO: reraise or add to existing exception
+            # TODO: reraise existing exception and add additional info instead
+            #   of swallowing caught exception and raising a new one.
             raise Error("Error loading config at: %s\n-->%s" % (path, err))
 
     def get_context(self, config_data):
@@ -129,8 +139,14 @@ class Molter(object):
         return lambdas
 
     # TODO: create a class to hold and pass the arguments along.
-    def molt(self, project_dir, config_path, output_dir,
-             partials_dir=None, lambdas_dir=None):
+    def molt(self, template_dir, output_dir, config_path=None):
+        chooser = self.chooser
+
+        project_dir = chooser.get_project_dir(template_dir)
+        partials_dir = chooser.get_partials_dir(template_dir)
+        lambdas_dir = chooser.get_lambdas_dir(template_dir)
+        config_path = self._get_config_path(template_dir, config_path)
+
         _log.info("""\
 Rendering:
 
@@ -148,7 +164,7 @@ Rendering:
 
         renderer = _Renderer(pystache_renderer)
 
-        config_data = self.read_config(config_path)
+        config_data = self.read_config(template_dir=template_dir, config_path=config_path)
         context = self.get_context(config_data)
 
         lambdas = [] if lambdas_dir is None else self.get_lambdas(lambdas_dir)

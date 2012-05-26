@@ -238,7 +238,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             actual_subdir = os.path.join(actual_dir, subdir)
             self._assert_dirs_equal(expected_subdir, actual_subdir)
 
-    def _assert_template(self, template_name, long_name, test_input_dir, expected_dir):
+    def _assert_template(self, template_name, long_name, template_dir, expected_dir):
         """
         Arguments:
 
@@ -248,17 +248,9 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             partials directory, and config file.
 
         """
-        project_dir = os.path.join(test_input_dir, 'project')
-        partials_dir = os.path.join(test_input_dir, 'partials')
-        lambdas_dir = os.path.join(test_input_dir, 'lambdas')
-        config_path = os.path.join(test_input_dir, 'sample.json')
-
-        if not os.path.exists(lambdas_dir):
-            lambdas_dir = None
-
         molter = Molter()
 
-        config = molter.read_config(config_path)
+        config = molter.read_config(template_dir)
         context = molter.get_context(config)
         description = config['description']
 
@@ -267,6 +259,5 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         self.template_name = template_name
 
         with self.util.sandbox_dir(self, template_name) as output_dir:
-            molter.molt(project_dir, config_path, output_dir, partials_dir=partials_dir,
-                        lambdas_dir=lambdas_dir)
+            molter.molt(template_dir=template_dir, output_dir=output_dir)
             self._assert_dirs_equal(expected_dir, output_dir)

@@ -39,10 +39,13 @@ import json
 import logging
 import os
 
-import yaml
-
-
 _log = logging.getLogger(__name__)
+
+try:
+    # We make it so that not having YAML is not fatal.
+    import yaml
+except ImportError, err:
+    _log.debug("yaml not found: %s" % repr(err))
 
 
 def read(path, encoding, errors):
@@ -76,6 +79,10 @@ def deserialize(path, encoding, errors):
     """
     u = read(path, encoding, errors)
 
+    ext = os.path.splitext(path)[1]
+
+    if ext.startswith(".y"):  # e.g. ".yaml" or ".yml".
+        return yaml.safe_load(u)
     return json.loads(u)
 
 

@@ -28,43 +28,42 @@
 #
 
 """
-Supplies the main method for the molt project.
+Supplies the main method for the `molt` command entry point.
+
+This module is a wrapper around another main method.  We use this wrapper
+to let us configure logging with minimal amount of code imported (in
+particular, before importing the bulk of the molt package).  This lets
+us log statements about conditional imports more easily (e.g. whether
+yaml has loaded as a replacement for json, etc).  Otherwise, logging
+would not get configured after all those imports have already taken place.
 
 """
 
 from __future__ import absolute_import
 
-import codecs
-from datetime import datetime
 import logging
-import os
-from shutil import copytree
-from StringIO import StringIO
-import sys
-import traceback
 
-import molt
 from molt import commandline
-from molt.commandline import OPTION_HELP, OPTION_VERBOSE
+from molt.commandline import OPTION_VERBOSE
 from molt.common.error import Error
 from molt.common.optionparser import UsageError
-from molt.constants import DEMO_TEMPLATE_DIR
-from molt import defaults
-from molt.dirchooser import make_output_dir, DirectoryChooser
+from molt import constants
 from molt import logconfig
-from molt.molter import Molter
-from molt.test.harness.main import run_molt_tests
 
-
-_log = logging.getLogger(__name__)
 
 LOGGING_LEVEL_DEFAULT = logging.INFO
 
-EXIT_STATUS_SUCCESS = 0
-EXIT_STATUS_FAIL = 1
-EXIT_STATUS_USAGE_ERROR = 2
+_log = logging.getLogger(__name__)
 
-ENCODING_DEFAULT = 'utf-8'
+
+def log_error(details, verbose):
+    if verbose:
+        msg = traceback.format_exc()
+    else:
+        msg = """\
+%s
+Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
+    _log.error(msg)
 
 
 def configure_logging(sys_argv):
@@ -94,97 +93,7 @@ def configure_logging(sys_argv):
     return verbose
 
 
-def run_tests(options):
-    """
-    Run project tests, and return the exit status to exit with.
-
-    """
-    # Suppress the display of standard out while tests are running.
-    stdout = sys.stdout
-    sys.stdout = StringIO()
-    try:
-        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.output_directory)
-    finally:
-        sys.stdout = stdout
-
-    return EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else EXIT_STATUS_FAIL
-
-def _make_output_directory(options, default_output_dir):
-    output_dir = options.output_directory
-    return make_output_dir(output_dir, default_output_dir)
-
-def create_demo(options):
-    output_dir = _make_output_directory(options, defaults.DEMO_OUTPUT_DIR)
-
-    os.rmdir(output_dir)
-    copytree(DEMO_TEMPLATE_DIR, output_dir)
-    _log.info("Created demo template directory: %s" % output_dir)
-
-    return output_dir
-
-
-def _render(options, args, chooser):
-    try:
-        template_dir = args[0]
-    except IndexError:
-        raise UsageError("Template directory argument not provided.")
-
-    if not os.path.exists(template_dir):
-        raise Error("Template directory not found: %s" % template_dir)
-
-    project_dir = chooser.get_project_dir(template_dir)
-    partials_dir = chooser.get_partials_dir(template_dir)
-    lambdas_dir = chooser.get_lambdas_dir(template_dir)
-    config_path = chooser.get_config_path(options.config_path, template_dir)
-
-    output_dir = _make_output_directory(options, defaults.OUTPUT_DIR)
-
-    molter = Molter()
-    molter.molt(project_dir=project_dir,
-                partials_dir=partials_dir,
-                lambdas_dir=lambdas_dir,
-                config_path=config_path,
-                output_dir=output_dir)
-
-    return output_dir
-
-
-def run_args(sys_argv, chooser=None):
-    if chooser is None:
-        chooser = DirectoryChooser()
-
-    options, args = commandline.parse_args(sys_argv, chooser)
-
-    if options.run_test_mode:
-        # Do not print the result to standard out.
-        return run_tests(options)
-
-    if options.create_demo_mode:
-        result = create_demo(options)
-    elif options.version_mode:
-        result = commandline.get_version_string()
-    elif options.license_mode:
-        result = commandline.get_license_string()
-    else:
-        result = _render(options, args, chooser)
-
-    if result is not None:
-        print result
-
-    return EXIT_STATUS_SUCCESS
-
-
-def log_error(details, verbose):
-    if verbose:
-        msg = traceback.format_exc()
-    else:
-        msg = """\
-%s
-Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
-    _log.error(msg)
-
-
-def run_molt(sys_argv, configure_logging=configure_logging, process_args=run_args):
+def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
     """
     Execute this script's main function, and return the exit status.
 
@@ -201,6 +110,11 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=run_arg
     _log.debug("args: %s" % repr(sys_argv))
 
     try:
+        if process_args is None:
+            # See this module's docstring for an explanation of why
+            # we do this import inside a function body.
+            from molt.argprocessor import run_args
+            process_args = run_args
         status = process_args(sys_argv)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
@@ -209,9 +123,9 @@ Command-line usage error: %s
 
 Pass %s for help documentation and available options.""" % (err, OPTION_HELP.display(' or '))
         log_error(details, verbose)
-        status = EXIT_STATUS_USAGE_ERROR
+        status = constants.EXIT_STATUS_USAGE_ERROR
     except Error, err:
         log_error(err, verbose)
-        status = EXIT_STATUS_FAIL
+        status = constants.EXIT_STATUS_FAIL
 
     return status

@@ -38,7 +38,10 @@ import os
 
 import molt
 
-# Constants
+
+EXIT_STATUS_SUCCESS = 0
+EXIT_STATUS_FAIL = 1
+EXIT_STATUS_USAGE_ERROR = 2
 
 _SOURCE_DIR = os.path.dirname(molt.__file__)
 _PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
