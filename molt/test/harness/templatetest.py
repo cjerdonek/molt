@@ -39,6 +39,7 @@ from __future__ import absolute_import
 from filecmp import dircmp
 import logging
 import os
+from pprint import pformat
 from textwrap import dedent, TextWrapper
 from unittest import TestCase
 
@@ -46,7 +47,7 @@ import molt
 from molt.common import io
 from molt.molter import Molter
 from molt.test.harness.common import test_logger as _log
-from molt.test.harness.common import AssertFileMixin
+from molt.test.harness.common import indent, AssertFileMixin
 
 
 TEST_FILE_ENCODING = 'utf-8'
@@ -131,6 +132,24 @@ class CompareError(Exception):
 
 class TemplateTestCaseBase(TestCase, AssertFileMixin):
 
+    def _make_compare_message_format(self, expected_dir, actual_dir):
+        message_format = dedent("""\
+        Directory contents differ:
+
+          Expected | Actual :
+            %s
+            %s
+
+        %%s
+
+          Context:
+        %s
+
+        Test %s: %s""") % (expected_dir, actual_dir, indent(pformat(self.context), "    "),
+                           self.template_name, self.description)
+        return message_format
+
+    # TODO: remove this method.
     def _raise_compare_error(self, expected_dir, actual_dir, details):
         details = indent(details, "  ")
         msg = """\
@@ -145,7 +164,7 @@ Directory contents differ:
   Context: %s
 
 Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
-                  self.template_name, self.description)
+                  self.template_name, repr(self.description))
         raise CompareError(msg)
 
     def _get_dcmp_attr(self, dcmp, attr_name):
@@ -187,11 +206,12 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
 
         def format_file_details(file_details):
             details = details_format % indent(file_details, "  ")
-            return format(file_details)
+            full_format = self._make_compare_message_format(expected_dir, actual_dir)
 
-        self.assertFilesEqual(actual_path, expected_path, format=format,
+            return full_format % details
+
+        self.assertFilesEqual(actual_path, expected_path, format_msg=format_file_details,
                               file_encoding=TEST_FILE_ENCODING, errors=DECODE_ERRORS)
-
 
     def _assert_diff_files_empty(self, dcmp, expected_dir, actual_dir):
         """

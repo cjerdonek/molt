@@ -61,6 +61,7 @@ class AssertStringMixin(object):
 
     """A unittest.TestCase mixin to check string equality."""
 
+    # TODO: rename format to format_msg since it is a keyword.
     def assertString(self, actual, expected, format=None):
         """
         Assert that the given strings are equal and have the same type.
@@ -83,7 +84,7 @@ class AssertStringMixin(object):
 
         def make_message(short_description):
             # Show both friendly and literal versions.
-            string_details_format = "String mismatch: %s\n\n\n%s" % (short_description, indent(details_format, "  "))
+            string_details_format = "String mismatch: %s-->\n\n%s" % (short_description, indent(details_format, "  "))
             message_format = format(string_details_format)
             message = message_format % (expected, actual, repr(expected), repr(actual))
 
@@ -99,7 +100,7 @@ class AssertFileMixin(AssertStringMixin):
 
     """A unittest.TestCase mixin to check file content equality."""
 
-    def assertFilesEqual(self, actual_path, expected_path, format=None, file_encoding='utf-8', errors='strict'):
+    def assertFilesEqual(self, actual_path, expected_path, format_msg=None, file_encoding='utf-8', errors='strict'):
         """
         Assert that the contents of the files at the given paths are equal.
 
@@ -109,8 +110,8 @@ class AssertFileMixin(AssertStringMixin):
             the desired text for the assertion failure error message.
 
         """
-        if format is None:
-            format = lambda msg: msg
+        if format_msg is None:
+            format_msg = lambda msg: msg
 
         read = lambda path: io.read(path, encoding=file_encoding, errors=errors)
 
@@ -126,6 +127,6 @@ class AssertFileMixin(AssertStringMixin):
 
         def format_string_details(string_details):
             file_details = file_details_format % indent(string_details, "  ")
-            return format(file_details)
+            return format_msg(file_details)
 
         self.assertString(actual, expected, format=format_string_details)
