@@ -41,6 +41,8 @@ from molt.common import io
 import molt.test
 
 
+FUZZY_MARKER = "..."
+
 test_logger = logging.getLogger(molt.test.__name__)
 
 
@@ -57,12 +59,35 @@ def indent(text, prefix):
     return "".join(lines)
 
 
+def is_fuzzily_equal(actual, expected):
+    """
+    Return whether the two unicode strings are "fuzzily" equal.
+
+    Fuzzily equal means they are equal except for ignoring ellipses final
+    segments in expected.
+
+    """
+    alines, elines = (u.splitlines(True) for u in (actual, expected))
+
+    if len(alines) != len(elines):
+        return False
+
+    for aline, eline in zip(alines, elines):
+        if aline == eline:
+            continue
+        # Otherwise, check for ellipses in the expected line.
+        i = eline.find(FUZZY_MARKER)
+        if i < 0 or aline[:i] != eline[:i]:
+            return False
+
+    return True
+
 class AssertStringMixin(object):
 
     """A unittest.TestCase mixin to check string equality."""
 
     # TODO: rename format to format_msg since it is a keyword.
-    def assertString(self, actual, expected, format=None):
+    def assertString(self, actual, expected, format=None, fuzzy=False):
         """
         Assert that the given strings are equal and have the same type.
 
@@ -90,7 +115,12 @@ class AssertStringMixin(object):
 
             return message
 
-        self.assertEqual(actual, expected, make_message("different characters"))
+        try:
+            self.assertEqual(actual, expected, make_message("different characters"))
+        except AssertionError:
+            if not fuzzy or not is_fuzzily_equal(actual, expected):
+                raise
+            # Otherwise, ignore the exception.
 
         reason = "types different: %s != %s (actual)" % (repr(type(expected)), repr(type(actual)))
         self.assertEqual(type(expected), type(actual), make_message(reason))
@@ -100,7 +130,7 @@ class AssertFileMixin(AssertStringMixin):
 
     """A unittest.TestCase mixin to check file content equality."""
 
-    def assertFilesEqual(self, actual_path, expected_path, format_msg=None, file_encoding='utf-8', errors='strict'):
+    def assertFilesEqual(self, actual_path, expected_path, format_msg=None, fuzzy=False, file_encoding='utf-8', errors='strict'):
         """
         Assert that the contents of the files at the given paths are equal.
 
@@ -129,4 +159,4 @@ class AssertFileMixin(AssertStringMixin):
             file_details = file_details_format % indent(string_details, "  ")
             return format_msg(file_details)
 
-        self.assertString(actual, expected, format=format_string_details)
+        self.assertString(actual, expected, format=format_string_details, fuzzy=fuzzy)

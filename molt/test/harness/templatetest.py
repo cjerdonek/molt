@@ -210,7 +210,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
 
             return full_format % details
 
-        self.assertFilesEqual(actual_path, expected_path, format_msg=format_file_details,
+        self.assertFilesEqual(actual_path, expected_path, format_msg=format_file_details, fuzzy=True,
                               file_encoding=TEST_FILE_ENCODING, errors=DECODE_ERRORS)
 
     def _assert_diff_files_empty(self, dcmp, expected_dir, actual_dir):
