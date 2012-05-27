@@ -35,13 +35,29 @@ Provides test-related code that can be used by all tests.
 from __future__ import absolute_import
 
 import logging
+from textwrap import dedent
 
+from molt.common import io
 import molt.test
+
 
 test_logger = logging.getLogger(molt.test.__name__)
 
 
-class AssertStringMixin:
+# The textwrap module does not expose an indent() method.
+# Also see this issue: http://bugs.python.org/issue13857
+def indent(text, prefix):
+    lines = text.splitlines(True)
+    def indent(line):
+        if not line.strip():
+            # Do not indent lines having only whitespace.
+            return line
+        return prefix + line
+    lines = map(indent, lines)
+    return "".join(lines)
+
+
+class AssertStringMixin(object):
 
     """A unittest.TestCase mixin to check string equality."""
 
@@ -51,29 +67,65 @@ class AssertStringMixin:
 
         Arguments:
 
-          format: a format string containing a single conversion specifier %s.
-            This method will replace %s with an informative message on
-            failure.  Defaults to the trivial "%s".
+          format: a function that accepts string-checking details and returns
+            the desired text for the assertion failure error message.
 
         """
         if format is None:
-            format = "%s"
+            format = lambda msg: msg
 
-        # Show both friendly and literal versions.
-        details = """String mismatch: %%s\
-
-
+        details_format = dedent("""\
         Expected: \"""%s\"""
         Actual:   \"""%s\"""
 
         Expected: %s
-        Actual:   %s""" % (expected, actual, repr(expected), repr(actual))
+        Actual:   %s""")
 
-        def make_message(reason):
-            description = details % reason
-            return format % description
+        def make_message(short_description):
+            # Show both friendly and literal versions.
+            string_details_format = "String mismatch: %s\n\n\n%s" % (short_description, indent(details_format, "  "))
+            message_format = format(string_details_format)
+            message = message_format % (expected, actual, repr(expected), repr(actual))
+
+            return message
 
         self.assertEqual(actual, expected, make_message("different characters"))
 
         reason = "types different: %s != %s (actual)" % (repr(type(expected)), repr(type(actual)))
         self.assertEqual(type(expected), type(actual), make_message(reason))
+
+
+class AssertFileMixin(AssertStringMixin):
+
+    """A unittest.TestCase mixin to check file content equality."""
+
+    def assertFilesEqual(self, actual_path, expected_path, format=None, file_encoding='utf-8', errors='strict'):
+        """
+        Assert that the contents of the files at the given paths are equal.
+
+        Arguments:
+
+          format: a function that accepts a file details string and returns
+            the desired text for the assertion failure error message.
+
+        """
+        if format is None:
+            format = lambda msg: msg
+
+        read = lambda path: io.read(path, encoding=file_encoding, errors=errors)
+
+        actual, expected = (read(path) for path in (actual_path, expected_path))
+
+        file_details_format = dedent("""\
+        File contents differ at--
+
+          Expected:  %s
+          Actual:    %s
+
+        %%s""" % (expected_path, actual_path))
+
+        def format_string_details(string_details):
+            file_details = file_details_format % indent(string_details, "  ")
+            return format(file_details)
+
+        self.assertString(actual, expected, format=format_string_details)

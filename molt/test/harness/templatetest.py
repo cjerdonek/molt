@@ -46,6 +46,7 @@ import molt
 from molt.common import io
 from molt.molter import Molter
 from molt.test.harness.common import test_logger as _log
+from molt.test.harness.common import AssertFileMixin
 
 
 TEST_FILE_ENCODING = 'utf-8'
@@ -53,6 +54,7 @@ DECODE_ERRORS = 'strict'
 
 DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 
+# TODO: inject this value at run-time using load_tests().
 SKIPPED_FILES = ['.DS_Store']
 
 def make_template_test(group_name, input_dir, expected_dir):
@@ -127,20 +129,7 @@ class CompareError(Exception):
     pass
 
 
-# The textwrap module does not expose an indent() method.
-# Also see this issue: http://bugs.python.org/issue13857
-def indent(text, indent_):
-    lines = text.splitlines(True)
-    def indent(line):
-        if not line.strip():
-            # Do not indent lines having only whitespace.
-            return line
-        return indent_ + line
-    lines = map(indent, lines)
-    return "".join(lines)
-
-
-class TemplateTestCaseBase(TestCase):
+class TemplateTestCaseBase(TestCase, AssertFileMixin):
 
     def _raise_compare_error(self, expected_dir, actual_dir, details):
         details = indent(details, "  ")
@@ -187,6 +176,23 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
 
         self._raise_compare_error(expected, actual, details)
 
+    def _assert_files_equal(self, file_name, file_names, actual_dir, expected_dir):
+        actual_path, expected_path = [os.path.join(dir_path, file_name) for dir_path in [actual_dir, expected_dir]]
+
+        details_format = dedent("""\
+        Potentially differing files: %s
+        Displaying first genuine file difference: %s
+
+        %%s""" % (repr(file_names), file_name))
+
+        def format_file_details(file_details):
+            details = details_format % indent(file_details, "  ")
+            return format(file_details)
+
+        self.assertFilesEqual(actual_path, expected_path, format=format,
+                              file_encoding=TEST_FILE_ENCODING, errors=DECODE_ERRORS)
+
+
     def _assert_diff_files_empty(self, dcmp, expected_dir, actual_dir):
         """
         Arguments:
@@ -201,22 +207,13 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
             return
         # Otherwise, check whether each individual file may still be the same
         # because of the presence of ellipses  "...".
-        file_name = file_names[0]
 
-        def read(dir_path):
-            file_path = os.path.join(dir_path, file_name)
-            u = io.read(file_path, encoding=TEST_FILE_ENCODING, errors=DECODE_ERRORS)
-            return u
-
-        details = dedent("""\
-        Differing files: %s
-        Showing first file: %s
-        Expected: %s
-        Actual:   %s""" % (repr(file_names), file_name,
-                           repr(read(expected_dir)),
-                           repr(read(actual_dir))))
-
-        self._raise_compare_error(expected_dir, actual_dir, details)
+        index_to_examine = 0
+        while file_names:
+            file_name = file_names[index_to_examine]
+            self._assert_files_equal(file_name, file_names, actual_dir, expected_dir)
+            file_names.pop(index_to_examine)
+        # If got here, then all files were in fact the same.
 
     def _assert_dirs_equal(self, expected_dir, actual_dir):
         """

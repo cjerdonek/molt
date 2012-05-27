@@ -94,6 +94,7 @@ class DirectoryChooserTestCase(unittest.TestCase):
             actual = chooser.get_config_path(None, dir_path)
             self.assertEqual(config_path, actual)
 
+    # TODO: handle directory clean-up for assertRaises().
     def test_get_config_path__no_default_exists(self):
         self.assertRaises(Error, self._test_get_config_path__default, 'random.json')
 
