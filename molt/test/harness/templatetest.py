@@ -58,26 +58,31 @@ DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 # TODO: inject this value at run-time using load_tests().
 SKIPPED_FILES = ['.DS_Store']
 
-def make_template_test(group_name, input_dir, expected_dir):
+
+def make_expected_dir(template_dir):
+    return os.path.join(template_dir, 'expected')
+
+
+def make_template_test(group_name, template_dir):
     names = [None]
 
     def make_full_name(group_name, name):
         return group_name.lower()
 
-    def make_assert_template(group_name, name, parent_input_dir):
+    def make_assert_template(group_name, name, _template_dir):
         long_name = make_full_name(group_name, name)
+        expected_dir = make_expected_dir(_template_dir)
 
         def assert_template(test_case):
-            test_case._assert_template(group_name, long_name, parent_input_dir, expected_dir)
+            test_case._assert_template(group_name, long_name, _template_dir, expected_dir)
 
         return assert_template
 
-    test_cases = _make_template_tests(group_name, names, input_dir, make_full_name, make_assert_template)
+    test_cases = _make_template_tests(group_name, names, template_dir, make_full_name, make_assert_template)
 
     return test_cases[0]
 
 
-# TODO: rename test_run_dir to something else.
 def make_template_tests(group_name, parent_input_dir):
     """
     Return a list of unittest.TestCase instances.
@@ -91,12 +96,12 @@ def make_template_tests(group_name, parent_input_dir):
         return '%s__%s' % (group_name.lower(), name)
 
     def make_assert_template(group_name, name, parent_input_dir):
-        input_dir = os.path.join(parent_input_dir, name)
+        template_dir = os.path.join(parent_input_dir, name)
         long_name = make_full_name(group_name, name)
-        expected_dir = os.path.join(input_dir, 'expected')
+        expected_dir = make_expected_dir(template_dir)
 
         def assert_template(test_case):
-            test_case._assert_template(name, long_name, input_dir, expected_dir)
+            test_case._assert_template(name, long_name, template_dir, expected_dir)
 
         return assert_template
 
@@ -104,8 +109,7 @@ def make_template_tests(group_name, parent_input_dir):
                                 make_assert_template)
 
 
-# TODO: rename test_run_dir to something else.
-def _make_template_tests(group_name, names, parent_input_dir, make_full_name, make_assert_template):
+def _make_template_tests(group_name, names, input_dir, make_full_name, make_assert_template):
     """
     Return a list of unittest.TestCase instances.
 
@@ -116,7 +120,7 @@ def _make_template_tests(group_name, names, parent_input_dir, make_full_name, ma
     test_cases = []
     for name in names:
         method_name = 'test_%s' % make_full_name(group_name, name)
-        assert_template = make_assert_template(group_name, name, parent_input_dir)
+        assert_template = make_assert_template(group_name, name, input_dir)
 
         setattr(test_case_class, method_name, assert_template)
 

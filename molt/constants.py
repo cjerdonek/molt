@@ -48,9 +48,7 @@ _TEST_DIR = os.path.dirname(molt.test.__file__)
 _PROJECT_DIR = os.path.normpath(os.path.join(_SOURCE_DIR, os.pardir))
 
 _DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
-_DEMO_EXPECTED_DIR = 'test/data/demo'
 
-DEMO_EXPECTED_DIR = os.path.join(_SOURCE_DIR, _DEMO_EXPECTED_DIR)
 DEMO_TEMPLATE_DIR = os.path.join(_SOURCE_DIR, _DEMO_TEMPLATE_DIR)
 
 GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groom/tests'))
