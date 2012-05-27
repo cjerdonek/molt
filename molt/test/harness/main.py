@@ -61,6 +61,11 @@ def make_test_run_dir(test_output_dir):
     """
     Create the test run directory and return its path.
 
+    Arguments:
+
+      test_output_dir: the directory in which to create the test run directory.
+        Defaults to a system-specific temp directory.
+
     """
     prefix = make_dir_prefix()
     dir_path = mkdtemp(prefix=prefix, dir=test_output_dir)

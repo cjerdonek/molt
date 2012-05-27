@@ -121,7 +121,8 @@ class DirectoryChooser(object):
         """
         Arguments:
 
-          path: the user-provided path.
+          path: the user-provided path.  If None, looks for the configuration
+            file in a default location in the given template directory.
 
         """
         if path is not None:

@@ -80,29 +80,62 @@ class DirectoryChooserTestCase(unittest.TestCase):
         with open(path, 'w') as f:
             f.write('')
 
+    def _assert_config_path(self):
+        chooser = Chooser()
+        config_path = os.path.join(dir_path, file_name)
+        self._create_file(config_path)
+        actual = chooser.get_config_path(None, dir_path)
+        self.assertEqual(config_path, actual)
+
     def test_get_config_path__not_none(self):
         chooser = Chooser()
         actual = chooser.get_config_path('foo', 'bar')
         self.assertEqual(actual, 'foo')
 
-    def _test_get_config_path__default(self, file_name):
+    def _test_get_config_path__default(self, file_name, assert_func):
+        """
+        Arguments:
+
+          file_name: the name of the file to create in the template directory
+            prior to making any assertions.
+
+          assert_func: a function of (chooser, expected_path, template_dir)
+            that makes an assertion about chooser.get_config_path(None, template_dir).
+
+        """
         chooser = Chooser()
 
-        with self.util.sandbox_dir(self) as dir_path:
-            config_path = os.path.join(dir_path, file_name)
+        with self.util.sandbox_dir(self) as template_dir:
+            config_path = os.path.join(template_dir, file_name)
             self._create_file(config_path)
-            actual = chooser.get_config_path(None, dir_path)
+            assert_func(chooser, config_path, template_dir)
+
+    def _test_get_config_path__default__exists(self, file_name):
+        """
+        Test that the given file name is recognized as a default
+
+        """
+        def assert_func(chooser, config_path, template_dir):
+            actual = chooser.get_config_path(None, template_dir)
             self.assertEqual(config_path, actual)
 
-    # TODO: handle directory clean-up for assertRaises().
-    def test_get_config_path__no_default_exists(self):
-        self.assertRaises(Error, self._test_get_config_path__default, 'random.json')
+        self._test_get_config_path__default(file_name, assert_func)
+
+    def test_get_config_path__no_default(self):
+        """
+        Test what happens when none of the recognized defaults exist.
+
+        """
+        def assert_func(chooser, config_path, template_dir):
+            self.assertRaises(Error, chooser.get_config_path, None, template_dir)
+
+        self._test_get_config_path__default('random.json', assert_func)
 
     def test_get_config_path__sample_json(self):
-        self._test_get_config_path__default('sample.json')
+        self._test_get_config_path__default__exists('sample.json')
 
     def test_get_config_path__sample_yaml(self):
-        self._test_get_config_path__default('sample.yaml')
+        self._test_get_config_path__default__exists('sample.yaml')
 
     def test_get_config_path__sample_yml(self):
-        self._test_get_config_path__default('sample.yml')
+        self._test_get_config_path__default__exists('sample.yml')
