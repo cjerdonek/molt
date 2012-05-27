@@ -3,6 +3,7 @@ TODO
 
 Before releasing version 0.1.0:
 
+ * Fix the test directory not getting deleted for one test case.
  * make an "end-to-end" test using subprocess.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.
