@@ -28,45 +28,55 @@
 #
 
 """
-Exposes a utility function to call a shell script as a Python function.
+Exposes a function to visualize the contents of a directory.
 
 """
 
 from __future__ import absolute_import
 
-from subprocess import Popen, PIPE, STDOUT
+import sys
+
+from molt.common.popen import chain_script
+from molt.common.io import temp_directory
+
+# diff -Nur path1 path2
+# --- path1	1969-12-31 16:00:00.000000000 -0800
+# +++ path2	2012-05-27 17:45:10.000000000 -0700
+# @@ -0,0 +1 @@
+# +baz
+# diff -Nur path3 path4
+# --- path3	1969-12-31 16:00:00.000000000 -0800
+# +++ path4	2012-05-21 23:43:52.000000000 -0700
+# @@ -0,0 +1 @@
+# +{{bar}}
 
 
-def chain_script(args, handle_line):
+def visualize(target_dir):
     """
-    Run args and call handle_line() on each line of stdout.
+    Print the contents of a directory to stdout in a human-readable format.
 
     """
-    # See these page for implementation comments:
-    #   http://stackoverflow.com/questions/2804543/read-subprocess-stdout-line-by-line
-    #   http://docs.python.org/library/functions.html#iter
-    proc = Popen(args, stdout=PIPE)
-    for line in iter(proc.stdout.readline, ''):
-        handle_line(line)
+    handler = _LineHandler()
+
+    with temp_directory() as empty_temp_dir:
+        args = ['diff', '-Nur', empty_temp_dir, target_dir]
+        chain_script(args, handler.handle)
 
 
-def call_script(path, b):
-    """
-    Call the script at the given path with the given bytes.
+class _LineHandler(object):
 
-    Returns a byte string.
+    def __init__(self):
+        self.in_chunk = False
 
-    """
-    # See this page:
-    #   http://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
+    def handle(self, line):
+        if line.startswith('diff'):
+            self.in_chunk = False
+            return
+        if line.startswith('---'):
+            return
+        if line.startswith('+++') and not self.in_chunk:
+            self.in_chunk = True
+            # Strip the timestamp on the right.
+            line = line.rsplit('\t', 1)[0] + '\n'
+        sys.stdout.write(line)
 
-    # TODO: reraise exception including path, for example in case of--
-    # OSError: [Errno 13] Permission denied
-    try:
-        proc = Popen(path, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False,
-                     universal_newlines=False)
-    except:
-        raise Exception("Error calling script at: %s" % path)
-    stdout_data, stderr_data = proc.communicate(input=b)
-
-    return stdout_data

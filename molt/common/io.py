@@ -35,9 +35,13 @@ Exposes wrapper functions for file IO.
 from __future__ import absolute_import
 
 import codecs
+from contextlib import contextmanager
 import json
 import logging
 import os
+from shutil import rmtree
+from tempfile import mkdtemp
+
 
 _log = logging.getLogger(__name__)
 
@@ -72,20 +76,6 @@ def write(u, path, encoding, errors):
         f.write(b)
 
 
-def deserialize(path, encoding, errors):
-    """
-    Deserialize a JSON or YAML file based on the file extension.
-
-    """
-    u = read(path, encoding, errors)
-
-    ext = os.path.splitext(path)[1]
-
-    if ext.startswith(".y"):  # e.g. ".yaml" or ".yml".
-        return yaml.safe_load(u)
-    return json.loads(u)
-
-
 def create_directory(path):
     """
     Create a directory if not there, and return whether one was created.
@@ -98,6 +88,43 @@ def create_directory(path):
     if os.path.isdir(path):
         return False
     raise Error("Path already exists and is not a directory: %s" % path)
+
+
+@contextmanager
+def temp_directory():
+    """
+    Return a contextmanager that creates and deletes a temp directory.
+
+    The contextmanager deletes the directory even if an exception occurs
+    in the with block.  It can be used as follows:
+
+        with sandbox_dir() as dir_path:
+            # Execute code.
+
+    """
+    dir_path = mkdtemp()
+
+    try:
+        yield dir_path
+    finally:
+        # It is safe to use rmtree because we created the directory
+        # ourselves above, so it is not possible for us to be deleting
+        # anything that existed before.
+        rmtree(dir_path)
+
+
+def deserialize(path, encoding, errors):
+    """
+    Deserialize a JSON or YAML file based on the file extension.
+
+    """
+    u = read(path, encoding, errors)
+
+    ext = os.path.splitext(path)[1]
+
+    if ext.startswith(".y"):  # e.g. ".yaml" or ".yml".
+        return yaml.safe_load(u)
+    return json.loads(u)
 
 
 # TODO: combine with deserialize().

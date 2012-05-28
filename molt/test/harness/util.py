@@ -89,9 +89,18 @@ def sandbox_dir(dir_path):
 
     The directory is not deleted if an exception occurs in the with block.
 
-    It can be used as follows:
+    It can be used either as--
 
         with sandbox_dir(dir_path):
+            # Execute test code.
+
+    Or (taking advantage of yield)--
+
+        def custom_sandbox_dir():
+            special_path = make_special_path()
+            return sandbox_dir(special_path)
+
+        with custom_sandbox_dir() as dir_path:
             # Execute test code.
 
     """
