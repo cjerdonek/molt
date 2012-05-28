@@ -58,6 +58,10 @@ _log = logging.getLogger(__name__)
 ENCODING_DEFAULT = 'utf-8'
 
 
+def visualize(dir_path):
+    visualizer.visualize(dir_path)
+
+
 def log_error(details, verbose):
     if verbose:
         msg = traceback.format_exc()
@@ -91,9 +95,12 @@ def run_tests(options):
     stdout = sys.stdout
     sys.stdout = StringIO()
     try:
-        test_result = run_molt_tests(verbose=options.verbose, test_output_dir=options.output_directory)
+        test_result, test_run_dir = run_molt_tests(verbose=options.verbose, test_output_dir=options.output_directory)
     finally:
         sys.stdout = stdout
+
+    if options.with_visualize and test_run_dir is not None:
+        visualize(test_run_dir)
 
     return constants.EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else constants.EXIT_STATUS_FAIL
 
@@ -106,6 +113,10 @@ def create_demo(options):
 
     os.rmdir(output_dir)
     copytree(constants.DEMO_TEMPLATE_DIR, output_dir)
+
+    if options.with_visualize:
+        visualize(output_dir)
+
     _log.info("Created demo template directory: %s" % output_dir)
 
     return output_dir
@@ -122,12 +133,15 @@ def _render(options, args, chooser):
                 output_dir=output_dir,
                 config_path=config_path)
 
+    if options.with_visualize:
+        visualize(output_dir)
+
     return output_dir
 
 
-def visualize(options, args):
+def run_visualize_mode(options, args):
     target_dir = _get_input_dir(options, args, '%s option' % commandline.OPTION_MODE_VISUALIZE)
-    visualizer.visualize(target_dir)
+    visualize(target_dir)
 
     return None  # no need to print anything more.
 
@@ -145,7 +159,7 @@ def run_args(sys_argv, chooser=None):
     if options.create_demo_mode:
         result = create_demo(options)
     elif options.visualize_mode:
-        result = visualize(options, args)
+        result = run_visualize_mode(options, args)
     elif options.version_mode:
         result = commandline.get_version_string()
     elif options.license_mode:

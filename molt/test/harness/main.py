@@ -116,7 +116,8 @@ def run_molt_tests(verbose=False, test_output_dir=None):
         if test_output_dir is None or is_empty(test_run_dir):
             _log.info("cleaning up: deleting: %s" % test_run_dir)
             rmtree(test_run_dir)
+            test_run_dir = None
         else:
             _log.info("test failures at: %s" % test_run_dir)
 
-    return test_result
+    return test_result, test_run_dir

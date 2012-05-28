@@ -56,6 +56,7 @@ OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
 OPTION_MODE_DEMO = Option(('--create-demo',))
 OPTION_MODE_TESTS = Option(('--run-tests',))
 OPTION_MODE_VISUALIZE = Option(('--visualize',))
+OPTION_WITH_VISUALIZE = Option(('-z', '--with-visualize'))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
 
 # We escape the leading "%" so that the leading "%p" is not interpreted as
@@ -178,6 +179,12 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       help='the path to the JSON or YAML configuration file '
                            'containing the rendering context to use.  '
                            'Defaults to %s' % chooser.get_config_path_string())
+    parser.add_option(*OPTION_WITH_VISUALIZE, dest="with_visualize",
+                      action="store_true", default=False,
+                      help='run the %s option on the output directory '
+                           'prior to printing the usual output to stdout.  '
+                           'Useful for quickly visualizing script output.' %
+                           OPTION_MODE_VISUALIZE.display(' or '))
     parser.add_option(*OPTION_MODE_DEMO, dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a copy of the Molt demo template to play with, '
@@ -197,7 +204,9 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
     parser.add_option(*OPTION_MODE_VISUALIZE, dest="visualize_mode",
                       action="store_true", default=False,
                       help='print to stdout in a human-readable format '
-                           'the contents of all files in input directory %s.' %
+                           'the contents of all files in input directory %s, '
+                           'instead of creating a new project.  This option '
+                           'uses `diff` under the hood.' %
                            METAVAR_INPUT_DIR)
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
