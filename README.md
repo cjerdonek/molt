@@ -67,6 +67,9 @@ For help documentation and available options--
 
     $ molt -h
 
+Note the useful `--visualize` and `--with-visualize` options that let you
+quickly visualize entire directory contents.
+
 If using Python, you can also use Molt as a library (though the API is
 not yet stable).  See the `Molter` class in the
 [`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)

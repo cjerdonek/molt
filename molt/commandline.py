@@ -56,7 +56,7 @@ OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
 OPTION_MODE_DEMO = Option(('--create-demo',))
 OPTION_MODE_TESTS = Option(('--run-tests',))
 OPTION_MODE_VISUALIZE = Option(('--visualize',))
-OPTION_WITH_VISUALIZE = Option(('-z', '--with-visualize'))
+OPTION_WITH_VISUALIZE = Option(('--with-visualize',))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
 
 # We escape the leading "%" so that the leading "%p" is not interpreted as
@@ -129,10 +129,6 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 
-def option_to_string(option):
-    return " or ".join(option)
-
-
 def get_version_header():
     return "Molt %s" % __version__
 
@@ -183,8 +179,11 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='run the %s option on the output directory '
                            'prior to printing the usual output to stdout.  '
-                           'Useful for quickly visualizing script output.' %
-                           OPTION_MODE_VISUALIZE.display(' or '))
+                           'Useful for quickly visualizing script output.  '
+                           'Also works with %s combined with %s.' %
+                           (OPTION_MODE_VISUALIZE.display(' or '),
+                            OPTION_MODE_TESTS.display(' or '),
+                            OPTION_OUTPUT_DIR.display(' or ')))
     parser.add_option(*OPTION_MODE_DEMO, dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a copy of the Molt demo template to play with, '
@@ -205,8 +204,8 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='print to stdout in a human-readable format '
                            'the contents of all files in input directory %s, '
-                           'instead of creating a new project.  This option '
-                           'uses `diff` under the hood.' %
+                           'instead of creating a new project.  '
+                           'Uses `diff` under the hood.' %
                            METAVAR_INPUT_DIR)
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
