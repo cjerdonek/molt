@@ -40,13 +40,30 @@ import sys
 
 from molt.test.harness.common import test_logger
 
+StreamHandler = logging.StreamHandler
 
 _log = logging.getLogger(__name__)
 
 
+class NewlineStreamHandler(StreamHandler):
+
+    """
+    A logging handler that begins log messages with a newline if needed.
+
+    Its stream attribute must implement last_char().
+
+    """
+
+    def emit(self, record):
+        if self.stream.last_char() != "\n":
+            self.stream.write("\n")
+
+        super(NewlineStreamHandler, self).emit(record)
+
+
 # TODO: make this testable.
 # TODO: finish documenting this method.
-def configure_logging(logging_level, sys_stderr=None, test_config=False):
+def configure_logging(logging_level, stream=None, test_config=False):
     """
     Configure logging.
 
@@ -60,8 +77,8 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
     configuring it to write to os.devnull instead of sys.stderr.
 
     """
-    if sys_stderr is None:
-        sys_stderr = sys.stderr
+    if stream is None:
+        stream = sys.stderr
 
     format = "%(name)s: [%(levelname)s] %(message)s"
 
@@ -70,13 +87,10 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
 
     if test_config:
         # Then configure log messages to be swallowed by default.
-        stream = open(os.devnull, "w")
-        handler = logging.StreamHandler(stream)
+        # TODO: is this necessary?
+        null_stream = open(os.devnull, "w")
+        handler = logging.StreamHandler(null_stream)
         root_logger.addHandler(handler)
-
-        # Make sure test log messages start at the beginning of a line (because
-        # of the dots ("........") that occur during test runs).
-        format = '\n' + format
 
         # Configure this module's logger.
         loggers = [_log, test_logger]
@@ -85,8 +99,7 @@ def configure_logging(logging_level, sys_stderr=None, test_config=False):
 
     formatter = logging.Formatter(format)
 
-    stream = sys_stderr
-    handler = logging.StreamHandler(stream)
+    handler = NewlineStreamHandler(stream)
     handler.setFormatter(formatter)
 
     for logger in loggers:

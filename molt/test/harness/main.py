@@ -35,6 +35,7 @@ Exposes a run_molt_tests() function to run all tests in this project.
 from datetime import datetime
 import os
 from shutil import rmtree
+import sys
 from tempfile import mkdtemp
 
 import molt
@@ -74,7 +75,7 @@ def make_test_run_dir(test_output_dir):
     return dir_path
 
 
-def _run_tests(test_run_dir, doctest_paths, verbose):
+def _run_tests(test_run_dir, doctest_paths, verbose, test_runner_stream):
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
@@ -82,11 +83,12 @@ def _run_tests(test_run_dir, doctest_paths, verbose):
                             is_unittest_module=IS_UNITTEST_MODULE,
                             test_run_dir=test_run_dir,
                             doctest_paths=doctest_paths,
-                            verbosity=verbosity)
+                            verbosity=verbosity,
+                            test_runner_stream=test_runner_stream)
     return test_result
 
 
-def run_molt_tests(verbose=False, test_output_dir=None):
+def run_molt_tests(verbose=False, test_output_dir=None, test_runner_stream=None):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
@@ -96,8 +98,14 @@ def run_molt_tests(verbose=False, test_output_dir=None):
         failures.  If None, test runs are written to a system temp
         directory and test expectation failures deleted.
 
+      test_runner_stream: the stream object to pass to unittest.TextTestRunner.
+        Defaults to sys.stderr.
+
     """
     _log.info("running tests")
+
+    if test_runner_stream is None:
+        test_runner_stream = sys.stderr
 
     source_dir = os.path.dirname(molt.__file__)
     package_dir = os.path.join(source_dir, os.pardir)
@@ -111,7 +119,8 @@ def run_molt_tests(verbose=False, test_output_dir=None):
     test_run_dir = make_test_run_dir(test_output_dir)
 
     try:
-        test_result = _run_tests(test_run_dir, doctest_paths, verbose)
+        test_result = _run_tests(test_run_dir, doctest_paths, verbose,
+                                 test_runner_stream=test_runner_stream)
     finally:
         if test_output_dir is None or is_empty(test_run_dir):
             _log.info("cleaning up: deleting: %s" % test_run_dir)

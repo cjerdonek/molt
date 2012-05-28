@@ -8,7 +8,6 @@ Before releasing version 0.1.0:
  * Make sure HISTORY file, etc. is included in the MANIFEST.
 
 * Link to PyPI in the README.
-* Make log messages begin with a newline on some condition.
 * Add an --overwrite option to write over (but not delete) existing output
   directories.
 * Add a --strict-output-dir mode that causes the program to fail if

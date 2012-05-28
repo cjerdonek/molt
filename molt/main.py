@@ -42,6 +42,7 @@ would not get configured after all those imports have already taken place.
 from __future__ import absolute_import
 
 import logging
+import sys
 import traceback
 
 from molt import commandline
@@ -55,6 +56,28 @@ from molt import logconfig
 LOGGING_LEVEL_DEFAULT = logging.INFO
 
 _log = logging.getLogger(__name__)
+
+
+class LoggingStream(object):
+
+    def __init__(self, stream):
+        self._stream = stream
+        # This way a newline will not be added before the first log message.
+        self._last_text = '\n'
+
+    def last_char(self):
+        if self._last_text:
+            return self._last_text[-1]
+
+    def write(self, text):
+        if not text:
+            return
+        self._stream.write(text)
+        self._last_text = text
+
+    # unittest.TextTestRunner calls stream.flush().
+    def flush(self):
+        self._stream.flush()
 
 
 def log_error(details, verbose):
@@ -74,6 +97,7 @@ def configure_logging(sys_argv):
     """
     logging_level = LOGGING_LEVEL_DEFAULT
     is_running_tests = False
+    stderr_stream = LoggingStream(sys.stderr)
 
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
@@ -87,11 +111,11 @@ def configure_logging(sys_argv):
         if options.run_test_mode:
             is_running_tests = True
 
-    logconfig.configure_logging(logging_level, test_config=is_running_tests)
+    logconfig.configure_logging(logging_level, stream=stderr_stream, test_config=is_running_tests)
 
     verbose = False if options is None else options.verbose
 
-    return verbose
+    return verbose, stderr_stream
 
 
 def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
@@ -107,7 +131,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
         more easily.
 
     """
-    verbose = configure_logging(sys_argv)
+    verbose, stderr_stream = configure_logging(sys_argv)
     _log.debug("args: %s" % repr(sys_argv))
 
     try:
@@ -116,7 +140,7 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
             # we do this import inside a function body.
             from molt.argprocessor import run_args
             process_args = run_args
-        status = process_args(sys_argv)
+        status = process_args(sys_argv, test_runner_stream=stderr_stream)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         details = """\

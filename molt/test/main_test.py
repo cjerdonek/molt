@@ -47,6 +47,7 @@ class MockLogging(object):
 
     def configure_logging(self, sys_argv):
         self.argv = sys_argv
+        return None, None
 
 
 class CreateDemoTestCase(unittest.TestCase):
@@ -73,7 +74,7 @@ class MainTestCase(unittest.TestCase):
         self.logging = MockLogging()
 
     def test_error(self):
-        def process_args(sys_argv):
+        def process_args(sys_argv, test_runner_stream):
             raise Error("test")
 
         sys_argv = []

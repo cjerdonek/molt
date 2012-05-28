@@ -40,7 +40,7 @@ import doctest
 import os
 from pkgutil import walk_packages
 import sys
-from unittest import TestLoader, TestProgram
+from unittest import TestLoader, TestProgram, TextTestRunner
 
 from molt.test.harness.common import test_logger as _log
 from molt.test.harness.util import TestUtil
@@ -101,7 +101,9 @@ def find_modules(package):
     return names
 
 
-def run_tests(package, is_unittest_module, test_run_dir, extra_tests=None, doctest_paths=None, verbosity=1):
+def run_tests(package, is_unittest_module, test_run_dir,
+              extra_tests=None, doctest_paths=None, verbosity=1,
+              test_runner_stream=None):
     """
     Run all tests, and return a unittest.TestResult instance.
 
@@ -109,11 +111,16 @@ def run_tests(package, is_unittest_module, test_run_dir, extra_tests=None, docte
 
       verbosity: 0 for quiet, 1 for normal, 2 for verbose.  Defaults to 1.
 
+      test_runner_stream: the stream object to pass to unittest.TextTestRunner.
+        Defaults to sys.stderr.
+
     """
     if extra_tests is None:
         extra_tests = []
     if doctest_paths is None:
         doctest_paths = []
+    if test_runner_stream is None:
+        test_runner_stream = sys.stderr
 
     # TODO: consider using unittest's test discovery functionality
     #   added in Python 2.7.
@@ -145,7 +152,9 @@ def run_tests(package, is_unittest_module, test_run_dir, extra_tests=None, docte
     test_loader = UnittestTestLoader()
     test_loader.util = util
 
-    test_program = test_program_class(testLoader=test_loader, module=None, argv=argv, exit=False, verbosity=verbosity)
+    test_runner = TextTestRunner(stream=test_runner_stream)
+    test_program = test_program_class(argv=argv, module=None, exit=False, verbosity=verbosity,
+                                      testLoader=test_loader, testRunner=test_runner)
 
     return test_program.result
 
