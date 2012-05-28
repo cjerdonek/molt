@@ -77,14 +77,16 @@ web page for details on Groom templates:
 
   http://cjerdonek.github.com/groom/
 
-Per the Groom guidelines, when creating a new project from a Groom template
-directory, the script looks for the project structure in a directory named
-"%(project_dir)s" in the template directory.  It also looks in the template
-directory for optional directories named "%(partials_dir)s" and "%(lambdas_dir)s", for
-partials and lambdas, respectively.
+Per the Groom guidelines:
 
-Also per the guidelines, the rendering context should be the value of
-the key "%(context_key)s" in the input configuration file.
+When creating a project, the script looks for a directory named
+"%(project_dir)s" in the template directory for the project structure.
+It also looks in the template directory for optional directories
+named "%(partials_dir)s" and "%(lambdas_dir)s", for partials and lambdas,
+respectively.
+
+For the rendering context, it looks at the value of the key "%(context_key)s"
+in the input configuration file.
 
 The script writes the name of the output directory to stdout when
 complete.""" % {
@@ -168,8 +170,8 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
     parser.add_option(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
                       action="store", type='string', default=None,
                       help='the directory to use when an output directory is '
-                           'required.  Defaults to %s.  If the directory already '
-                           'exists, then the directory name is incremented '
+                           'required.  Defaults to %s.  If the output directory '
+                           'already exists, then the directory name is incremented '
                            'until the resulting directory would be new.' % repr(defaults.OUTPUT_DIR))
     parser.add_option("-c", "--config-file", metavar='FILE', dest="config_path",
                       action="store", type='string', default=None,
