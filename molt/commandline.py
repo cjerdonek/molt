@@ -48,10 +48,14 @@ from molt.dirchooser import DirectoryChooser
 
 _log = logging.getLogger(__name__)
 
+METAVAR_INPUT_DIR = 'DIRECTORY'
+
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
 OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
-OPTION_RUN_TESTS = Option(('--run-tests',))
+OPTION_MODE_DEMO = Option(('--create-demo',))
+OPTION_MODE_TESTS = Option(('--run-tests',))
+OPTION_MODE_VISUALIZE = Option(('--visualize',))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
 
 # We escape the leading "%" so that the leading "%p" is not interpreted as
@@ -64,9 +68,9 @@ OPTION_VERBOSE = Option(('-v', '--verbose'))
 #
 #     http://docs.python.org/dev/library/argparse.html#description
 #
-OPTPARSE_USAGE = """%%prog [options] [DIRECTORY]
+OPTPARSE_USAGE = """%%prog [options] [%(input_dir_metavar)s]
 
-Create a new project from the Groom template in DIRECTORY.
+Create a new project from the Groom template in %(input_dir_metavar)s.
 
 A Groom template is a Mustache-based project template.  See the Groom
 web page for details on Groom templates:
@@ -88,6 +92,7 @@ complete.""" % {
     'project_dir': defaults.PROJECT_DIR_NAME,
     'partials_dir': defaults.PARTIALS_DIR_NAME,
     'lambdas_dir': defaults.LAMBDAS_DIR_NAME,
+    'input_dir_metavar': METAVAR_INPUT_DIR,
 }
 
 OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
@@ -171,7 +176,7 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       help='the path to the JSON or YAML configuration file '
                            'containing the rendering context to use.  '
                            'Defaults to %s' % chooser.get_config_path_string())
-    parser.add_option("--create-demo", dest="create_demo_mode",
+    parser.add_option(*OPTION_MODE_DEMO, dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a copy of the Molt demo template to play with, '
                            'instead of creating a new project.  '
@@ -180,13 +185,18 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                            'provided by the %s option or, if the option is not '
                            'provided, to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
-    parser.add_option(*OPTION_RUN_TESTS, dest="run_test_mode",
+    parser.add_option(*OPTION_MODE_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
                       help='run project tests, instead of creating a new project.  '
                            'Tests include unit tests, doctests, and, if present, '
                            'Groom project test cases.  If the %s option is provided, '
                            'then test failure data is retained for inspection '
                            'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
+    parser.add_option(*OPTION_MODE_VISUALIZE, dest="visualize_mode",
+                      action="store_true", default=False,
+                      help='print to stdout in a human-readable format '
+                           'the contents of all files in input directory %s.' %
+                           METAVAR_INPUT_DIR)
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
                       help="print license info to stdout.")

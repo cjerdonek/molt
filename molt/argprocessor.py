@@ -47,10 +47,11 @@ from molt.common.optionparser import UsageError
 from molt import constants
 from molt import defaults
 from molt.dirchooser import make_output_dir, DirectoryChooser
-from molt import logconfig
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests
+from molt import visualizer
 
+METAVAR_INPUT_DIR = commandline.METAVAR_INPUT_DIR
 
 _log = logging.getLogger(__name__)
 
@@ -65,6 +66,20 @@ def log_error(details, verbose):
 %s
 Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
     _log.error(msg)
+
+
+def _get_input_dir(options, args, mode_description):
+    try:
+        input_dir = args[0]
+    except IndexError:
+        raise UsageError("Argument %s not provided.\n"
+                         "  Input directory needed for %s." %
+                         (METAVAR_INPUT_DIR, mode_description))
+
+    if not os.path.exists(input_dir):
+        raise Error("Input directory not found: %s" % input_dir)
+
+    return input_dir
 
 
 def run_tests(options):
@@ -97,13 +112,7 @@ def create_demo(options):
 
 
 def _render(options, args, chooser):
-    try:
-        template_dir = args[0]
-    except IndexError:
-        raise UsageError("Template directory argument not provided.")
-
-    if not os.path.exists(template_dir):
-        raise Error("Template directory not found: %s" % template_dir)
+    template_dir = _get_input_dir(options, args, 'template rendering')
 
     config_path = options.config_path
     output_dir = _make_output_directory(options, defaults.OUTPUT_DIR)
@@ -114,6 +123,13 @@ def _render(options, args, chooser):
                 config_path=config_path)
 
     return output_dir
+
+
+def visualize(options, args):
+    target_dir = _get_input_dir(options, args, '%s option' % commandline.OPTION_MODE_VISUALIZE)
+    visualizer.visualize(target_dir)
+
+    return None  # no need to print anything more.
 
 
 def run_args(sys_argv, chooser=None):
@@ -128,6 +144,8 @@ def run_args(sys_argv, chooser=None):
 
     if options.create_demo_mode:
         result = create_demo(options)
+    elif options.visualize_mode:
+        result = visualize(options, args)
     elif options.version_mode:
         result = commandline.get_version_string()
     elif options.license_mode:
