@@ -60,15 +60,17 @@ Render the template with the sample context provided:
 Run the newly-created project (which can also be seen
 [here](https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo)):
 
-    $ python output/hello.py world
+    $ molt output/hello.py world
     Hello, world!
 
 For help documentation and available options--
 
     $ molt -h
 
-Note the useful `--visualize` and `--with-visualize` options that let you
+Note the `--visualize` and `--with-visualize` options that let you
 quickly visualize entire directory contents.
+
+    $ molt --visualize output
 
 If using Python, you can also use Molt as a library (though the API is
 not yet stable).  See the `Molter` class in the
