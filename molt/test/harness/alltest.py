@@ -152,7 +152,7 @@ def run_tests(package, is_unittest_module, test_run_dir,
     test_loader = UnittestTestLoader()
     test_loader.util = util
 
-    test_runner = TextTestRunner(stream=test_runner_stream)
+    test_runner = TextTestRunner(stream=test_runner_stream, verbosity=verbosity)
     test_program = test_program_class(argv=argv, module=None, exit=False, verbosity=verbosity,
                                       testLoader=test_loader, testRunner=test_runner)
 

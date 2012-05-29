@@ -64,22 +64,15 @@ def test_gen(tests):
             yield test2
 
 
-def make_util_load_tests():
+def util_load_tests(loader, tests, pattern):
     """
-    Return a load_tests() function that sets the util attribute.
+    Return a unittest.TestSuite instance.
 
     """
-    def load_tests(loader, tests, pattern):
-        """
-        Return a unittest.TestSuite instance.
+    for test in test_gen(tests):
+        test.util = loader.util
 
-        """
-        for test in test_gen(tests):
-            test.util = loader.util
-
-        return unittest.TestSuite(tests)
-
-    return load_tests
+    return unittest.TestSuite(tests)
 
 
 @contextmanager

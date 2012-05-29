@@ -3,6 +3,7 @@ TODO
 
 Before releasing version 0.1.0:
 
+ * Add a unit test for --verbose working with unit tests.
  * make an "end-to-end" test using subprocess.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.

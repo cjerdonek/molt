@@ -37,7 +37,7 @@ import unittest
 
 from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness.templatetest import make_template_test
-from molt.test.harness.util import make_util_load_tests
+from molt.test.harness.util import util_load_tests
 
 
 def load_tests(loader, tests, pattern):
@@ -49,7 +49,6 @@ def load_tests(loader, tests, pattern):
                                    template_dir=DEMO_TEMPLATE_DIR)
     tests = [demo_test]
 
-    load_tests = make_util_load_tests()
-    tests = load_tests(loader, tests, pattern)
+    tests = util_load_tests(loader, tests, pattern)
 
     return tests

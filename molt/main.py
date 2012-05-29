@@ -95,17 +95,20 @@ Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
     _log.error(msg)
 
 
-def configure_logging(sys_argv):
+def configure_logging(sys_argv, sys_stderr=None):
     """
     Configure logging and return whether to run in verbose mode.
 
     """
+    if sys_stderr is None:
+        sys_stderr = sys.stderr
+
     logging_level = LOGGING_LEVEL_DEFAULT
     is_running_tests = False
 
     # We pass a newline as last_text to prevent a newline from being added
     # before the first log message.
-    stderr_stream = RememberingStream(sys.stderr, last_text='\n')
+    stderr_stream = RememberingStream(sys_stderr, last_text='\n')
 
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829

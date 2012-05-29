@@ -38,10 +38,10 @@ import unittest
 from molt.common.error import Error
 from molt.dirchooser import make_output_dir
 from molt.dirchooser import DirectoryChooser as Chooser
-from molt.test.harness.util import make_util_load_tests
+from molt.test.harness.util import util_load_tests
 
 
-load_tests = make_util_load_tests()
+load_tests = util_load_tests
 
 
 class GenerateOutputDirTestCase(unittest.TestCase):

@@ -36,10 +36,11 @@ import logging
 import unittest
 
 from molt.main import Error, run_molt
-from molt.test.harness.util import make_util_load_tests
+from molt.test.harness.util import util_load_tests
 
 
-load_tests = make_util_load_tests()
+load_tests = util_load_tests
+
 
 class MockLogging(object):
 
