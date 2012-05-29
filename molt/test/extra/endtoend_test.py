@@ -28,44 +28,36 @@
 #
 
 """
-Exposes a utility function to call a shell script as a Python function.
+Provides end-to-end tests that exercise molt from the command-line.
 
 """
 
-from __future__ import absolute_import
+import logging
+import os
+import sys
+from unittest import TestCase
 
-from subprocess import Popen, PIPE, STDOUT
-
-
-def chain_script(args, handle_line):
-    """
-    Run args and call handle_line() on each line of stdout.
-
-    """
-    # See these page for implementation comments:
-    #   http://stackoverflow.com/questions/2804543/read-subprocess-stdout-line-by-line
-    #   http://docs.python.org/library/functions.html#iter
-    proc = Popen(args, stdout=PIPE)
-    for line in iter(proc.stdout.readline, ''):
-        handle_line(line)
+from molt.common.popen import call_script
+from molt.constants import DEMO_TEMPLATE_DIR
+from molt.test.harness.templatetest import make_template_test
+from molt.test.harness.sandbox import config_load_tests, SandBoxDirMixin
 
 
-def call_script(args, b=None):
-    """
-    Call the script with the given bytes sent to stdin.
+load_tests = config_load_tests
 
-    Returns a pair of byte strings (stdout, stderr).
 
-    """
-    # See this page:
-    #   http://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
+class EndToEndTestCase(TestCase, SandBoxDirMixin):
 
-    try:
-        proc = Popen(args, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=False,
-                     universal_newlines=False)
-    except:
-        # TODO: add to existing exception and reraise instead of swallowing.
-        raise Exception("Error opening process: %s" % repr(args))
-    stdout_data, stderr_data = proc.communicate(input=b)
+    def _call_molt(self, args):
+        python_path = sys.executable
+        args = [python_path, '-m', 'molt.commands.molt'] + args
+        stdout, stderr = call_script(args)
 
-    return stdout_data, stderr_data
+        return stdout, stderr
+
+    def test_create_demo__with_output(self):
+        with self.sandboxDir() as temp_dir:
+            output_dir = os.path.join(temp_dir, 'demo')
+            options = ['--create-demo', '--output', output_dir]
+            stdout, stderr = self._call_molt(options)
+            self.assertEquals(stdout.strip(), output_dir)

@@ -80,9 +80,9 @@ def _lambda_from_script(path):
             u = ''
         bytes_in = u.encode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
 
-        bytes_out = call_script(path, bytes_in)
+        stdout, stderr = call_script(path, bytes_in)
 
-        return bytes_out.decode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
+        return stdout.decode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
 
     return func
 

@@ -3,8 +3,7 @@ TODO
 
 Before releasing version 0.1.0:
 
- * File issue re: logging and encoding.
- * make an "end-to-end" test using subprocess.
+ * Add more end-to-end tests to cover all main use cases.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.
 

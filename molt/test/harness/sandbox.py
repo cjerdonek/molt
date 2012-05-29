@@ -28,7 +28,7 @@
 #
 
 """
-Exposes some unittest-related utility classes/functions.
+Exposes functionality for creating temp directories for testing.
 
 """
 
@@ -40,7 +40,7 @@ from shutil import rmtree
 import unittest
 
 
-def test_gen(tests):
+def _test_gen(tests):
     """
     Return a generator over all TestCase instances recursively in tests.
 
@@ -60,7 +60,7 @@ def test_gen(tests):
         return
     # Otherwise, we have an iterable or a TestSuite instance.
     for test in tests:
-        for test2 in test_gen(test):
+        for test2 in _test_gen(test):
             yield test2
 
 
@@ -71,7 +71,7 @@ def config_load_tests(loader, tests, pattern):
     Returns a unittest.TestSuite instance.
 
     """
-    for test in test_gen(tests):
+    for test in _test_gen(tests):
         test.test_config = loader.test_config
 
     return unittest.TestSuite(tests)
@@ -86,7 +86,7 @@ class TestConfig(object):
 
 
 @contextmanager
-def test_dir_manager(dir_path):
+def _test_dir_manager(dir_path):
     """
     Return a contextmanager that creates (and deletes) a sandbox directory.
 
@@ -140,7 +140,7 @@ def _sandbox_dir_manager(test_case, test_run_dir, suffix=None):
 
     dir_path = os.path.join(test_run_dir, name)
 
-    return test_dir_manager(dir_path)
+    return _test_dir_manager(dir_path)
 
 
 class SandBoxDirMixin(object):

@@ -46,29 +46,33 @@ class CallScriptTestCase(unittest.TestCase, AssertStringMixin):
     def _get_script_path(self, script_name):
         return os.path.join(TEST_DATA_DIR, 'lambdas', script_name + ".sh")
 
+    def _call_script(self, path, bytes_in):
+        stdout, stderr = call_script([path], bytes_in)
+        return stdout
+
     def test_constant(self):
         """
         Test calling a script that echoes a constant.
 
         """
         path = self._get_script_path('foo')
-        self.assertEqual('bar', call_script(path, ''))
+        self.assertEqual('bar', self._call_script(path, ''))
 
     def test_hash_comment(self):
         path = self._get_script_path('hash_comment')
 
-        actual = call_script(path, '')
+        actual = self._call_script(path, '')
         expected = ''
         self.assertString(actual, expected)
 
-        actual = call_script(path, 'line1\nline2')
+        actual = self._call_script(path, 'line1\nline2')
         expected = '# line1\n'
         self.assertString(actual, expected)
 
-        actual = call_script(path, 'line1\nline2\n')
+        actual = self._call_script(path, 'line1\nline2\n')
         expected = '# line1\n# line2\n'
         self.assertString(actual, expected)
 
-        actual = call_script(path, 'line1\nline2\n\n')
+        actual = self._call_script(path, 'line1\nline2\n\n')
         expected = '# line1\n# line2\n# \n'
         self.assertString(actual, expected)
