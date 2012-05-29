@@ -58,12 +58,16 @@ LOGGING_LEVEL_DEFAULT = logging.INFO
 _log = logging.getLogger(__name__)
 
 
-class LoggingStream(object):
+class RememberingStream(object):
 
-    def __init__(self, stream):
+    """
+    A stream that "remembers" the last text sent to write().
+
+    """
+
+    def __init__(self, stream, last_text=''):
         self._stream = stream
-        # This way a newline will not be added before the first log message.
-        self._last_text = '\n'
+        self._last_text = last_text
 
     def last_char(self):
         if self._last_text:
@@ -75,7 +79,8 @@ class LoggingStream(object):
         self._stream.write(text)
         self._last_text = text
 
-    # unittest.TextTestRunner calls stream.flush().
+    # A flush() method is needed to be able to pass instances of this
+    # class to unittest.TextTestRunner's constructor.
     def flush(self):
         self._stream.flush()
 
@@ -97,7 +102,10 @@ def configure_logging(sys_argv):
     """
     logging_level = LOGGING_LEVEL_DEFAULT
     is_running_tests = False
-    stderr_stream = LoggingStream(sys.stderr)
+
+    # We pass a newline as last_text to prevent a newline from being added
+    # before the first log message.
+    stderr_stream = RememberingStream(sys.stderr, last_text='\n')
 
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
@@ -111,7 +119,8 @@ def configure_logging(sys_argv):
         if options.run_test_mode:
             is_running_tests = True
 
-    logconfig.configure_logging(logging_level, stream=stderr_stream, test_config=is_running_tests)
+    logconfig.configure_logging(logging_level, stderr_stream=stderr_stream,
+                                test_config=is_running_tests)
 
     verbose = False if options is None else options.verbose
 

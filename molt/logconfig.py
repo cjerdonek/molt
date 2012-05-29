@@ -50,7 +50,11 @@ class NewlineStreamHandler(StreamHandler):
     """
     A logging handler that begins log messages with a newline if needed.
 
-    Its stream attribute must implement last_char().
+    This class is useful for preventing messages logged during test runs
+    from displaying at the end of a line of dots "......".
+
+    The stream attribute (i.e. the stream passed to this class's
+    constructor) must implement stream.last_char().
 
     """
 
@@ -63,7 +67,7 @@ class NewlineStreamHandler(StreamHandler):
 
 # TODO: make this testable.
 # TODO: finish documenting this method.
-def configure_logging(logging_level, stream=None, test_config=False):
+def configure_logging(logging_level, stderr_stream=None, test_config=False):
     """
     Configure logging.
 
@@ -77,8 +81,8 @@ def configure_logging(logging_level, stream=None, test_config=False):
     configuring it to write to os.devnull instead of sys.stderr.
 
     """
-    if stream is None:
-        stream = sys.stderr
+    if stderr_stream is None:
+        stderr_stream = sys.stderr
 
     format = "%(name)s: [%(levelname)s] %(message)s"
 
@@ -89,7 +93,7 @@ def configure_logging(logging_level, stream=None, test_config=False):
         # Then configure log messages to be swallowed by default.
         # TODO: is this necessary?
         null_stream = open(os.devnull, "w")
-        handler = logging.StreamHandler(null_stream)
+        handler = StreamHandler(null_stream)
         root_logger.addHandler(handler)
 
         # Configure this module's logger.
@@ -99,7 +103,7 @@ def configure_logging(logging_level, stream=None, test_config=False):
 
     formatter = logging.Formatter(format)
 
-    handler = NewlineStreamHandler(stream)
+    handler = NewlineStreamHandler(stderr_stream)
     handler.setFormatter(formatter)
 
     for logger in loggers:
