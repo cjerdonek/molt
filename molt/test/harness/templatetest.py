@@ -130,10 +130,6 @@ def _make_template_tests(group_name, names, input_dir, make_full_name, make_asse
     return test_cases
 
 
-class CompareError(Exception):
-    pass
-
-
 class TemplateTestCaseBase(TestCase, AssertFileMixin, SandBoxDirMixin):
 
     def _make_compare_message_format(self, expected_dir, actual_dir):
@@ -169,7 +165,7 @@ Directory contents differ:
 
 Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
                   self.template_name, repr(self.description))
-        raise CompareError(msg)
+        raise Exception(msg)
 
     def _get_dcmp_attr(self, dcmp, attr_name):
         attr_val = getattr(dcmp, attr_name)
@@ -241,7 +237,7 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
 
     def _assert_dirs_equal(self, expected_dir, actual_dir):
         """
-        Raise a CompareError exception if the two directories are unequal.
+        Raise an exception if the two directories are unequal.
 
         """
         dirs = expected_dir, actual_dir
