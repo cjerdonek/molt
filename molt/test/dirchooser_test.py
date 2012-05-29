@@ -38,28 +38,28 @@ import unittest
 from molt.common.error import Error
 from molt.dirchooser import make_output_dir
 from molt.dirchooser import DirectoryChooser as Chooser
-from molt.test.harness.util import util_load_tests
+from molt.test.harness.sandbox import config_load_tests, SandBoxDirMixin
 
 
-load_tests = util_load_tests
+load_tests = config_load_tests
 
 
-class GenerateOutputDirTestCase(unittest.TestCase):
+class GenerateOutputDirTestCase(unittest.TestCase, SandBoxDirMixin):
 
     def test_none(self):
-        with self.util.sandbox_dir(self) as dir_path:
+        with self.sandboxDir() as dir_path:
             output_dir = os.path.join(dir_path, 'foo')
             actual = make_output_dir(None, output_dir)
             self.assertEqual(output_dir, actual)
 
     def test_new_dir(self):
-        with self.util.sandbox_dir(self) as dir_path:
+        with self.sandboxDir() as dir_path:
             output_dir = os.path.join(dir_path, 'foo')
             actual = make_output_dir(output_dir, 'bar')
             self.assertEqual(output_dir, actual)
 
     def test_existing_dir(self):
-        with self.util.sandbox_dir(self) as dir_path:
+        with self.sandboxDir() as dir_path:
             output_dir = os.path.join(dir_path, 'foo')
 
             os.mkdir(output_dir)
@@ -74,7 +74,7 @@ class GenerateOutputDirTestCase(unittest.TestCase):
             self.assertEqual(expected, actual)
 
 
-class DirectoryChooserTestCase(unittest.TestCase):
+class DirectoryChooserTestCase(unittest.TestCase, SandBoxDirMixin):
 
     def _create_file(self, path):
         with open(path, 'w') as f:
@@ -105,7 +105,7 @@ class DirectoryChooserTestCase(unittest.TestCase):
         """
         chooser = Chooser()
 
-        with self.util.sandbox_dir(self) as template_dir:
+        with self.sandboxDir() as template_dir:
             config_path = os.path.join(template_dir, file_name)
             self._create_file(config_path)
             assert_func(chooser, config_path, template_dir)

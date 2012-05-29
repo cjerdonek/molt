@@ -36,10 +36,10 @@ import logging
 import unittest
 
 from molt.main import Error, run_molt
-from molt.test.harness.util import util_load_tests
+from molt.test.harness.sandbox import config_load_tests, SandBoxDirMixin
 
 
-load_tests = util_load_tests
+load_tests = config_load_tests
 
 
 class MockLogging(object):
@@ -51,12 +51,12 @@ class MockLogging(object):
         return None, None
 
 
-class CreateDemoTestCase(unittest.TestCase):
+class CreateDemoTestCase(unittest.TestCase, SandBoxDirMixin):
 
     """Test --create-demo mode."""
 
     def test_load_tests(self):
-        with self.util.sandbox_dir(self, "abc") as dir_path:
+        with self.sandboxDir(suffix="abc") as dir_path:
             self.assertEquals("foo", "foo")
 
     def test_output_directory(self):

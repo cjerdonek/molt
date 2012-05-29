@@ -64,19 +64,29 @@ def test_gen(tests):
             yield test2
 
 
-def util_load_tests(loader, tests, pattern):
+def config_load_tests(loader, tests, pattern):
     """
-    Return a unittest.TestSuite instance.
+    A load_tests protocol implementation that sets the test_config attribute.
+
+    Returns a unittest.TestSuite instance.
 
     """
     for test in test_gen(tests):
-        test.util = loader.util
+        test.test_config = loader.test_config
 
     return unittest.TestSuite(tests)
 
 
+class TestConfig(object):
+
+    """A container for test configuration data."""
+
+    def __init__(self, test_run_dir):
+        self.test_run_dir = test_run_dir
+
+
 @contextmanager
-def sandbox_dir(dir_path):
+def test_dir_manager(dir_path):
     """
     Return a contextmanager that creates (and deletes) a sandbox directory.
 
@@ -84,14 +94,14 @@ def sandbox_dir(dir_path):
 
     It can be used either as--
 
-        with sandbox_dir(dir_path):
+        with test_dir_manager(dir_path):
             # Execute test code.
 
     Or (taking advantage of yield)--
 
         def custom_sandbox_dir():
             special_path = make_special_path()
-            return sandbox_dir(special_path)
+            return test_dir_manager(special_path)
 
         with custom_sandbox_dir() as dir_path:
             # Execute test code.
@@ -109,30 +119,41 @@ def sandbox_dir(dir_path):
     rmtree(dir_path)
 
 
-class TestUtil(object):
+def _sandbox_dir_manager(test_case, test_run_dir, suffix=None):
+    """
+    Return a sandbox directory contextmanager.
 
-    def __init__(self, test_run_dir):
-        self.test_run_dir = test_run_dir
+    Creates a directory using the test case to construct the
+    directory name.
 
-    def sandbox_dir(self, test_case, suffix=None):
-        """
-        Return a sandbox directory contextmanager.
+    """
+    # TestCase.id() is the fully-qualified name of the method, e.g.--
+    #   molt.test.dirchooser_test.GenerateOutputDirTestCase.test_foo
+    case_id = test_case.id()
+    parts = case_id.split(".")
+    parts = parts[-2:]  # the class name and method name.
 
-        Creates a directory using the test case to construct the
-        directory name.
+    if suffix is not None:
+        parts.append(suffix)
 
-        """
-        # TestCase.id() is the fully-qualified name of the method, e.g.--
-        #   molt.test.dirchooser_test.GenerateOutputDirTestCase.test_foo
-        case_id = test_case.id()
-        parts = case_id.split(".")
-        parts = parts[-2:]  # the class name and method name.
+    name = "_".join(parts)
 
-        if suffix is not None:
-            parts.append(suffix)
+    dir_path = os.path.join(test_run_dir, name)
 
-        name = "_".join(parts)
+    return test_dir_manager(dir_path)
 
-        dir_path = os.path.join(self.test_run_dir, name)
 
-        return sandbox_dir(dir_path)
+class SandBoxDirMixin(object):
+
+    """
+    A unittest.TestCase mixin that supports creating test directories.
+
+    Using this mixin requires setting the test_config attribute to
+    a TestConfig instance prior to running the tests.  This can
+    be done during test loading (e.g. using the load_tests protocol).
+
+    """
+
+    def sandboxDir(self, suffix=None):
+        test_run_dir = self.test_config.test_run_dir
+        return _sandbox_dir_manager(self, test_run_dir, suffix)

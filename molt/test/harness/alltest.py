@@ -43,7 +43,7 @@ import sys
 from unittest import TestLoader, TestProgram, TextTestRunner
 
 from molt.test.harness.common import test_logger as _log
-from molt.test.harness.util import TestUtil
+from molt.test.harness.sandbox import TestConfig
 
 
 def make_doctest_test_suites(module_names):
@@ -147,10 +147,10 @@ def run_tests(package, is_unittest_module, test_run_dir,
     # instead using the argv parameter.
     argv.extend(test_module_names)
 
-    util = TestUtil(test_run_dir)
+    test_config = TestConfig(test_run_dir)
 
     test_loader = UnittestTestLoader()
-    test_loader.util = util
+    test_loader.test_config = test_config
 
     test_runner = TextTestRunner(stream=test_runner_stream, verbosity=verbosity)
     test_program = test_program_class(argv=argv, module=None, exit=False, verbosity=verbosity,

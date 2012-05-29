@@ -38,7 +38,7 @@ import unittest
 
 from molt.constants import GROOM_INPUT_DIR
 from molt.test.harness.templatetest import make_template_tests
-from molt.test.harness.util import util_load_tests
+from molt.test.harness.sandbox import config_load_tests
 
 
 def load_tests(loader, tests, pattern):
@@ -55,6 +55,6 @@ def load_tests(loader, tests, pattern):
     tests = make_template_tests(group_name='Groom',
                                 parent_input_dir=groom_dir)
 
-    tests = util_load_tests(loader, tests, pattern)
+    tests = config_load_tests(loader, tests, pattern)
 
     return tests

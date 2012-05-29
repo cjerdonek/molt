@@ -47,6 +47,7 @@ import molt
 from molt.common import io
 from molt.molter import Molter
 from molt.test.harness.common import indent, AssertFileMixin
+from molt.test.harness.sandbox import SandBoxDirMixin
 
 
 TEST_FILE_ENCODING = 'utf-8'
@@ -133,7 +134,7 @@ class CompareError(Exception):
     pass
 
 
-class TemplateTestCaseBase(TestCase, AssertFileMixin):
+class TemplateTestCaseBase(TestCase, AssertFileMixin, SandBoxDirMixin):
 
     def _make_compare_message_format(self, expected_dir, actual_dir):
         message_format = dedent("""\
@@ -280,6 +281,6 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         self.description = description
         self.template_name = template_name
 
-        with self.util.sandbox_dir(self) as output_dir:
+        with self.sandboxDir() as output_dir:
             molter.molt(template_dir=template_dir, output_dir=output_dir)
             self._assert_dirs_equal(expected_dir, output_dir)
