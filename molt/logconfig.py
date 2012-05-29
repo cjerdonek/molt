@@ -84,8 +84,6 @@ def configure_logging(logging_level, stderr_stream=None, test_config=False):
     if stderr_stream is None:
         stderr_stream = sys.stderr
 
-    format = "%(name)s: [%(levelname)s] %(message)s"
-
     root_logger = logging.getLogger()  # the root logger.
     root_logger.setLevel(logging_level)
 
@@ -96,17 +94,20 @@ def configure_logging(logging_level, stderr_stream=None, test_config=False):
         handler = StreamHandler(null_stream)
         root_logger.addHandler(handler)
 
-        # Configure this module's logger.
-        loggers = [_log, test_logger]
+        # Set the loggers to display during test runs.
+        visible_loggers = [_log, test_logger]
     else:
-        loggers = [root_logger]
+        visible_loggers = [root_logger]
 
-    formatter = logging.Formatter(format)
+    # Prefix log messages unobtrusively with "log" to distinguish log
+    # messages more obviously from other text sent to the error stream.
+    format_string = "log: %(name)s: [%(levelname)s] %(message)s"
+    formatter = logging.Formatter(format_string)
 
     handler = NewlineStreamHandler(stderr_stream)
     handler.setFormatter(formatter)
 
-    for logger in loggers:
+    for logger in visible_loggers:
         logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")

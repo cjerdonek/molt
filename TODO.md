@@ -3,11 +3,12 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Add a unit test for --verbose working with unit tests.
+ * File issue re: logging and encoding.
  * make an "end-to-end" test using subprocess.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.
 
+* Add a unit test for --verbose working with unit tests.
 * Link to PyPI in the README.
 * Add an --overwrite option to write over (but not delete) existing output
   directories.
