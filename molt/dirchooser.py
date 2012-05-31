@@ -61,6 +61,15 @@ def _try_make_dir(dir_path):
     return True
 
 
+def make_expected_dir(template_dir):
+    return os.path.join(template_dir, defaults.TEMPLATE_EXPECTED_DIR_NAME)
+
+
+# TODO: share code with DirectoryChooser.get_project_dir().
+def make_project_dir(template_dir):
+    return os.path.join(template_dir, defaults.TEMPLATE_PROJECT_DIR_NAME)
+
+
 def make_output_dir(output_dir, default_output_dir):
     if output_dir is None:
         output_dir = default_output_dir
@@ -72,7 +81,6 @@ def make_output_dir(output_dir, default_output_dir):
             return output_dir
         output_dir = defaults.OUTPUT_DIR_FORMAT % (initial_output_dir, index)
         index += 1
-
 
 
 class DirectoryChooser(object):
@@ -102,14 +110,14 @@ class DirectoryChooser(object):
                     "  in template directory: %s" % (display_name, path))
 
     def get_project_dir(self, template_dir):
-        return self._get_dir(template_dir, defaults.PROJECT_DIR_NAME,
+        return self._get_dir(template_dir, defaults.TEMPLATE_PROJECT_DIR_NAME,
                              is_required=True, display_name="Project directory")
 
     def get_partials_dir(self, template_dir):
-        return self._get_dir(template_dir, defaults.PARTIALS_DIR_NAME)
+        return self._get_dir(template_dir, defaults.TEMPLATE_PARTIALS_DIR_NAME)
 
     def get_lambdas_dir(self, template_dir):
-        return self._get_dir(template_dir, defaults.LAMBDAS_DIR_NAME)
+        return self._get_dir(template_dir, defaults.TEMPLATE_LAMBDAS_DIR_NAME)
 
     def get_config_path_string(self):
         s = ("looking in the template directory for one of: %s." %

@@ -45,9 +45,10 @@ _OUTPUT_PARENT_DIR = 'temp'
 _OUTPUT_DIR_NAME = 'output'
 _OUTPUT_DIR_NAME_DEMO = 'demo-template'
 
-PROJECT_DIR_NAME = 'project'
-PARTIALS_DIR_NAME = 'partials'
-LAMBDAS_DIR_NAME = 'lambdas'
+TEMPLATE_PROJECT_DIR_NAME = 'project'
+TEMPLATE_PARTIALS_DIR_NAME = 'partials'
+TEMPLATE_LAMBDAS_DIR_NAME = 'lambdas'
+TEMPLATE_EXPECTED_DIR_NAME = 'expected'
 
 CONFIG_FILE_NAME = 'sample'  # without extension
 CONFIG_FILE_EXTENSIONS = ['.json', '.yaml', '.yml']

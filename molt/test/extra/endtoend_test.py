@@ -39,6 +39,7 @@ from unittest import TestCase
 
 from molt.common.popen import call_script
 from molt.constants import DEMO_TEMPLATE_DIR
+from molt.test.harness.dirmixin import AssertDirMixin
 from molt.test.harness.loading import config_load_tests
 from molt.test.harness.sandbox import SandBoxDirMixin
 
@@ -47,7 +48,7 @@ from molt.test.harness.sandbox import SandBoxDirMixin
 load_tests = config_load_tests
 
 
-class EndToEndTestCase(TestCase, SandBoxDirMixin):
+class EndToEndTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
 
     def _call_molt(self, args):
         python_path = sys.executable
@@ -61,4 +62,9 @@ class EndToEndTestCase(TestCase, SandBoxDirMixin):
             output_dir = os.path.join(temp_dir, 'demo')
             options = ['--create-demo', '--output', output_dir]
             stdout, stderr = self._call_molt(options)
+
+            actual_dir = output_dir
+            expected_dir = DEMO_TEMPLATE_DIR
+
+            self.assertDirectoriesEqual(actual_dir, expected_dir)
             self.assertEquals(stdout.strip(), output_dir)

@@ -40,14 +40,12 @@ from pprint import pformat
 from textwrap import dedent
 from unittest import TestCase
 
+
+from molt.dirchooser import make_expected_dir
 from molt.molter import Molter
 from molt.test.harness.common import indent
 from molt.test.harness.dirmixin import AssertDirMixin
 from molt.test.harness.sandbox import SandBoxDirMixin
-
-
-def make_expected_dir(template_dir):
-    return os.path.join(template_dir, 'expected')
 
 
 def make_template_test(group_name, template_dir):

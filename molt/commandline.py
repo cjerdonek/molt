@@ -92,9 +92,9 @@ the value of the key "%(context_key)s" in the input configuration file.
 The script writes the name of the output directory to stdout when
 complete.""" % {
     'context_key': defaults.CONFIG_CONTEXT_KEY,
-    'project_dir': defaults.PROJECT_DIR_NAME,
-    'partials_dir': defaults.PARTIALS_DIR_NAME,
-    'lambdas_dir': defaults.LAMBDAS_DIR_NAME,
+    'project_dir': defaults.TEMPLATE_PROJECT_DIR_NAME,
+    'partials_dir': defaults.TEMPLATE_PARTIALS_DIR_NAME,
+    'lambdas_dir': defaults.TEMPLATE_LAMBDAS_DIR_NAME,
     'input_dir_metavar': METAVAR_INPUT_DIR,
 }
 
