@@ -28,35 +28,22 @@
 #
 
 """
-Exposes make_template_tests() to check template directories.
+Exposes functions to create directory-rendering unittest.TestCase instances.
 
 """
 
-# TODO: unit test this module.
-
 from __future__ import absolute_import
 
-from filecmp import dircmp
 import logging
 import os
 from pprint import pformat
-from textwrap import dedent, TextWrapper
+from textwrap import dedent
 from unittest import TestCase
 
-import molt
-from molt.common import io
 from molt.molter import Molter
-from molt.test.harness.common import indent, AssertFileMixin
+from molt.test.harness.common import indent
+from molt.test.harness.dirmixin import AssertDirMixin
 from molt.test.harness.sandbox import SandBoxDirMixin
-
-
-TEST_FILE_ENCODING = 'utf-8'
-DECODE_ERRORS = 'strict'
-
-DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
-
-# TODO: inject this value at run-time using load_tests().
-SKIPPED_FILES = ['.DS_Store']
 
 
 def make_expected_dir(template_dir):
@@ -74,7 +61,7 @@ def make_template_test(group_name, template_dir):
         expected_dir = make_expected_dir(_template_dir)
 
         def assert_template(test_case):
-            test_case._assert_template(group_name, long_name, _template_dir, expected_dir)
+            test_case.assert_template(group_name, long_name, _template_dir, expected_dir)
 
         return assert_template
 
@@ -101,7 +88,7 @@ def make_template_tests(group_name, parent_input_dir):
         expected_dir = make_expected_dir(template_dir)
 
         def assert_template(test_case):
-            test_case._assert_template(name, long_name, template_dir, expected_dir)
+            test_case.assert_template(name, long_name, template_dir, expected_dir)
 
         return assert_template
 
@@ -130,134 +117,40 @@ def _make_template_tests(group_name, names, input_dir, make_full_name, make_asse
     return test_cases
 
 
-class TemplateTestCaseBase(TestCase, AssertFileMixin, SandBoxDirMixin):
+def _make_format_msg(actual_dir, expected_dir, context, test_name, test_description):
+    """
+    Return the format_msg function to pass to assertDirectoriesEqual().
 
-    def _make_compare_message_format(self, expected_dir, actual_dir):
-        message_format = dedent("""\
-        Directory contents differ:
+    """
+    format_string = dedent("""\
+    Rendered directories differ:
 
-          Expected | Actual :
-            %s
-            %s
-
-        %%s
-
-          Context:
+      Expected | Actual :
+        %s
         %s
 
-        Test %s: %s""") % (expected_dir, actual_dir, indent(pformat(self.context), "    "),
-                           self.template_name, self.description)
-        return message_format
+    %%s
 
-    # TODO: remove this method.
-    def _raise_compare_error(self, expected_dir, actual_dir, details):
-        details = indent(details, "  ")
-        msg = """\
-Directory contents differ:
-
-  Expected | Actual :
-    %s
+      Context:
     %s
 
-%s
+    Test template info:
 
-  Context: %s
+      Directory name: %s
+      Description: %s""") % (
+        expected_dir, actual_dir, indent(pformat(context), "    "),
+        repr(test_name), test_description)
 
-Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
-                  self.template_name, repr(self.description))
-        raise Exception(msg)
+    def format_msg(details):
+        msg = format_string % indent(details, "  ")
+        return msg
 
-    def _get_dcmp_attr(self, dcmp, attr_name):
-        attr_val = getattr(dcmp, attr_name)
-        attr_val = filter(lambda file_name: file_name not in SKIPPED_FILES, attr_val)
+    return format_msg
 
-        return attr_val
 
-    def _assert_empty(self, dcmp, attr_name, dirs):
-        """
-        Arguments:
+class TemplateTestCaseBase(TestCase, AssertDirMixin, SandBoxDirMixin):
 
-          dcmp: a filecmp.dircmp ("directory comparison") instance.
-          attr: an attribute name.
-          dirs: a pair (expected_dir, actual_dir)
-
-        """
-        attr_val = self._get_dcmp_attr(dcmp, attr_name)
-        if not attr_val:
-            return
-
-        expected, actual = dirs
-
-        attr_details = "\n".join(["dircmp.%s = %s" % (attr, self._get_dcmp_attr(dcmp, attr)) for
-                                  attr in DIRCMP_ATTRS])
-        details = ("Attribute %s non-empty for directory compare:\n%s" %
-                   (repr(attr_name), indent(attr_details, "  ")))
-
-        self._raise_compare_error(expected, actual, details)
-
-    def _assert_files_equal(self, file_name, file_names, actual_dir, expected_dir):
-        actual_path, expected_path = [os.path.join(dir_path, file_name) for dir_path in [actual_dir, expected_dir]]
-
-        details_format = dedent("""\
-        Potentially differing files: %s
-        Displaying first genuine file difference: %s
-
-        %%s""" % (repr(file_names), file_name))
-
-        def format_file_details(file_details):
-            details = details_format % indent(file_details, "  ")
-            full_format = self._make_compare_message_format(expected_dir, actual_dir)
-
-            return full_format % details
-
-        self.assertFilesEqual(actual_path, expected_path, format_msg=format_file_details, fuzzy=True,
-                              file_encoding=TEST_FILE_ENCODING, errors=DECODE_ERRORS)
-
-    def _assert_diff_files_empty(self, dcmp, expected_dir, actual_dir):
-        """
-        Arguments:
-
-          dcmp: a filecmp.dircmp ("directory comparison") instance.
-          expected: the expected dir.
-          actual: the actual dir.
-
-        """
-        file_names = self._get_dcmp_attr(dcmp, 'diff_files')
-        if not file_names:
-            return
-        # Otherwise, check whether each individual file may still be the same
-        # because of the presence of ellipses  "...".
-
-        index_to_examine = 0
-        while file_names:
-            file_name = file_names[index_to_examine]
-            self._assert_files_equal(file_name, file_names, actual_dir, expected_dir)
-            file_names.pop(index_to_examine)
-        # If got here, then all files were in fact the same.
-
-    def _assert_dirs_equal(self, expected_dir, actual_dir):
-        """
-        Raise an exception if the two directories are unequal.
-
-        """
-        dirs = expected_dir, actual_dir
-        dcmp = dircmp(*dirs)
-
-        self._assert_diff_files_empty(dcmp, *dirs)
-        for attr in DIRCMP_ATTRS:
-            self._assert_empty(dcmp, attr, dirs)
-
-        common_dirs = dcmp.common_dirs
-
-        if not common_dirs:
-            return
-
-        for subdir in common_dirs:
-            expected_subdir = os.path.join(expected_dir, subdir)
-            actual_subdir = os.path.join(actual_dir, subdir)
-            self._assert_dirs_equal(expected_subdir, actual_subdir)
-
-    def _assert_template(self, template_name, long_name, template_dir, expected_dir):
+    def assert_template(self, template_name, long_name, template_dir, expected_dir):
         """
         Arguments:
 
@@ -273,10 +166,10 @@ Test %s: %s""" % (expected_dir, actual_dir, details, repr(self.context),
         context = molter.get_context(template_dir)
         description = config['description']
 
-        self.context = context
-        self.description = description
-        self.template_name = template_name
-
-        with self.sandboxDir() as output_dir:
-            molter.molt(template_dir=template_dir, output_dir=output_dir)
-            self._assert_dirs_equal(expected_dir, output_dir)
+        with self.sandboxDir() as actual_dir:
+            molter.molt(template_dir=template_dir, output_dir=actual_dir)
+            format_msg = _make_format_msg(actual_dir, expected_dir, context=context,
+                                          test_name=template_name,
+                                          test_description=description)
+            self.assertDirectoriesEqual(actual_dir, expected_dir, fuzzy=True,
+                                        format_msg=format_msg)

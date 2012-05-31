@@ -94,7 +94,7 @@ class AssertStringMixin(object):
         Arguments:
 
           format: a function that accepts string-checking details and returns
-            the desired text for the assertion failure error message.
+            the desired text for the assertion error message.
 
         """
         if format is None:
@@ -137,7 +137,7 @@ class AssertFileMixin(AssertStringMixin):
         Arguments:
 
           format: a function that accepts a file details string and returns
-            the desired text for the assertion failure error message.
+            the desired text for the assertion error message.
 
         """
         if format_msg is None:

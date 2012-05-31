@@ -28,7 +28,7 @@
 #
 
 """
-Exposes functionality for creating temp directories for testing.
+Exposes functionality for creating temp directories during test runs.
 
 """
 
@@ -37,7 +37,7 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 import os
 from shutil import rmtree
-import unittest
+from unittest import TestCase, TestSuite
 
 
 def _test_gen(tests):
@@ -55,7 +55,7 @@ def _test_gen(tests):
         TestCase and TestSuite instances.
 
     """
-    if isinstance(tests, unittest.TestCase):
+    if isinstance(tests, TestCase):
         yield tests
         return
     # Otherwise, we have an iterable or a TestSuite instance.
@@ -74,7 +74,7 @@ def config_load_tests(loader, tests, pattern):
     for test in _test_gen(tests):
         test.test_config = loader.test_config
 
-    return unittest.TestSuite(tests)
+    return TestSuite(tests)
 
 
 class TestConfig(object):
