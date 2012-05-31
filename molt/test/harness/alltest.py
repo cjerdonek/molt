@@ -43,7 +43,7 @@ import sys
 from unittest import TestLoader, TestProgram, TextTestRunner
 
 from molt.test.harness.common import test_logger as _log
-from molt.test.harness.sandbox import TestConfig
+from molt.test.harness.loading import TestConfig
 
 
 def make_doctest_test_suites(module_names):

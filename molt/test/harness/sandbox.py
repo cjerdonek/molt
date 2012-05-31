@@ -37,52 +37,6 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 import os
 from shutil import rmtree
-from unittest import TestCase, TestSuite
-
-
-def _test_gen(tests):
-    """
-    Return a generator over all TestCase instances recursively in tests.
-
-    For example--
-
-    for test in test_gen(tests):
-        print test
-
-    Arguments:
-
-      tests: a TestCase instance, TestSuite instance, or iterable of
-        TestCase and TestSuite instances.
-
-    """
-    if isinstance(tests, TestCase):
-        yield tests
-        return
-    # Otherwise, we have an iterable or a TestSuite instance.
-    for test in tests:
-        for test2 in _test_gen(test):
-            yield test2
-
-
-def config_load_tests(loader, tests, pattern):
-    """
-    A load_tests protocol implementation that sets the test_config attribute.
-
-    Returns a unittest.TestSuite instance.
-
-    """
-    for test in _test_gen(tests):
-        test.test_config = loader.test_config
-
-    return TestSuite(tests)
-
-
-class TestConfig(object):
-
-    """A container for test configuration data."""
-
-    def __init__(self, test_run_dir):
-        self.test_run_dir = test_run_dir
 
 
 @contextmanager

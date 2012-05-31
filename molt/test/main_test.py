@@ -36,7 +36,8 @@ import logging
 import unittest
 
 from molt.main import Error, run_molt
-from molt.test.harness.sandbox import config_load_tests, SandBoxDirMixin
+from molt.test.harness.loading import config_load_tests
+from molt.test.harness.sandbox import SandBoxDirMixin
 
 
 load_tests = config_load_tests

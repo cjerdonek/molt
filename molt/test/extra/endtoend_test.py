@@ -39,7 +39,8 @@ from unittest import TestCase
 
 from molt.common.popen import call_script
 from molt.constants import DEMO_TEMPLATE_DIR
-from molt.test.harness.sandbox import config_load_tests, SandBoxDirMixin
+from molt.test.harness.loading import config_load_tests
+from molt.test.harness.sandbox import SandBoxDirMixin
 
 
 # Trigger the load_tests protocol.
