@@ -42,8 +42,7 @@ from pkgutil import walk_packages
 import sys
 from unittest import TestLoader, TestProgram, TextTestRunner
 
-from molt.test.harness.common import test_logger as _log
-from molt.test.harness.loading import TestConfig
+from molt.test.harness import test_logger as _log
 
 
 def make_doctest_test_suites(module_names):
@@ -101,7 +100,7 @@ def find_modules(package):
     return names
 
 
-def run_tests(package, is_unittest_module, test_run_dir,
+def run_tests(package, is_unittest_module, test_config,
               extra_tests=None, doctest_paths=None, verbosity=1,
               test_runner_stream=None):
     """
@@ -110,6 +109,9 @@ def run_tests(package, is_unittest_module, test_run_dir,
     Arguments:
 
       verbosity: 0 for quiet, 1 for normal, 2 for verbose.  Defaults to 1.
+
+      test_config: the object with which to set the test_config attribute
+        of TestCase instances when loading tests using config_load_tests().
 
       test_runner_stream: the stream object to pass to unittest.TextTestRunner.
         Defaults to sys.stderr.
@@ -146,8 +148,6 @@ def run_tests(package, is_unittest_module, test_run_dir,
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
     argv.extend(test_module_names)
-
-    test_config = TestConfig(test_run_dir)
 
     test_loader = UnittestTestLoader()
     test_loader.test_config = test_config

@@ -71,10 +71,10 @@ OPTION_VERBOSE = Option(('-v', '--verbose'))
 #
 OPTPARSE_USAGE = """%%prog [options] [%(input_dir_metavar)s]
 
-Create a new project from the Groom template in %(input_dir_metavar)s.
+Render the Groom template directory in %(input_dir_metavar)s.
 
-A Groom template is a Mustache-based project template.  See the Groom
-web page for details on Groom templates:
+A Groom template is a Mustache-based template for a directory of files.
+See the Groom web page for details on Groom templates:
 
   http://cjerdonek.github.com/groom/
 

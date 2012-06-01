@@ -38,7 +38,7 @@ import logging
 import os
 import sys
 
-from molt.test.harness.common import test_logger
+from molt.test.harness import test_logger
 
 StreamHandler = logging.StreamHandler
 

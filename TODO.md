@@ -3,6 +3,8 @@ TODO
 
 Before releasing version 0.1.0:
 
+ * Rename Groom.
+ * Generalize "project" language in Groom.
  * Add more end-to-end tests to cover all main use cases.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.

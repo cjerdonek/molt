@@ -39,8 +39,8 @@ import sys
 from tempfile import mkdtemp
 
 import molt
+from molt.test.harness import test_logger as _log
 from molt.test.harness.alltest import run_tests
-from molt.test.harness.common import test_logger as _log
 from molt.test.harness.templatetest import make_template_tests
 
 
@@ -79,9 +79,11 @@ def _run_tests(test_run_dir, doctest_paths, verbose, test_runner_stream):
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
+    test_config = TestConfig(test_run_dir)
+
     test_result = run_tests(package=molt,
                             is_unittest_module=IS_UNITTEST_MODULE,
-                            test_run_dir=test_run_dir,
+                            test_config=test_config,
                             doctest_paths=doctest_paths,
                             verbosity=verbosity,
                             test_runner_stream=test_runner_stream)
@@ -130,3 +132,22 @@ def run_molt_tests(verbose=False, test_output_dir=None, test_runner_stream=None)
             _log.info("test failures at: %s" % test_run_dir)
 
     return test_result, test_run_dir
+
+
+class TestConfig(object):
+
+    """
+    A container for test configuration data for Molt test runs.
+
+    """
+
+    def __init__(self, test_run_dir):
+        """
+        Arguments:
+
+          test_run_dir: the "sandbox" directory in which to write temporary
+            test data (for example the output directory of rendering
+            a Groom template directory to compare with an expected directory).
+
+        """
+        self.test_run_dir = test_run_dir

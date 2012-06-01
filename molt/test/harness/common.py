@@ -50,12 +50,12 @@ test_logger = logging.getLogger(molt.test.__name__)
 # Also see this issue: http://bugs.python.org/issue13857
 def indent(text, prefix):
     lines = text.splitlines(True)
-    def indent(line):
+    def _indent(line):
         if not line.strip():
             # Do not indent lines having only whitespace.
             return line
         return prefix + line
-    lines = map(indent, lines)
+    lines = map(_indent, lines)
     return "".join(lines)
 
 

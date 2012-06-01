@@ -38,8 +38,7 @@ import unittest
 from molt.common.error import Error
 from molt.dirchooser import make_output_dir
 from molt.dirchooser import DirectoryChooser as Chooser
-from molt.test.harness.loading import config_load_tests
-from molt.test.harness.sandbox import SandBoxDirMixin
+from molt.test.harness import config_load_tests, SandBoxDirMixin
 
 
 load_tests = config_load_tests

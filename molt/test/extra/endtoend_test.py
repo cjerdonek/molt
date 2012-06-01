@@ -28,7 +28,7 @@
 #
 
 """
-Provides end-to-end tests that exercise molt from the command-line.
+Provides end-to-end tests that exercise Molt from the command-line.
 
 """
 
@@ -37,11 +37,10 @@ import os
 import sys
 from unittest import TestCase
 
+import molt.commands.molt
 from molt.common.popen import call_script
 from molt.constants import DEMO_TEMPLATE_DIR
-from molt.test.harness.dirmixin import AssertDirMixin
-from molt.test.harness.loading import config_load_tests
-from molt.test.harness.sandbox import SandBoxDirMixin
+from molt.test.harness import config_load_tests, AssertDirMixin, SandBoxDirMixin
 
 
 # Trigger the load_tests protocol.
@@ -52,7 +51,7 @@ class EndToEndTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
 
     def _call_molt(self, args):
         python_path = sys.executable
-        args = [python_path, '-m', 'molt.commands.molt'] + args
+        args = [python_path, '-m', molt.commands.molt.__name__] + args
         stdout, stderr = call_script(args)
 
         return stdout, stderr

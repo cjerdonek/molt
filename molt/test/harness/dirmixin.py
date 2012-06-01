@@ -38,7 +38,8 @@ from filecmp import dircmp
 import os
 from textwrap import dedent
 
-from molt.test.harness.common import indent, AssertFileMixin
+from molt.test.harness import indent
+from molt.test.harness.common import AssertFileMixin
 
 
 TEST_FILE_ENCODING = 'utf-8'

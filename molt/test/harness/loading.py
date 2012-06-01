@@ -33,9 +33,9 @@ Provides a load_tests wrapper for configuring tests.
 Usage:
 
 In a module containing unit tests that require configuration, include
-the following (or an equivalent):
+the following (or an equivalent formulation):
 
-    from molt.test.harness.loading import config_load_tests
+    from molt.test.harness import config_load_tests
 
     # Trigger the load_tests protocol.
     load_tests = config_load_tests
@@ -88,22 +88,3 @@ def config_load_tests(loader, tests, pattern):
         test.test_config = loader.test_config
 
     return TestSuite(tests)
-
-
-class TestConfig(object):
-
-    """
-    A container for test configuration data for Molt test runs.
-
-    """
-
-    def __init__(self, test_run_dir):
-        """
-        Arguments:
-
-          test_run_dir: the "sandbox" directory in which to write temporary
-            test data (e.g. the directory outputs of rendering test project
-            templates).
-
-        """
-        self.test_run_dir = test_run_dir

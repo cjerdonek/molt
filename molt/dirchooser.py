@@ -145,8 +145,8 @@ class DirectoryChooser(object):
                 return path
         # Otherwise, not found.
 
-        indent = "    "
-        path_strings = indent + ("\n" + indent).join(default_config_files)
+        prefix = "    "
+        path_strings = prefix + ("\n" + prefix).join(default_config_files)
         raise Error("""Config file not found at any of the default locations
   in template directory: %s
 %s""" % (template_dir, path_strings))

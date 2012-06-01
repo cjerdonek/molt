@@ -37,24 +37,33 @@ import os
 import unittest
 
 from molt.constants import GROOM_INPUT_DIR
+from molt.test.harness import config_load_tests, test_logger as _log
 from molt.test.harness.templatetest import make_template_tests
-from molt.test.harness.loading import config_load_tests
 
 
 def load_tests(loader, tests, pattern):
     """
     Return a unittest.TestSuite instance of all Groom project tests.
 
+    Arguments:
+
+      tests: a unittest.TestSuite instance of the standard tests loaded
+        from this module.
+
     """
     groom_dir = GROOM_INPUT_DIR
-    if not os.path.exists(groom_dir):
-        # Then the Groom test cases are not available.
-        _log.info("groom tests not found: %s" % groom_dir)
-        return tests
 
-    tests = make_template_tests(group_name='Groom',
-                                parent_input_dir=groom_dir)
+    if os.path.exists(groom_dir):
+       template_tests = make_template_tests(group_name='Groom',
+                                            parent_input_dir=groom_dir)
+       tests.addTests(template_tests)
+    # Otherwise, Groom tests not available.
 
     tests = config_load_tests(loader, tests, pattern)
+
+    _log.info("found %s tests in %s" % (tests.countTestCases(), groom_dir))
+
+    return tests
+
 
     return tests
