@@ -3,8 +3,8 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Rename Groom.
- * Generalize "project" language in Groom.
+ * Rename Groome.
+ * Generalize "project" language in Groome.
  * Add more end-to-end tests to cover all main use cases.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.
@@ -26,5 +26,5 @@ Before releasing version 0.1.0:
   a subfolder.
 * Consider running pylint, PyChecker, and/or pep8 in addition to the
   doctests in each module.
-* [move to groom-python] Add git files.
-* Add a tox environment that does not have Groom tests.
+* [move to groome-python] Add git files.
+* Add a tox environment that does not have Groome tests.

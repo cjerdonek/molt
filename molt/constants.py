@@ -51,5 +51,5 @@ _DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
 
 DEMO_TEMPLATE_DIR = os.path.join(_SOURCE_DIR, _DEMO_TEMPLATE_DIR)
 
-GROOM_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groom/tests'))
+GROOME_INPUT_DIR = os.path.join(_PROJECT_DIR, os.path.normpath('sub/groome/tests'))
 TEST_DATA_DIR = os.path.join(_TEST_DIR, 'data')

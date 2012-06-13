@@ -41,7 +41,6 @@ from tempfile import mkdtemp
 import molt
 from molt.test.harness import test_logger as _log
 from molt.test.harness.alltest import run_tests
-from molt.test.harness.templatetest import make_template_tests
 
 
 README_REL_PATH = 'README.md'  # relative to the project directory.
@@ -147,7 +146,7 @@ class TestConfig(object):
 
           test_run_dir: the "sandbox" directory in which to write temporary
             test data (for example the output directory of rendering
-            a Groom template directory to compare with an expected directory).
+            a Groome template directory to compare with an expected directory).
 
         """
         self.test_run_dir = test_run_dir

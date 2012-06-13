@@ -28,7 +28,7 @@
 #
 
 """
-Exposes tests that test the Groom template in the demo directory.
+Exposes tests that test the Groome template in the demo directory.
 
 """
 
@@ -37,7 +37,7 @@ import unittest
 
 from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness import config_load_tests
-from molt.test.harness.templatetest import make_template_test
+from molt.test.harness.templatetest import make_template_test_class
 
 
 def load_tests(loader, tests, pattern):
@@ -45,9 +45,11 @@ def load_tests(loader, tests, pattern):
     Return a unittest.TestSuite instance testing the demo template.
 
     """
-    demo_test = make_template_test(group_name='Demo',
-                                   template_dir=DEMO_TEMPLATE_DIR)
-    tests = [demo_test]
+    test_class = make_template_test_class(group_name='Demo',
+                                          template_dir=DEMO_TEMPLATE_DIR)
+    demo_tests = loader.loadTestsFromTestCase(test_class)
+
+    tests.addTests(demo_tests)
 
     tests = config_load_tests(loader, tests, pattern)
 

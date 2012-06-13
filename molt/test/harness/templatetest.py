@@ -46,7 +46,7 @@ from molt.molter import Molter
 from molt.test.harness import indent, AssertDirMixin, SandBoxDirMixin
 
 
-def make_template_test(group_name, template_dir):
+def make_template_test_class(group_name, template_dir):
     names = [None]
 
     def make_full_name(group_name, name):
@@ -61,14 +61,13 @@ def make_template_test(group_name, template_dir):
 
         return assert_template
 
-    test_cases = _make_template_tests(group_name, names, template_dir, make_full_name, make_assert_template)
+    return _make_test_case_class(group_name, names, template_dir, make_full_name,
+                                 make_assert_template)
 
-    return test_cases[0]
 
-
-def make_template_tests(group_name, parent_input_dir):
+def make_template_tests_class(group_name, parent_input_dir):
     """
-    Return a list of unittest.TestCase instances.
+    Return a unittest.TestCase subclass.
 
     """
     names = os.listdir(parent_input_dir)
@@ -88,29 +87,25 @@ def make_template_tests(group_name, parent_input_dir):
 
         return assert_template
 
-    return _make_template_tests(group_name, names, parent_input_dir, make_full_name,
-                                make_assert_template)
+    return _make_test_case_class(group_name, names, parent_input_dir, make_full_name,
+                                 make_assert_template)
 
 
-def _make_template_tests(group_name, names, input_dir, make_full_name, make_assert_template):
+def _make_test_case_class(group_name, names, input_dir, make_full_name, make_assert_template):
     """
-    Return a list of unittest.TestCase instances.
+    Return a unittest.TestCase subclass containing template tests.
 
     """
     class_name = "%sTemplateTestCase" % group_name
-    test_case_class = type(class_name, (TemplateTestCaseBase,), {})
 
-    test_cases = []
+    test_methods = {}
     for name in names:
         method_name = 'test_%s' % make_full_name(group_name, name)
         assert_template = make_assert_template(group_name, name, input_dir)
 
-        setattr(test_case_class, method_name, assert_template)
+        test_methods[method_name] = assert_template
 
-        test_case = test_case_class(method_name)
-        test_cases.append(test_case)
-
-    return test_cases
+    return type(class_name, (TemplateTestCaseBase,), test_methods)
 
 
 def _make_format_msg(actual_dir, expected_dir, context, test_name, test_description):

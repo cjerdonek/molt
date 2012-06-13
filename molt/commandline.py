@@ -71,16 +71,16 @@ OPTION_VERBOSE = Option(('-v', '--verbose'))
 #
 OPTPARSE_USAGE = """%%prog [options] [%(input_dir_metavar)s]
 
-Render the Groom template directory in %(input_dir_metavar)s.
+Render the Groome template directory in %(input_dir_metavar)s.
 
-A Groom template is a Mustache-based template for a directory of files.
-See the Groom web page for details on Groom templates:
+A Groome template is a Mustache-based template for a directory of files.
+See the Groome web page for details on Groome templates:
 
-  http://cjerdonek.github.com/groom/
+  http://cjerdonek.github.com/groome/
 
 Behavior:
 
-Per the Groom guidelines, when creating a project, for the project
+Per the Groome guidelines, when creating a project, for the project
 structure the script looks for a directory named "%(project_dir)s" in the
 template directory.  It also looks in the template directory for
 optional directories named "%(partials_dir)s" and "%(lambdas_dir)s", for partials
@@ -188,7 +188,7 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='create a copy of the Molt demo template to play with, '
                            'instead of creating a new project.  '
-                           'The demo illustrates most major features of Groom.  '
+                           'The demo illustrates most major features of Groome.  '
                            'The command writes the demo template to the directory '
                            'provided by the %s option or, if the option is not '
                            'provided, to %s.' %
@@ -197,7 +197,7 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='run project tests, instead of creating a new project.  '
                            'Tests include unit tests, doctests, and, if present, '
-                           'Groom project test cases.  If the %s option is provided, '
+                           'Groome project test cases.  If the %s option is provided, '
                            'then test failure data is retained for inspection '
                            'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
     parser.add_option(*OPTION_MODE_VISUALIZE, dest="visualize_mode",

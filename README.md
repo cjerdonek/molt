@@ -16,8 +16,8 @@ info, logging configuration, test harness, packaging information (i.e.
 setup.py in the case of Python), .gitignore, directory hierarchy, etc.
 
 Molt is written in [Python](http://www.python.org/) and follows the
-[Groom](http://cjerdonek.github.com/groom/) rules for Mustache-based
-project templates.  See the Groom page for project template syntax.
+[Groome](http://cjerdonek.github.com/groome/) rules for Mustache-based
+project templates.  See the Groome page for project template syntax.
 
 
 Requirements
@@ -47,7 +47,7 @@ Try it
 ------
 
 Start with the [demo](https://github.com/cjerdonek/molt/tree/master/molt/demo)
-Groom template to play with:
+Groome template to play with:
 
     $ molt --create-demo --output demo
     $ ls -p demo
@@ -104,8 +104,8 @@ simply type--
 
     $ python -m molt.commands.molt [options] [DIRECTORY]
 
-To include the Groom [tests](https://github.com/cjerdonek/groom/tree/master/tests)
-in your test runs, initialize and update the Groom project submodule--
+To include the Groome [tests](https://github.com/cjerdonek/groome/tree/master/tests)
+in your test runs, initialize and update the Groome project submodule--
 
     $ git submodule init
     $ git submodule update
@@ -115,7 +115,7 @@ Author
 ------
 
 Molt is authored by [Chris Jerdonek](https://github.com/cjerdonek).
-Chris is also the author of [Groom](http://cjerdonek.github.com/groom/) and
+Chris is also the author of [Groome](http://cjerdonek.github.com/groome/) and
 is the current [Pystache](https://github.com/defunkt/pystache) maintainer.
 
 

@@ -28,7 +28,7 @@
 #
 
 """
-Exposes tests that test the Groom project test cases.
+Exposes tests that test the Groome project test cases.
 
 """
 
@@ -36,14 +36,14 @@ import logging
 import os
 import unittest
 
-from molt.constants import GROOM_INPUT_DIR
+from molt.constants import GROOME_INPUT_DIR
 from molt.test.harness import config_load_tests, test_logger as _log
-from molt.test.harness.templatetest import make_template_tests
+from molt.test.harness.templatetest import make_template_tests_class
 
 
 def load_tests(loader, tests, pattern):
     """
-    Return a unittest.TestSuite instance of all Groom project tests.
+    Return a unittest.TestSuite instance of all Groome project tests.
 
     Arguments:
 
@@ -51,19 +51,19 @@ def load_tests(loader, tests, pattern):
         from this module.
 
     """
-    groom_dir = GROOM_INPUT_DIR
+    groome_dir = GROOME_INPUT_DIR
 
-    if os.path.exists(groom_dir):
-       template_tests = make_template_tests(group_name='Groom',
-                                            parent_input_dir=groom_dir)
-       tests.addTests(template_tests)
-    # Otherwise, Groom tests not available.
+    template_tests = []
+    if os.path.exists(groome_dir):
+       test_class = make_template_tests_class(group_name='Groome',
+                                              parent_input_dir=groome_dir)
+       template_tests = loader.loadTestsFromTestCase(test_class)
+    # Otherwise, Groome tests not available.
+
+    _log.info("found %s tests in %s" % (template_tests.countTestCases(), groome_dir))
+
+    tests.addTests(template_tests)
 
     tests = config_load_tests(loader, tests, pattern)
-
-    _log.info("found %s tests in %s" % (tests.countTestCases(), groom_dir))
-
-    return tests
-
 
     return tests
