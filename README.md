@@ -10,10 +10,14 @@ Molt
 instantly using [Mustache](http://mustache.github.com/)-based
 project templates.
 
-You can use Molt to decrease the amount of boiler-plate code you need to write
+You can use Molt to decrease the amount of boilerplate code you need to write
 when starting any new project: the README, copyright notices, license
 info, logging configuration, test harness, packaging information (i.e.
 setup.py in the case of Python), .gitignore, directory hierarchy, etc.
+
+A minimal sample usage looks like--
+
+    $ molt -c path_to_config.json path_to_template_dir/
 
 Molt is written in [Python](http://www.python.org/) and follows the
 [Groome](http://cjerdonek.github.com/groome/) rules for Mustache-based
@@ -26,9 +30,16 @@ Requirements
 Molt requires Python 2.7.  Python 3.x support is coming soon.  As Molt is a
 development tool, there are no plans to support Python 2.6 or earlier.
 
-Molt requires [Pystache](https://github.com/defunkt/pystache) version
-[0.5.2](http://pypi.python.org/pypi/pystache).  The install process
-below installs Pystache automatically.
+Molt's dependencies are--
+
+* [Pystache](https://github.com/defunkt/pystache) version
+  [0.5.2](http://pypi.python.org/pypi/pystache) or above
+* [PyYAML](http://pypi.python.org/pypi/PyYAML) (optional, for YAML
+  configuration file support)
+
+TODO: include setup dependencies
+
+The installation process below installs these dependencies automatically.
 
 
 Install It
@@ -59,6 +70,8 @@ Render the template with the sample context provided:
 
 Run the newly-created project (which can also be seen
 [here](https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo)):
+
+TODO: do I need to correct the next line?
 
     $ molt output/hello.py world
     Hello, world!
