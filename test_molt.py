@@ -21,7 +21,7 @@ def main(argv=None):
         # Make a copy since we will modify it.
         argv = list(sys.argv)
 
-    # TODO: pass test option via **kwargs instead of argv.
+    # TODO: consider passing the test option via **kwargs instead of argv.
     argv.insert(1, OPTION_MODE_TESTS[0])
     return molt.main(sys_argv=argv, setup_package=molt_setup)
 

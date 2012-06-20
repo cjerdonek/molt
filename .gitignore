@@ -1,4 +1,5 @@
 *.DS_Store
 *.pyc
+*.temp.rst
 # TextMate project file
 *.tmproj

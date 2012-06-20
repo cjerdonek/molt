@@ -37,7 +37,42 @@ import os
 TEMP_EXTENSION = '.temp'
 
 
-def make_temp_path(path):
+def make_temp_path(path, new_ext=None):
+    """
+    Arguments:
+
+      new_ext: the new file extension, including the leading dot.
+        Defaults to preserving the file extension.
+
+    """
     root, ext = os.path.splitext(path)
-    temp_path = root + TEMP_EXTENSION + ext
+    if new_ext is None:
+        new_ext = ext
+    temp_path = root + TEMP_EXTENSION + new_ext
+
     return temp_path
+
+
+def convert_md_to_rst(path, docstring_path):
+    """
+    Convert the given file from markdown to reStructuredText.
+
+    Returns the new path.
+
+    """
+    target_path = make_temp_path(path, new_ext='.rst')
+    print("Converting with pandoc: %s to %s" % (path, target_path))
+
+    if os.path.exists(target_path):
+        os.remove(target_path)
+
+    # Pandoc uses the UTF-8 character encoding for both input and output.
+    command = "pandoc --write=rst --output=%s %s" % (target_path, path)
+    os.system(command)
+
+    if not os.path.exists(target_path):
+        s = ("Error running: %s\n"
+             "  Did you install pandoc per the %s docstring?" % (command, docstring_path))
+        sys.exit(s)
+
+    return target_path

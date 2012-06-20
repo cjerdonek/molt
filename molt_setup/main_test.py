@@ -46,3 +46,7 @@ class MainTestCase(unittest.TestCase):
     def test_make_temp_path_rst(self):
         actual = make_temp_path('foo.rst')
         self.assertEquals(actual, 'foo.temp.rst')
+
+    def test_make_temp_path_new_ext(self):
+        actual = make_temp_path('foo.rst', new_ext='.txt')
+        self.assertEquals(actual, 'foo.temp.txt')
