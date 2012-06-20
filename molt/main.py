@@ -51,10 +51,12 @@ from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt import constants
 from molt import logconfig
+from molt.test.harness import test_logger
 
 
 LOGGING_LEVEL_DEFAULT = logging.INFO
 
+_app_log = logging.getLogger("molt.app")
 _log = logging.getLogger(__name__)
 
 
@@ -95,7 +97,7 @@ Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
     _log.error(msg)
 
 
-def configure_logging(sys_argv, sys_stderr=None):
+def _configure_logging(sys_argv, sys_stderr=None):
     """
     Configure logging and return whether to run in verbose mode.
 
@@ -122,15 +124,17 @@ def configure_logging(sys_argv, sys_stderr=None):
         if options.run_test_mode:
             is_running_tests = True
 
-    logconfig.configure_logging(logging_level, stderr_stream=stderr_stream,
-                                test_config=is_running_tests)
+    persistent_loggers = [_app_log, test_logger]
+
+    logconfig.configure_logging(logging_level, persistent_loggers=persistent_loggers,
+                                stderr_stream=stderr_stream, test_config=is_running_tests)
 
     verbose = False if options is None else options.verbose
 
     return verbose, stderr_stream
 
 
-def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
+def run_molt(sys_argv, configure_logging=_configure_logging, process_args=None, **kwargs):
     """
     Execute this script's main function, and return the exit status.
 
@@ -144,7 +148,14 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
 
     """
     verbose, stderr_stream = configure_logging(sys_argv)
-    _log.debug("args: %s" % repr(sys_argv))
+
+    _app_log.debug("sys.argv: %s" % repr(sys_argv))
+    _app_log.debug("kwargs: %s" % repr(kwargs))
+
+    extra_test_packages = []
+    setup_package_name = kwargs.get('setup_package')
+    if setup_package_name is not None:
+        extra_test_packages.append(setup_package_name)
 
     try:
         if process_args is None:
@@ -152,7 +163,8 @@ def run_molt(sys_argv, configure_logging=configure_logging, process_args=None):
             # we do this import inside a function body.
             from molt.argprocessor import run_args
             process_args = run_args
-        status = process_args(sys_argv, test_runner_stream=stderr_stream)
+        status = process_args(sys_argv, test_runner_stream=stderr_stream,
+                              extra_test_packages=extra_test_packages)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         details = """\

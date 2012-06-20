@@ -28,21 +28,21 @@
 #
 
 """
-Provides the entry point for the main molt command-line script.
+Unit tests for the main module.
 
 """
 
-from __future__ import absolute_import
+import unittest
 
-import sys
-
-from molt.main import run_molt
+from molt_setup.main import make_temp_path
 
 
-def main(sys_argv=sys.argv, **kwargs):
-    return run_molt(sys_argv=sys_argv, **kwargs)
+class MainTestCase(unittest.TestCase):
 
+    def test_make_temp_path_txt(self):
+        actual = make_temp_path('foo.txt')
+        self.assertEquals(actual, 'foo.temp.txt')
 
-if __name__ == "__main__":
-    result = main()
-    sys.exit(result)
+    def test_make_temp_path_rst(self):
+        actual = make_temp_path('foo.rst')
+        self.assertEquals(actual, 'foo.temp.rst')

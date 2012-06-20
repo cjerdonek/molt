@@ -86,9 +86,13 @@ def _get_input_dir(options, args, mode_description):
     return input_dir
 
 
-def run_tests(options, test_runner_stream):
+def run_tests(options, test_runner_stream, extra_packages):
     """
     Run project tests, and return the exit status to exit with.
+
+    Arguments:
+
+      extra_packages: packages to test in addition to the main package.
 
     """
     # Suppress the display of standard out while tests are running.
@@ -96,6 +100,7 @@ def run_tests(options, test_runner_stream):
     sys.stdout = StringIO()
     try:
         test_result, test_run_dir = run_molt_tests(verbose=options.verbose,
+                                                   extra_packages=extra_packages,
                                                    test_output_dir=options.output_directory,
                                                    test_runner_stream=test_runner_stream)
     finally:
@@ -106,9 +111,11 @@ def run_tests(options, test_runner_stream):
 
     return constants.EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else constants.EXIT_STATUS_FAIL
 
+
 def _make_output_directory(options, default_output_dir):
     output_dir = options.output_directory
     return make_output_dir(output_dir, default_output_dir)
+
 
 def create_demo(options):
     output_dir = _make_output_directory(options, defaults.DEMO_OUTPUT_DIR)
@@ -148,17 +155,27 @@ def run_visualize_mode(options, args):
     return None  # no need to print anything more.
 
 
-def run_args(sys_argv, chooser=None, test_runner_stream=None):
+def run_args(sys_argv, chooser=None, test_runner_stream=None, extra_test_packages=None):
+    """
+    Arguments:
+
+      extra_test_packages: packages to test in addition to the main package.
+        Defaults to the empty list.
+
+    """
     if chooser is None:
         chooser = DirectoryChooser()
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
+    if extra_test_packages is None:
+        extra_test_packages=[]
 
     options, args = commandline.parse_args(sys_argv, chooser)
 
     if options.run_test_mode:
         # Do not print the result to standard out.
-        return run_tests(options, test_runner_stream=test_runner_stream)
+        return run_tests(options, test_runner_stream=test_runner_stream,
+                         extra_packages=extra_test_packages)
 
     if options.create_demo_mode:
         result = create_demo(options)
@@ -175,4 +192,3 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None):
         print result
 
     return constants.EXIT_STATUS_SUCCESS
-

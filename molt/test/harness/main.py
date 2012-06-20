@@ -74,13 +74,13 @@ def make_test_run_dir(test_output_dir):
     return dir_path
 
 
-def _run_tests(test_run_dir, doctest_paths, verbose, test_runner_stream):
+def _run_tests(packages, test_run_dir, doctest_paths, verbose, test_runner_stream):
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
     test_config = TestConfig(test_run_dir)
 
-    test_result = run_tests(package=molt,
+    test_result = run_tests(packages=packages,
                             is_unittest_module=IS_UNITTEST_MODULE,
                             test_config=test_config,
                             doctest_paths=doctest_paths,
@@ -89,11 +89,15 @@ def _run_tests(test_run_dir, doctest_paths, verbose, test_runner_stream):
     return test_result
 
 
-def run_molt_tests(verbose=False, test_output_dir=None, test_runner_stream=None):
+def run_molt_tests(verbose=False, extra_packages=None, test_output_dir=None,
+                   test_runner_stream=None):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
     Arguments:
+
+      extra_packages: a list of packages to test in addition to the main
+        molt package.  Defaults to the empty list.
 
       test_output_dir: the directory in which to leave test expectation
         failures.  If None, test runs are written to a system temp
@@ -104,6 +108,9 @@ def run_molt_tests(verbose=False, test_output_dir=None, test_runner_stream=None)
 
     """
     _log.info("running tests")
+
+    if extra_packages is None:
+        extra_packages = []
 
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
@@ -117,10 +124,11 @@ def run_molt_tests(verbose=False, test_output_dir=None, test_runner_stream=None)
         _log.info("creating test output dir: %s" % test_output_dir)
         os.makedirs(test_output_dir)
 
+    packages = [molt] + extra_packages
     test_run_dir = make_test_run_dir(test_output_dir)
 
     try:
-        test_result = _run_tests(test_run_dir, doctest_paths, verbose,
+        test_result = _run_tests(packages, test_run_dir, doctest_paths, verbose,
                                  test_runner_stream=test_runner_stream)
     finally:
         if test_output_dir is None or is_empty(test_run_dir):

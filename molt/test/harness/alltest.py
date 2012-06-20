@@ -100,13 +100,18 @@ def find_modules(package):
     return names
 
 
-def run_tests(package, is_unittest_module, test_config,
+def run_tests(packages, is_unittest_module, test_config,
               extra_tests=None, doctest_paths=None, verbosity=1,
               test_runner_stream=None):
     """
     Run all tests, and return a unittest.TestResult instance.
 
     Arguments:
+
+      packages: the packages in which to look for tests.
+
+      is_unittest_module: a lambda that accepts a module name and returns
+        whether the module should be searched for unit tests.
 
       verbosity: 0 for quiet, 1 for normal, 2 for verbose.  Defaults to 1.
 
@@ -133,8 +138,8 @@ def run_tests(package, is_unittest_module, test_config,
     #
     # We use our own test discovery method here to support test discovery
     # in Python 2.6 and earlier.
-    module_names = find_modules(package)
-    test_module_names = filter(is_unittest_module, module_names)
+    module_names_list = [find_modules(package) for package in packages]
+    module_names = reduce(lambda names1, names2: names1 + names2, module_names_list)
 
     doctests = make_doctests(module_names, doctest_paths)
 
@@ -147,6 +152,7 @@ def run_tests(package, is_unittest_module, test_config,
     # unittest.main(), does not permit the defaultTest parameter to be
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
+    test_module_names = filter(is_unittest_module, module_names)
     argv.extend(test_module_names)
 
     test_loader = UnittestTestLoader()

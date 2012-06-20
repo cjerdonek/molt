@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,21 +28,16 @@
 #
 
 """
-Provides the entry point for the main molt command-line script.
+TODO: add a docstring.
 
 """
 
-from __future__ import absolute_import
+import os
 
-import sys
-
-from molt.main import run_molt
+TEMP_EXTENSION = '.temp'
 
 
-def main(sys_argv=sys.argv, **kwargs):
-    return run_molt(sys_argv=sys_argv, **kwargs)
-
-
-if __name__ == "__main__":
-    result = main()
-    sys.exit(result)
+def make_temp_path(path):
+    root, ext = os.path.splitext(path)
+    temp_path = root + TEMP_EXTENSION + ext
+    return temp_path

@@ -38,7 +38,6 @@ import logging
 import os
 import sys
 
-from molt.test.harness import test_logger
 
 StreamHandler = logging.StreamHandler
 
@@ -67,7 +66,8 @@ class NewlineStreamHandler(StreamHandler):
 
 # TODO: make this testable.
 # TODO: finish documenting this method.
-def configure_logging(logging_level, stderr_stream=None, test_config=False):
+def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None,
+                      test_config=False):
     """
     Configure logging.
 
@@ -79,6 +79,10 @@ def configure_logging(logging_level, stderr_stream=None, test_config=False):
 
     It also prevents the handler from displaying any log messages by
     configuring it to write to os.devnull instead of sys.stderr.
+
+    Arguments:
+
+      persistent_loggers: the loggers that should always log.
 
     """
     if stderr_stream is None:
@@ -95,7 +99,7 @@ def configure_logging(logging_level, stderr_stream=None, test_config=False):
         root_logger.addHandler(handler)
 
         # Set the loggers to display during test runs.
-        visible_loggers = [_log, test_logger]
+        visible_loggers = [_log] + persistent_loggers
     else:
         visible_loggers = [root_logger]
 
@@ -111,3 +115,4 @@ def configure_logging(logging_level, stderr_stream=None, test_config=False):
         logger.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
+    _log.debug("Visible loggers: %s" % repr([logger.name for logger in visible_loggers]))
