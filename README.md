@@ -123,6 +123,11 @@ in your test runs, initialize and update the Groome project submodule--
     $ git submodule init
     $ git submodule update
 
+To run a subset of the tests, you can filter your test runs using one or
+more prefixes.  For example--
+
+    $ python test_molt.py molt.test.common molt.test.dir
+
 
 Author
 ------

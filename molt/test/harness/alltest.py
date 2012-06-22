@@ -40,7 +40,7 @@ import doctest
 import os
 from pkgutil import walk_packages
 import sys
-from unittest import TestLoader, TestProgram, TextTestRunner
+from unittest import TestCase, TestLoader, TestProgram, TestSuite, TextTestRunner
 
 from molt.test.harness.common import test_logger as _log
 
@@ -100,20 +100,11 @@ def find_modules(package):
     return names
 
 
-def find_tests(packages, is_unittest_module, doctest_paths, extra_tests,
-               test_names=None):
+def find_tests(packages, is_unittest_module, doctest_paths, extra_tests):
     """
     Find all tests and return a pair (test_suites, test_module_names).
 
-    Arguments:
-
-      test_names: if provided, then only these tests are returned.
-
     """
-    tests = []
-    if test_names is not None:
-        return tests, test_names
-
     # TODO: consider using unittest's test discovery functionality
     #   added in Python 2.7.
     #
@@ -130,9 +121,9 @@ def find_tests(packages, is_unittest_module, doctest_paths, extra_tests,
 
     tests = extra_tests + doctests
 
-    test_names = filter(is_unittest_module, module_names)
+    test_module_names = filter(is_unittest_module, module_names)
 
-    return tests, test_names
+    return tests, test_module_names
 
 def run_tests(packages, is_unittest_module, test_config, test_names=None,
               extra_tests=None, doctest_paths=None, verbosity=1,
@@ -152,8 +143,8 @@ def run_tests(packages, is_unittest_module, test_config, test_names=None,
       test_config: the object with which to set the test_config attribute
         of TestCase instances when loading tests using config_load_tests().
 
-      test_names: the list of test names to run.  If not provided, all
-        available tests are run.
+      test_names: the list of test-name prefixes to filter tests by.  If not
+        provided, all available tests are run.
 
       test_runner_stream: the stream object to pass to unittest.TextTestRunner.
         Defaults to sys.stderr.
@@ -166,10 +157,19 @@ def run_tests(packages, is_unittest_module, test_config, test_names=None,
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
-    tests, test_names = find_tests(packages, is_unittest_module, doctest_paths,
-                                   extra_tests, test_names)
+    tests, test_module_names = find_tests(packages, is_unittest_module,
+                                          doctest_paths, extra_tests)
 
-    test_program_class = make_test_program_class(tests)
+    def should_include(test_case):
+        if test_names is None:
+            return True
+        name = test_case.id()
+        for prefix in test_names:
+            if name.startswith(prefix):
+                return True
+        return False
+
+    test_program_class = make_test_program_class(tests, should_include)
 
     # unittest.TestLoader's constructor, which is called directly by
     # unittest.main(), does not permit the defaultTest parameter to be
@@ -178,7 +178,7 @@ def run_tests(packages, is_unittest_module, test_config, test_names=None,
     #
     # See Python issue #15132: http://bugs.python.org/issue15132
     argv = sys.argv[:1]
-    argv.extend(test_names)
+    argv.extend(test_module_names)
 
     test_loader = UnittestTestLoader()
     test_loader.test_config = test_config
@@ -191,7 +191,30 @@ def run_tests(packages, is_unittest_module, test_config, test_names=None,
     return test_program.result
 
 
-def make_test_program_class(tests):
+def filter_suite(test_suite, should_include):
+    """
+    Return a copy of the given TestSuite filtered by prefix.
+
+    Arguments:
+
+      should_include: a lambda accepting a TestCase instance and returning
+        whether to include the instance in the copy.
+
+    """
+    filtered = TestSuite()
+
+    for test in test_suite:
+        if isinstance(test, TestCase):
+            if not should_include(test):
+                continue
+        else:
+            test = filter_suite(test, should_include)
+        filtered.addTest(test)
+
+    return filtered
+
+
+def make_test_program_class(tests, should_include):
     """
     Return a unittest.TestProgram subclass that adds a list of custom tests.
 
@@ -199,6 +222,9 @@ def make_test_program_class(tests):
 
       tests: an iterable of TestCase and TestSuite instances to add in
         addition to the usual tests loaded when calling createTests().
+
+      should_include: a lambda accepting a TestCase instance and returning
+        whether to include the test in the test run.
 
     """
     class PystacheTestProgram(TestProgram):
@@ -230,6 +256,8 @@ def make_test_program_class(tests):
             """
             super(PystacheTestProgram, self).createTests()
             self.test.addTests(tests)
+
+            self.test = filter_suite(self.test, should_include)
 
     return PystacheTestProgram
 

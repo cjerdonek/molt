@@ -74,7 +74,8 @@ def make_test_run_dir(test_output_dir):
     return dir_path
 
 
-def _run_tests(packages, test_run_dir, doctest_paths, verbose, test_runner_stream):
+def _run_tests(packages, test_run_dir, doctest_paths, verbose,
+               test_runner_stream, test_names):
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
@@ -85,12 +86,13 @@ def _run_tests(packages, test_run_dir, doctest_paths, verbose, test_runner_strea
                             test_config=test_config,
                             doctest_paths=doctest_paths,
                             verbosity=verbosity,
-                            test_runner_stream=test_runner_stream)
+                            test_runner_stream=test_runner_stream,
+                            test_names=test_names)
     return test_result
 
 
 def run_molt_tests(project_dir=None, verbose=False, extra_packages=None,
-                   test_output_dir=None, test_runner_stream=None):
+                   test_names=None, test_output_dir=None, test_runner_stream=None):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
@@ -102,6 +104,9 @@ def run_molt_tests(project_dir=None, verbose=False, extra_packages=None,
 
       extra_packages: a list of packages to test in addition to the main
         molt package.  Defaults to the empty list.
+
+      test_names: the list of test-name prefixes to filter tests by.
+        If None, all available tests are run.
 
       test_output_dir: the directory in which to leave test expectation
         failures.  If None, test runs are written to a system temp
@@ -134,7 +139,8 @@ def run_molt_tests(project_dir=None, verbose=False, extra_packages=None,
 
     try:
         test_result = _run_tests(packages, test_run_dir, doctest_paths, verbose,
-                                 test_runner_stream=test_runner_stream)
+                                 test_runner_stream=test_runner_stream,
+                                 test_names=test_names)
     finally:
         if test_output_dir is None or is_empty(test_run_dir):
             _log.info("cleaning up: deleting: %s" % test_run_dir)
