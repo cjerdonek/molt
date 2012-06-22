@@ -42,6 +42,8 @@ from pkgutil import walk_packages
 import sys
 from unittest import TestLoader, TestProgram, TextTestRunner
 
+from molt.test.harness.common import test_logger as _log
+
 
 def make_doctest_test_suites(module_names):
     """
@@ -98,7 +100,41 @@ def find_modules(package):
     return names
 
 
-def run_tests(packages, is_unittest_module, test_config,
+def find_tests(packages, is_unittest_module, doctest_paths, extra_tests,
+               test_names=None):
+    """
+    Find all tests and return a pair (test_suites, test_module_names).
+
+    Arguments:
+
+      test_names: if provided, then only these tests are returned.
+
+    """
+    tests = []
+    if test_names is not None:
+        return tests, test_names
+
+    # TODO: consider using unittest's test discovery functionality
+    #   added in Python 2.7.
+    #
+    # Test discovery was not added to unittest until Python 2.7:
+    #
+    #   http://docs.python.org/library/unittest.html#test-discovery
+    #
+    # We use our own test discovery method here to support test discovery
+    # in Python 2.6 and earlier.
+    module_names_list = [find_modules(package) for package in packages]
+    module_names = reduce(lambda names1, names2: names1 + names2, module_names_list)
+
+    doctests = make_doctests(module_names, doctest_paths)
+
+    tests = extra_tests + doctests
+
+    test_names = filter(is_unittest_module, module_names)
+
+    return tests, test_names
+
+def run_tests(packages, is_unittest_module, test_config, test_names=None,
               extra_tests=None, doctest_paths=None, verbosity=1,
               test_runner_stream=None):
     """
@@ -116,6 +152,9 @@ def run_tests(packages, is_unittest_module, test_config,
       test_config: the object with which to set the test_config attribute
         of TestCase instances when loading tests using config_load_tests().
 
+      test_names: the list of test names to run.  If not provided, all
+        available tests are run.
+
       test_runner_stream: the stream object to pass to unittest.TextTestRunner.
         Defaults to sys.stderr.
 
@@ -127,36 +166,25 @@ def run_tests(packages, is_unittest_module, test_config,
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
-    # TODO: consider using unittest's test discovery functionality
-    #   added in Python 2.7.
-    #
-    # Test discovery was not added to unittest until Python 2.7:
-    #
-    #   http://docs.python.org/library/unittest.html#test-discovery
-    #
-    # We use our own test discovery method here to support test discovery
-    # in Python 2.6 and earlier.
-    module_names_list = [find_modules(package) for package in packages]
-    module_names = reduce(lambda names1, names2: names1 + names2, module_names_list)
+    tests, test_names = find_tests(packages, is_unittest_module, doctest_paths,
+                                   extra_tests, test_names)
 
-    doctests = make_doctests(module_names, doctest_paths)
-
-    tests = extra_tests + doctests
     test_program_class = make_test_program_class(tests)
-
-    argv = ['']
 
     # unittest.TestLoader's constructor, which is called directly by
     # unittest.main(), does not permit the defaultTest parameter to be
     # a list of test names -- only one name.  So we pass the test names
     # instead using the argv parameter.
-    test_module_names = filter(is_unittest_module, module_names)
-    argv.extend(test_module_names)
+    #
+    # See Python issue #15132: http://bugs.python.org/issue15132
+    argv = sys.argv[:1]
+    argv.extend(test_names)
 
     test_loader = UnittestTestLoader()
     test_loader.test_config = test_config
 
     test_runner = TextTestRunner(stream=test_runner_stream, verbosity=verbosity)
+
     test_program = test_program_class(argv=argv, module=None, exit=False, verbosity=verbosity,
                                       testLoader=test_loader, testRunner=test_runner)
 
@@ -181,7 +209,7 @@ def make_test_program_class(tests):
         For example, calling unittest.main() is an alias for calling the
         constructor unittest.TestProgram().
 
-        The TestProgram constructor does the following:
+        As background, unittest.TestProgram's constructor does the following:
 
         1. Calls self.parseArgs(argv),
         2. which in turn calls self.createTests().
@@ -237,7 +265,7 @@ class UnittestTestLoader(TestLoader):
 
 Due to a bug in Python's unittest module, the AttributeError may be masking
 an ImportError in the module being processed.
-""" % repr(name)
+-->%s""" % (repr(name), str(err))
                 # TODO: add to the existing exception instead of raising a new one.
                 raise Exception(msg)
             suites.append(suite)
