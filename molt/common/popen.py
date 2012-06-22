@@ -63,9 +63,9 @@ def call_script(args, b=None):
     try:
         proc = Popen(args, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=False,
                      universal_newlines=False)
-    except:
+    except Exception as err:
         # TODO: add to existing exception and reraise instead of swallowing.
-        raise Exception("Error opening process: %s" % repr(args))
+        raise Exception("Error opening process: %s\n-->%s" % (repr(args), err))
     stdout_data, stderr_data = proc.communicate(input=b)
 
     return stdout_data, stderr_data

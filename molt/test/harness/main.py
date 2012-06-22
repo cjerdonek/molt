@@ -89,12 +89,16 @@ def _run_tests(packages, test_run_dir, doctest_paths, verbose, test_runner_strea
     return test_result
 
 
-def run_molt_tests(verbose=False, extra_packages=None, test_output_dir=None,
-                   test_runner_stream=None):
+def run_molt_tests(project_dir=None, verbose=False, extra_packages=None,
+                   test_output_dir=None, test_runner_stream=None):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
     Arguments:
+
+      project_dir: the path to the source control root, or None if the
+        source control root does not exist (e.g. if running from an
+        installed version).
 
       extra_packages: a list of packages to test in addition to the main
         molt package.  Defaults to the empty list.
@@ -115,10 +119,11 @@ def run_molt_tests(verbose=False, extra_packages=None, test_output_dir=None,
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
-    source_dir = os.path.dirname(molt.__file__)
-    package_dir = os.path.join(source_dir, os.pardir)
-    readme_path = os.path.join(package_dir, README_REL_PATH)
-    doctest_paths = [readme_path]
+    doctest_paths = []
+    if project_dir is not None:
+        readme_path = os.path.join(project_dir, README_REL_PATH)
+        doctest_paths.append(readme_path)
+    # Otherwise, we don't have access to the README.
 
     if test_output_dir is not None and not os.path.exists(test_output_dir):
         _log.info("creating test output dir: %s" % test_output_dir)

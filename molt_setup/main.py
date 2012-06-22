@@ -34,7 +34,71 @@ TODO: add a docstring.
 
 import os
 
+ENCODING_DEFAULT = 'utf-8'
 TEMP_EXTENSION = '.temp'
+
+
+def read(path, encoding=None):
+    """
+    Read and return the contents of a text file as a unicode string.
+
+    """
+    if encoding is None:
+        encoding = ENCODING_DEFAULT
+
+    # This function implementation was chosen to be compatible across Python 2/3.
+    with open(path, 'rb') as f:
+        b = f.read()
+
+    return b.decode(encoding)
+
+
+def write(u, path, encoding=None):
+    """
+    Write a unicode string to a file (as utf-8).
+
+    """
+    if encoding is None:
+        encoding = ENCODING_DEFAULT
+
+    print("Writing to: %s" % path)
+    # This function implementation was chosen to be compatible across Python 2/3.
+    b = u.encode(encoding)
+    with open(path, 'wb') as f:
+        f.write(b)
+
+
+def find_directories(root_dir):
+    """
+    Return a list of the directories inside dir_path, including dir_path.
+
+    The function returns the directories as relative to the given directory.
+
+    """
+    dir_paths = ['']  # Start with root directory.
+    for (dir_path, dir_names, filenames) in os.walk(root_dir):
+        for dir_name in dir_names:
+            path = os.path.join(dir_path, dir_name)
+            path = os.path.relpath(path, root_dir)
+            dir_paths.append(path)
+
+    return dir_paths
+
+
+def find_package_data(root_dir, file_globs):
+    """
+    Return the relative path names inside the given root directory.
+
+    """
+    dir_paths = find_directories(root_dir)
+
+    paths = []
+    for dir_path in dir_paths:
+        for file_glob in file_globs:
+            path = os.path.join(dir_path, file_glob)
+            paths.append(path)
+
+    return paths
 
 
 def make_temp_path(path, new_ext=None):

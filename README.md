@@ -34,8 +34,8 @@ Molt's dependencies are--
 
 * [Pystache](https://github.com/defunkt/pystache) version
   [0.5.2](http://pypi.python.org/pypi/pystache) or above
-* [PyYAML](http://pypi.python.org/pypi/PyYAML) (optional, for YAML
-  configuration file support)
+* [PyYAML](http://pypi.python.org/pypi/PyYAML) (optional, to support
+  YAML format for configuration files)
 
 TODO: include setup dependencies
 

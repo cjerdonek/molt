@@ -3,13 +3,16 @@ TODO
 
 Before releasing version 0.1.0:
 
+ * Add Groome tests to tox runs.
  * Review README.
  * Review command-line and remove project-specific terminology.
  * Add more end-to-end tests to cover all main use cases.
  * make setup.py file
- * Confirm whether setup.py's publishing can only be done with Python 2.x.
  * Make sure HISTORY file, etc. is included in the MANIFEST.
 
+For after the initial release:
+
+* Confirm whether setup.py's publishing can only be done with Python 2.x.
 * Add the ability to "check" a template directory from the command-line.
 * Add a unit test for --verbose working with unit tests.
 * Link to PyPI in the README.

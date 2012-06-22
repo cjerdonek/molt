@@ -42,8 +42,6 @@ from pkgutil import walk_packages
 import sys
 from unittest import TestLoader, TestProgram, TextTestRunner
 
-from molt.test.harness import test_logger as _log
-
 
 def make_doctest_test_suites(module_names):
     """
