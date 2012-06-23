@@ -41,6 +41,23 @@ import sys
 _log = logging.getLogger(__name__)
 
 
+# For further ideas, see, for example--
+#   http://blog.ianbicking.org/2007/09/12/re-raising-exceptions/
+def reraise(extra_info):
+    """
+    Reraise an exception, adding extra info to the value.
+
+    """
+    exc_class, exc, tb = sys.exc_info()
+    try:
+        val = "%s:\n-->%s" % (extra_info, exc)
+        raise exc_class, val, tb
+    finally:
+        # Follow the warning here, just in case--
+        #   http://docs.python.org/library/sys.html#sys.exc_info
+        del tb
+
+
 class Error(Exception):
     """
     Base class for exceptions defined in this project.
