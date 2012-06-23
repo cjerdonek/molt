@@ -28,17 +28,13 @@
 #
 
 """
-Exposes a base class for exceptions in this project.
+Exposes exception-related functionality.
 
 """
 
 from __future__ import absolute_import
 
-import logging
 import sys
-
-
-_log = logging.getLogger(__name__)
 
 
 # For further ideas, see, for example--
