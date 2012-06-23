@@ -35,6 +35,7 @@ Provides test-related code that can be used by all tests.
 from __future__ import absolute_import
 
 import logging
+import os
 from textwrap import dedent
 
 from molt.common import io
@@ -129,6 +130,14 @@ class AssertStringMixin(object):
 class AssertFileMixin(AssertStringMixin):
 
     """A unittest.TestCase mixin to check file content equality."""
+
+    def assertFileExists(self, path, label=None, format_msg=None):
+        if format_msg is None:
+            format_msg = lambda msg: msg
+
+        label = "path" if label is None else label
+        msg = format_msg("%s does not exist: %s" % (label, path))
+        self.assertTrue(os.path.exists(path), msg=msg)
 
     def assertFilesEqual(self, actual_path, expected_path, format_msg=None, fuzzy=False, file_encoding='utf-8', errors='strict'):
         """

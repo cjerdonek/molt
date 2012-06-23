@@ -172,6 +172,9 @@ class AssertDirMixin(AssertFileMixin):
         if format_msg is None:
             format_msg = lambda msg: msg
 
+        self.assertFileExists(actual_dir, label='actual directory', format_msg=format_msg)
+        self.assertFileExists(expected_dir, label='expected directory', format_msg=format_msg)
+
         # TODO: use dircmp's ignore and/or hide keyword arguments.
         dcmp = dircmp(expected_dir, actual_dir)
 
