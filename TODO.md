@@ -12,6 +12,7 @@ Before releasing version 0.1.0:
 
 For after the initial release:
 
+* Rename dirchooser.py to dirutil.py.
 * Confirm whether setup.py's publishing can only be done with Python 2.x.
 * Add the ability to "check" a template directory from the command-line.
 * Add a unit test for --verbose working with unit tests.
