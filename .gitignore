@@ -3,3 +3,5 @@
 *.temp.rst
 # TextMate project file
 *.tmproj
+# The directory created by tox: http://pypi.python.org/pypi/tox
+.tox/
