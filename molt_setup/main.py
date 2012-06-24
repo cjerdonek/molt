@@ -85,7 +85,7 @@ def find_directories(root_dir):
     return dir_paths
 
 
-def find_package_data(root_dir, file_globs):
+def _find_rel_package_data(root_dir, file_globs):
     """
     Return the relative path names inside the given root directory.
 
@@ -97,6 +97,21 @@ def find_package_data(root_dir, file_globs):
         for file_glob in file_globs:
             path = os.path.join(dir_path, file_glob)
             paths.append(path)
+
+    return paths
+
+
+def find_package_data(package_dir, rel_dir, file_globs):
+    """
+    Return the package_data paths for a directory inside a package.
+
+    """
+    data_dir = os.path.join(package_dir, rel_dir)
+
+    paths = _find_rel_package_data(data_dir, file_globs)
+
+    # package_data paths are interpreted as relative to the package directory.
+    paths = [os.path.join(rel_dir, path) for path in paths]
 
     return paths
 

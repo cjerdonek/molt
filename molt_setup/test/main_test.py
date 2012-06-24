@@ -32,21 +32,35 @@ Unit tests for the main module.
 
 """
 
-import unittest
+import os
+from unittest import TestCase
 
-from molt_setup.main import make_temp_path
+import molt_setup
+from molt_setup.main import find_package_data, make_temp_path
 
 
-class MainTestCase(unittest.TestCase):
+class MakeTempPathTestCase(TestCase):
 
-    def test_make_temp_path_txt(self):
+    def test_txt(self):
         actual = make_temp_path('foo.txt')
         self.assertEquals(actual, 'foo.temp.txt')
 
-    def test_make_temp_path_rst(self):
+    def test__rst(self):
         actual = make_temp_path('foo.rst')
         self.assertEquals(actual, 'foo.temp.rst')
 
-    def test_make_temp_path_new_ext(self):
+    def test_new_ext(self):
         actual = make_temp_path('foo.rst', new_ext='.txt')
         self.assertEquals(actual, 'foo.temp.txt')
+
+
+class FindPackageDataTestCase(TestCase):
+
+    def test(self):
+        root_dir = os.path.dirname(molt_setup.__file__)
+        root_dir = os.path.join(root_dir, 'test', 'data', 'find_package_data')
+
+        self.assertTrue(os.path.isdir(root_dir), msg="Not found: %s" % root_dir)
+
+        actual = find_package_data(root_dir, 'foo', ['*.txt'])
+        self.assertEquals(actual, ['foo/*.txt', 'foo/bar/*.txt'])
