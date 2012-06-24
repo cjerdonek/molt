@@ -28,6 +28,10 @@
 #
 
 """
-TODO: add a docstring.
+This package contains extra unit tests.
+
+This package contains unit tests not in one-to-one correspondence with
+individual modules.  This includes, for example, tests constructed
+programmatically from test data, etc.
 
 """

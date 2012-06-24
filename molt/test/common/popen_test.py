@@ -47,7 +47,7 @@ class CallScriptTestCase(unittest.TestCase, AssertStringMixin):
         return os.path.join(TEST_DATA_DIR, 'lambdas', script_name + ".sh")
 
     def _call_script(self, path, bytes_in):
-        stdout, stderr = call_script([path], bytes_in)
+        stdout, stderr, return_code = call_script([path], bytes_in)
         return stdout
 
     def test_constant(self):

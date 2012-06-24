@@ -41,12 +41,16 @@ from textwrap import dedent
 from unittest import TestCase
 
 
-from molt.dirchooser import make_expected_dir
+from molt.dirchooser import make_expected_dir, stage_template_dir
 from molt.molter import Molter
 from molt.test.harness import indent, AssertDirMixin, SandBoxDirMixin
 
 
-def make_template_test_class(group_name, template_dir):
+def make_test_class_type_args(group_name, template_dir, should_stage=False):
+    """
+    Return a type args triple for a unittest.TestCase subclass.
+
+    """
     names = [None]
 
     def make_full_name(group_name, name):
@@ -57,17 +61,19 @@ def make_template_test_class(group_name, template_dir):
         expected_dir = make_expected_dir(_template_dir)
 
         def assert_template(test_case):
-            test_case.assert_template(group_name, long_name, _template_dir, expected_dir)
+            test_case.assert_template(group_name, long_name, _template_dir, expected_dir,
+                                      should_stage=should_stage)
 
         return assert_template
 
-    return _make_test_case_class(group_name, names, template_dir, make_full_name,
-                                 make_assert_template)
+    type_args = _make_test_case_type_args(group_name, names, template_dir, make_full_name,
+                                          make_assert_template)
 
+    return type_args
 
 def make_template_tests_class(group_name, parent_input_dir):
     """
-    Return a unittest.TestCase subclass.
+    Return a type args triple for a unittest.TestCase subclass.
 
     """
     names = os.listdir(parent_input_dir)
@@ -87,13 +93,16 @@ def make_template_tests_class(group_name, parent_input_dir):
 
         return assert_template
 
-    return _make_test_case_class(group_name, names, parent_input_dir, make_full_name,
-                                 make_assert_template)
+    type_args = _make_test_case_type_args(group_name, names, parent_input_dir, make_full_name,
+                                          make_assert_template)
+    return type_args
 
 
-def _make_test_case_class(group_name, names, input_dir, make_full_name, make_assert_template):
+def _make_test_case_type_args(group_name, names, input_dir, make_full_name, make_assert_template):
     """
-    Return a unittest.TestCase subclass containing template tests.
+    Return the type info for a TestCase subclass containing template tests.
+
+    Returns a triple usable as the arguments for type(): (name, bases, dict).
 
     """
     class_name = "%sTemplateTestCase" % group_name
@@ -105,7 +114,7 @@ def _make_test_case_class(group_name, names, input_dir, make_full_name, make_ass
 
         test_methods[method_name] = assert_template
 
-    return type(class_name, (TemplateTestCaseBase,), test_methods)
+    return class_name, (TemplateTestCaseBase,), test_methods
 
 
 def _make_format_msg(actual_dir, expected_dir, context, test_name, test_description):
@@ -113,6 +122,7 @@ def _make_format_msg(actual_dir, expected_dir, context, test_name, test_descript
     Return the format_msg function to pass to assertDirectoriesEqual().
 
     """
+    # TODO: review the relationship between "directory name" and "test name".
     format_string = dedent("""\
     Rendered directories differ:
 
@@ -141,23 +151,36 @@ def _make_format_msg(actual_dir, expected_dir, context, test_name, test_descript
 
 class TemplateTestCaseBase(TestCase, AssertDirMixin, SandBoxDirMixin):
 
-    def assert_template(self, template_name, long_name, template_dir, expected_dir):
+    def assert_template(self, template_name, long_name, template_dir, expected_dir,
+                        should_stage=False):
         """
         Arguments:
 
-          template_name: the name of the template directory.
+          template_name: the short name for the template.
 
-          input_dir: the directory containing the project directory,
-            partials directory, and config file.
+          template_dir: the directory containing the lambdas directory,
+            partials directory, etc.
+
+          should_stage: whether to stage the template directory.  This option
+            is useful, for example, if the executable bit is not set on the
+            lambda scripts in the original template lambdas directory.
 
         """
         molter = Molter()
 
-        config = molter.read_config(template_dir)
-        context = molter.get_context(template_dir)
-        description = config['description']
+        with self.sandboxDir() as temp_dir:
+            actual_dir = os.path.join(temp_dir, 'actual')
+            os.mkdir(actual_dir)
 
-        with self.sandboxDir() as actual_dir:
+            if should_stage:
+                staged_template_dir = os.path.join(temp_dir, 'template')
+                stage_template_dir(template_dir, staged_template_dir)
+                template_dir = staged_template_dir
+
+            context = molter.get_context(template_dir)
+            config = molter.read_config(template_dir)
+            description = config['description']
+
             molter.molt(template_dir=template_dir, output_dir=actual_dir)
             format_msg = _make_format_msg(actual_dir, expected_dir, context=context,
                                           test_name=template_name,

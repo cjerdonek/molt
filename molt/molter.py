@@ -80,7 +80,7 @@ def _lambda_from_script(path):
             u = ''
         bytes_in = u.encode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
 
-        stdout, stderr = call_script(path, bytes_in)
+        stdout, stderr, return_code = call_script(path, bytes_in)
 
         return stdout.decode(defaults.LAMBDA_ENCODING, errors=defaults.ENCODING_ERRORS)
 
@@ -157,7 +157,7 @@ class Molter(object):
         _log.info("""\
 Rendering:
 
-  Project directory:   %s
+  Structure directory:   %s
   Partial directory:   %s
   Lambdas directory:   %s
   Config file:         %s
@@ -171,8 +171,7 @@ Rendering:
 
         renderer = _Renderer(pystache_renderer)
 
-
-        renderer.render(project_dir=project_dir, context=context, output_dir=output_dir)
+        renderer.render(structure_dir=project_dir, context=context, output_dir=output_dir)
         _log.info("Wrote new project to: %s" % repr(output_dir))
 
 
@@ -273,7 +272,7 @@ class _Renderer(object):
             os.mkdir(new_output_dir)
             self._molt_dir(path, context, new_output_dir)
 
-    def render(self, project_dir, context, output_dir):
+    def render(self, structure_dir, context, output_dir):
         """
         Recursively render the contents of a directory to an output directory.
 
@@ -282,9 +281,13 @@ class _Renderer(object):
           output_dir: a path to an existing directory.
 
         """
-        try:
-            self._molt_dir(project_dir, context, output_dir)
-        except OSError:
-            if not os.path.exists(project_dir):
-                raise (Error("Project directory missing: %s" % project_dir))
-            raise
+        # Validate arguments because this is the entry point to a method
+        # called by end-users.
+        # TODO: move this argument validation to the beginning of the function
+        #   actually called by end-users.
+        if not os.path.exists(structure_dir):
+            raise (Error("Structure directory missing: %s" % structure_dir))
+        if not os.path.exists(output_dir):
+            raise (Error("Output directory missing: %s" % output_dir))
+
+        self._molt_dir(structure_dir, context, output_dir)

@@ -36,7 +36,6 @@ import codecs
 from datetime import datetime
 import logging
 import os
-from shutil import copytree
 from StringIO import StringIO
 import sys
 
@@ -46,7 +45,7 @@ from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt import constants
 from molt import defaults
-from molt.dirchooser import make_output_dir, DirectoryChooser
+from molt.dirchooser import make_output_dir, stage_template_dir, DirectoryChooser
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
@@ -122,7 +121,7 @@ def create_demo(options):
     output_dir = _make_output_directory(options, defaults.DEMO_OUTPUT_DIR)
 
     os.rmdir(output_dir)
-    copytree(constants.DEMO_TEMPLATE_DIR, output_dir)
+    stage_template_dir(constants.DEMO_TEMPLATE_DIR, output_dir)
 
     if options.with_visualize:
         visualize(output_dir)

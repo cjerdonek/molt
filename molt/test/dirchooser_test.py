@@ -36,12 +36,22 @@ import os
 import unittest
 
 from molt.common.error import Error
-from molt.dirchooser import make_output_dir
+from molt.common.popen import call_script
+from molt.dirchooser import make_output_dir, set_executable_bit
 from molt.dirchooser import DirectoryChooser as Chooser
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 
 
+# We want a shebang line that will work on the maximum number of systems.
+SHEBANG_LINE = "#!/bin/sh\n"
+
 load_tests = config_load_tests
+
+
+# TODO: share code with common/io.
+def _create_file(path, text=''):
+    with open(path, 'w') as f:
+        f.write(text)
 
 
 class GenerateOutputDirTestCase(unittest.TestCase, SandBoxDirMixin):
@@ -74,16 +84,26 @@ class GenerateOutputDirTestCase(unittest.TestCase, SandBoxDirMixin):
             self.assertEqual(expected, actual)
 
 
-class DirectoryChooserTestCase(unittest.TestCase, SandBoxDirMixin):
+class SetExecutableBitTestCase(unittest.TestCase, SandBoxDirMixin):
 
-    def _create_file(self, path):
-        with open(path, 'w') as f:
-            f.write('')
+    def test(self):
+        with self.sandboxDir() as dir_path:
+            path = os.path.join(dir_path, "test.sh")
+            _create_file(path, SHEBANG_LINE)
+            args = [path]
+
+            # Will not work until we set the executable bit.
+            self.assertRaises(OSError, call_script, args)
+            set_executable_bit(path)
+            stdout_data, stderr_data, return_code = call_script(args)
+
+
+class DirectoryChooserTestCase(unittest.TestCase, SandBoxDirMixin):
 
     def _assert_config_path(self):
         chooser = Chooser()
         config_path = os.path.join(dir_path, file_name)
-        self._create_file(config_path)
+        _create_file(config_path)
         actual = chooser.get_config_path(None, dir_path)
         self.assertEqual(config_path, actual)
 
@@ -107,7 +127,7 @@ class DirectoryChooserTestCase(unittest.TestCase, SandBoxDirMixin):
 
         with self.sandboxDir() as template_dir:
             config_path = os.path.join(template_dir, file_name)
-            self._create_file(config_path)
+            _create_file(config_path)
             assert_func(chooser, config_path, template_dir)
 
     def _test_get_config_path__default__exists(self, file_name):

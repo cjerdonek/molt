@@ -55,8 +55,11 @@ def load_tests(loader, tests, pattern):
 
     template_tests = []
     if os.path.exists(groome_dir):
-       test_class = make_template_tests_class(group_name='Groome',
+       type_args = make_template_tests_class(group_name='Groome',
                                               parent_input_dir=groome_dir)
+       # We define the class in this module so that the test harness reports
+       # the TestCase class as originating from this module.
+       test_class = type(*type_args)
        template_tests = loader.loadTestsFromTestCase(test_class)
     # Otherwise, Groome tests not available.
 

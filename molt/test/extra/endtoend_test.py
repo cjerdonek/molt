@@ -42,25 +42,78 @@ from molt.common.popen import call_script
 from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness import config_load_tests, AssertDirMixin, SandBoxDirMixin
 
+_log = logging.getLogger(__name__)
+
 
 # Trigger the load_tests protocol.
 load_tests = config_load_tests
 
 
+def _call_molt(args):
+    """
+    Call molt using the command-line.
+
+    """
+    python_path = sys.executable
+    args = [python_path, '-m', molt.commands.molt.__name__] + args
+    stdout, stderr, return_code = call_script(args)
+
+    return stdout, stderr, return_code
+
+
+class ReadmeTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
+
+    """
+    Tests the instructions given in the README.
+
+    """
+
+    def _assert_molt(self, args, actual_dir, expected_dir, expected_output, fuzzy=False):
+        """
+        Call molt from the command-line and assert the outcome.
+
+        """
+        stdout, stderr, return_code = _call_molt(args)
+
+        def format_msg(details):
+            msg = "%s\n-->stderr from molt call: %s\n--->%s" % (details,
+                repr(" ".join(args)), stderr)
+            return msg
+
+        self.assertEquals(0, return_code, msg=format_msg("exit status: %s != 0" % return_code))
+        self.assertDirectoriesEqual(actual_dir, expected_dir, format_msg=format_msg, fuzzy=fuzzy)
+        self.assertEquals(stdout.strip(), expected_output)
+
+    def test_try_it(self):
+        """
+        Test the instructions in the "Try it" section of the README.
+
+        """
+        with self.sandboxDir() as temp_dir:
+            demo_dir = os.path.join(temp_dir, 'demo')
+            # Test creating the demo.
+            output_dir = demo_dir
+            args = ['--create-demo', '--output', output_dir]
+            self._assert_molt(args, output_dir, expected_dir=DEMO_TEMPLATE_DIR,
+                              expected_output=output_dir)
+
+            # Test rendering the demo.
+            output_dir = os.path.join(temp_dir, 'output')
+            config_path = os.path.join(demo_dir, 'sample.json')
+            args = ['--output', output_dir, '--config', config_path, demo_dir]
+            expected_dir = os.path.join(demo_dir, 'expected')
+            self._assert_molt(args, output_dir, expected_dir=expected_dir,
+                              expected_output=output_dir, fuzzy=True)
+
+
+# TODO: share subclass and leverage self._assert_molt().
 class EndToEndTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
-
-    def _call_molt(self, args):
-        python_path = sys.executable
-        args = [python_path, '-m', molt.commands.molt.__name__] + args
-        stdout, stderr = call_script(args)
-
-        return stdout, stderr
 
     def test_create_demo__with_output(self):
         with self.sandboxDir() as temp_dir:
             output_dir = os.path.join(temp_dir, 'demo')
             options = ['--create-demo', '--output', output_dir]
-            stdout, stderr = self._call_molt(options)
+            stdout, stderr, return_code = _call_molt(options)
 
             actual_dir = output_dir
             expected_dir = DEMO_TEMPLATE_DIR

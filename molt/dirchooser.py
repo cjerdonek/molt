@@ -28,13 +28,16 @@
 #
 
 """
-Exposes functionality to choose directories to use based on user input.
+Provides support for accessing and operating on template directories.
 
 """
 
 from __future__ import absolute_import
 
+import logging
 import os
+from shutil import copytree
+import stat
 
 from molt.common.error import Error
 from molt import defaults
@@ -83,6 +86,81 @@ def make_output_dir(output_dir, default_output_dir):
         index += 1
 
 
+def set_executable_bit(path):
+    """
+    Set the executable bits on a file.
+
+    """
+    exec_bits = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    mode = os.stat(path)[stat.ST_MODE]
+    mode = mode | exec_bits
+    os.chmod(path, mode)
+
+
+def stage_template_dir(source_dir, target_dir):
+    """
+    Copy the template directory, and set executable bits as necessary.
+
+    Raises an Exception if target_dir already exists.
+
+    """
+    # copytree errors out if the target directory already exists.
+    copytree(source_dir, target_dir)
+
+    template_dir = TemplateDirectory(target_dir)
+    lambda_paths = template_dir.get_lambda_paths()
+
+    for path in lambda_paths:
+        set_executable_bit(path)
+
+
+class TemplateDirectory(object):
+
+    """
+    Represents a Groome template directory.
+
+    """
+
+    def __init__(self, path):
+        self.path = path
+
+        # TODO: remove this attribute.
+        self._chooser = DirectoryChooser()
+
+    def get_lambdas_dir(self):
+        """
+        Return the path to the lambdas directory, or None if not existing.
+
+        """
+        return self._chooser.get_lambdas_dir(self.path)
+
+    def get_lambda_paths(self):
+        """
+        Return the paths to the lambdas in the lambdas directory.
+
+        Returns all paths that are files and not hidden.
+
+        """
+        paths = []
+
+        dir_path = self.get_lambdas_dir()
+        if dir_path is None:
+            return paths
+
+        for base_path in os.listdir(dir_path):
+            if base_path.startswith(os.curdir):
+                # Skip hidden files.
+                continue
+            path = os.path.join(dir_path, base_path)
+            if not os.path.isfile(path):
+                # Skip directories.
+                continue
+            paths.append(path)
+
+        return paths
+
+
+# TODO: move the code in this class into the TemplateDirectory class.
 class DirectoryChooser(object):
 
     """

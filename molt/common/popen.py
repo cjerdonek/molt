@@ -36,6 +36,8 @@ from __future__ import absolute_import
 
 from subprocess import Popen, PIPE, STDOUT
 
+from molt.common.error import reraise
+
 
 def chain_script(args, handle_line):
     """
@@ -50,22 +52,25 @@ def chain_script(args, handle_line):
         handle_line(line)
 
 
-def call_script(args, b=None):
+# Default to shell=False because shell=True is strongly discouraged for
+# security reasons.
+def call_script(args, b=None, shell=False):
     """
     Call the script with the given bytes sent to stdin.
 
-    Returns a pair of byte strings (stdout, stderr).
+    Returns a triple (stdout, stderr, returncode).
 
     """
     # See this page:
     #   http://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
 
     try:
-        proc = Popen(args, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=False,
+        proc = Popen(args, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=shell,
                      universal_newlines=False)
     except Exception as err:
-        # TODO: add to existing exception and reraise instead of swallowing.
-        raise Exception("Error opening process: %s\n-->%s" % (repr(args), err))
-    stdout_data, stderr_data = proc.communicate(input=b)
+        reraise("Error opening process: %s" % repr(args))
 
-    return stdout_data, stderr_data
+    stdout_data, stderr_data = proc.communicate(input=b)
+    return_code = proc.returncode
+
+    return stdout_data, stderr_data, return_code

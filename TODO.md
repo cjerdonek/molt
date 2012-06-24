@@ -4,7 +4,7 @@ TODO
 Before releasing version 0.1.0:
 
  * Add Groome tests to tox runs.
- * Rename project to structure inside molter.py.
+ * Rename project to structure inside molter.py and dirchooser.
  * Review README.
  * Review command-line and remove project-specific terminology.
  * Add more end-to-end tests to cover all main use cases.

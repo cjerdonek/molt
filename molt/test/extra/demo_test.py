@@ -37,7 +37,7 @@ import unittest
 
 from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness import config_load_tests
-from molt.test.harness.templatetest import make_template_test_class
+from molt.test.harness.templatetest import make_test_class_type_args
 
 
 def load_tests(loader, tests, pattern):
@@ -45,8 +45,14 @@ def load_tests(loader, tests, pattern):
     Return a unittest.TestSuite instance testing the demo template.
 
     """
-    test_class = make_template_test_class(group_name='Demo',
-                                          template_dir=DEMO_TEMPLATE_DIR)
+    type_args = make_test_class_type_args(group_name='Demo',
+                                          template_dir=DEMO_TEMPLATE_DIR,
+                                          should_stage=True)
+
+    # We define the class in this module so that the test harness reports
+    # the TestCase class as originating from this module.
+    test_class = type(*type_args)
+
     demo_tests = loader.loadTestsFromTestCase(test_class)
 
     tests.addTests(demo_tests)
