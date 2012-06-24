@@ -35,44 +35,70 @@ TODO: add a docstring.
 from __future__ import absolute_import
 
 import os
+from shutil import copyfile
 import unittest
 
 from molt.common.popen import call_script
 from molt.constants import TEST_DATA_DIR
+from molt.dirchooser import set_executable_bit
+from molt.test.harness import config_load_tests, SandBoxDirMixin
 from molt.test.harness.common import AssertStringMixin
 
-class CallScriptTestCase(unittest.TestCase, AssertStringMixin):
+
+# Trigger the load_tests protocol.
+load_tests = config_load_tests
+
+
+class CallScriptTestCase(unittest.TestCase, AssertStringMixin, SandBoxDirMixin):
+
+    # Override unittest.TestCase.run() to use the sandbox directory
+    # context manager for all test methods.  Using setUp() and tearDown()
+    # is inelegant and more difficult.  See--
+    #
+    #   http://stackoverflow.com/questions/8416208/in-python-is-there-a-good-idiom-for-using-context-managers-in-setup-teardown
+    #
+    def run(self, result=None):
+        with self.sandboxDir() as temp_dir:
+            self.temp_dir = temp_dir
+            super(CallScriptTestCase, self).run(result)
 
     def _get_script_path(self, script_name):
         return os.path.join(TEST_DATA_DIR, 'lambdas', script_name + ".sh")
 
-    def _call_script(self, path, bytes_in):
-        stdout, stderr, return_code = call_script([path], bytes_in)
+    def _call_script(self, script_name, bytes_in):
+        script_path = self._get_script_path(script_name)
+
+        base_name = os.path.basename(script_path)
+        new_path = os.path.join(self.temp_dir, base_name)
+
+        copyfile(script_path, new_path)
+        set_executable_bit(new_path)
+
+        stdout, stderr, return_code = call_script([new_path], bytes_in)
         return stdout
 
-    def test_constant(self):
+    def test_echo_string(self):
         """
-        Test calling a script that echoes a constant.
+        Test calling a script that echoes a constant string.
 
         """
-        path = self._get_script_path('foo')
-        self.assertEqual('bar', self._call_script(path, ''))
+        self.assertEqual('foo', self._call_script('echo_foo', ''))
 
     def test_hash_comment(self):
-        path = self._get_script_path('hash_comment')
+        script_name = 'hash_comment'
 
-        actual = self._call_script(path, '')
+        actual = self._call_script(script_name, '')
         expected = ''
         self.assertString(actual, expected)
 
-        actual = self._call_script(path, 'line1\nline2')
+        actual = self._call_script(script_name, 'line1\nline2')
         expected = '# line1\n'
         self.assertString(actual, expected)
 
-        actual = self._call_script(path, 'line1\nline2\n')
+        actual = self._call_script(script_name, 'line1\nline2\n')
         expected = '# line1\n# line2\n'
         self.assertString(actual, expected)
 
-        actual = self._call_script(path, 'line1\nline2\n\n')
+        actual = self._call_script(script_name, 'line1\nline2\n\n')
         expected = '# line1\n# line2\n# \n'
         self.assertString(actual, expected)
