@@ -45,9 +45,10 @@ def reraise(extra_info):
 
     """
     exc_class, exc, tb = sys.exc_info()
+    # TODO: use a different technique that preserves the exception type.
+    new_exc = Exception("%s: %s\n-->repr: %s\n-->extr: %s" % (exc_class.__name__, exc, repr(exc), extra_info))
     try:
-        val = "%s:\n-->%s" % (extra_info, exc)
-        raise exc_class, val, tb
+        raise new_exc.__class__, new_exc, tb
     finally:
         # Follow the warning here, just in case--
         #   http://docs.python.org/library/sys.html#sys.exc_info

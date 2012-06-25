@@ -34,13 +34,13 @@ Exposes functions to create directory-rendering unittest.TestCase instances.
 
 from __future__ import absolute_import
 
-import logging
 import os
 from pprint import pformat
 from textwrap import dedent
 from unittest import TestCase
 
 
+from molt.defaults import template_should_ignore
 from molt.dirchooser import make_expected_dir, stage_template_dir
 from molt.molter import Molter
 from molt.test.harness import indent, AssertDirMixin, SandBoxDirMixin
@@ -186,4 +186,5 @@ class TemplateTestCaseBase(TestCase, AssertDirMixin, SandBoxDirMixin):
                                           test_name=template_name,
                                           test_description=description)
             self.assertDirectoriesEqual(actual_dir, expected_dir, fuzzy=True,
-                                        format_msg=format_msg)
+                                        format_msg=format_msg,
+                                        should_ignore=template_should_ignore)

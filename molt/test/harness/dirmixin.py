@@ -48,7 +48,7 @@ DECODE_ERRORS = 'strict'
 DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
 
 # TODO: inject this value at run-time using load_tests().
-SKIPPED_FILES = ['.DS_Store']
+IGNORED_FILES = ['.DS_Store']
 
 
 class AssertDirMixin(AssertFileMixin):
@@ -86,13 +86,13 @@ class AssertDirMixin(AssertFileMixin):
         expected_dir, actual_dir = dcmp.left, dcmp.right
         return expected_dir, actual_dir
 
-    def _get_dcmp_attr(self, dcmp, attr_name):
+    def _get_dcmp_attr(self, dcmp, attr_name, should_ignore):
         attr_val = getattr(dcmp, attr_name)
-        attr_val = filter(lambda file_name: file_name not in SKIPPED_FILES, attr_val)
+        attr_val = filter(lambda file_name: not should_ignore(file_name), attr_val)
 
         return attr_val
 
-    def _assert_empty(self, dcmp, attr_name, format_msg):
+    def _assert_empty(self, dcmp, attr_name, should_ignore, format_msg):
         """
         Arguments:
 
@@ -100,13 +100,15 @@ class AssertDirMixin(AssertFileMixin):
           attr: a dircmp attribute name.
 
         """
-        attr_val = self._get_dcmp_attr(dcmp, attr_name)
+        attr_val = self._get_dcmp_attr(dcmp, attr_name, should_ignore=should_ignore)
         if not attr_val:
             return
         # Otherwise, raise the test failure.
 
-        attr_details = "\n".join(["dircmp.%s = %s" % (attr, self._get_dcmp_attr(dcmp, attr)) for
-                                  attr in DIRCMP_ATTRS])
+        lines = ["dircmp.%s = %s" % (attr,
+                  self._get_dcmp_attr(dcmp, attr, should_ignore=should_ignore)) for
+                  attr in DIRCMP_ATTRS]
+        attr_details = "\n".join(lines)
         details = ("Attribute %s non-empty for directory compare:\n%s" %
                    (repr(attr_name), indent(attr_details, "  ")))
 
@@ -130,7 +132,7 @@ class AssertDirMixin(AssertFileMixin):
                               format_msg=assert_files_format_msg,
                               file_encoding=TEST_FILE_ENCODING, errors=DECODE_ERRORS)
 
-    def _assert_common_files_equal(self, dcmp, format_msg, fuzzy=False):
+    def _assert_common_files_equal(self, dcmp, format_msg, should_ignore, fuzzy=False):
         """
         Assert that the common files in dcmp are the same.
 
@@ -139,7 +141,7 @@ class AssertDirMixin(AssertFileMixin):
           dcmp: a filecmp.dircmp ("directory comparison") instance.
 
         """
-        file_names = self._get_dcmp_attr(dcmp, 'diff_files')
+        file_names = self._get_dcmp_attr(dcmp, 'diff_files', should_ignore=should_ignore)
         if not file_names:
             return
         # Otherwise, at least one file has different contents.  Pass the files
@@ -157,7 +159,8 @@ class AssertDirMixin(AssertFileMixin):
         # If got here, then all files were in fact the same.
 
     def assertDirectoriesEqual(self, actual_dir, expected_dir, format_msg=None,
-                               fuzzy=False, file_encoding='utf-8', errors='strict'):
+                               fuzzy=False, file_encoding='utf-8', errors='strict',
+                               should_ignore=None):
         """
         Assert that the contents of two directories are equal.
 
@@ -168,25 +171,33 @@ class AssertDirMixin(AssertFileMixin):
           format_msg: a function that accepts a details string and returns
             the desired text for the assertion error message.
 
+          should_ignore: a boolean-value function that accepts a file name
+            and returns whether to ignore it.  Defaults to ignoring no files.
+
         """
         if format_msg is None:
             format_msg = lambda msg: msg
+        if should_ignore is None:
+            should_ignore = lambda file_name: False
 
         self.assertFileExists(actual_dir, label='actual directory', format_msg=format_msg)
         self.assertFileExists(expected_dir, label='expected directory', format_msg=format_msg)
 
         # TODO: use dircmp's ignore and/or hide keyword arguments.
-        dcmp = dircmp(expected_dir, actual_dir)
+        dcmp = dircmp(expected_dir, actual_dir, ignore=IGNORED_FILES)
 
         subdir_format_msg = self._make_subdir_format_msg(actual_dir, expected_dir, format_msg=format_msg)
 
-        self._assert_common_files_equal(dcmp, format_msg=subdir_format_msg, fuzzy=fuzzy)
+        self._assert_common_files_equal(dcmp, format_msg=subdir_format_msg,
+                                        should_ignore=should_ignore, fuzzy=fuzzy)
 
         for attr in DIRCMP_ATTRS:
-            self._assert_empty(dcmp, attr, format_msg=subdir_format_msg)
+            self._assert_empty(dcmp, attr, should_ignore=should_ignore,
+                               format_msg=subdir_format_msg)
 
         for subdir in dcmp.common_dirs:
             expected_subdir = os.path.join(expected_dir, subdir)
             actual_subdir = os.path.join(actual_dir, subdir)
             self.assertDirectoriesEqual(actual_subdir, expected_subdir,
-                                        format_msg=format_msg, fuzzy=True)
+                                        format_msg=format_msg, fuzzy=True,
+                                        should_ignore=should_ignore)

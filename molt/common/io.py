@@ -42,6 +42,8 @@ import os
 from shutil import rmtree
 from tempfile import mkdtemp
 
+from molt.common.error import reraise
+
 
 _log = logging.getLogger(__name__)
 
@@ -61,7 +63,10 @@ def read(path, encoding, errors):
     with open(path, 'rb') as f:
         b = f.read()
 
-    return b.decode(encoding, errors)
+    try:
+        return b.decode(encoding, errors)
+    except UnicodeDecodeError, err:
+        reraise("path: %s" % path)
 
 
 def write(u, path, encoding, errors):

@@ -40,6 +40,7 @@ from unittest import TestCase
 import molt.commands.molt
 from molt.common.popen import call_script
 from molt.constants import DEMO_TEMPLATE_DIR
+from molt.defaults import template_should_ignore
 from molt.test.harness import config_load_tests, AssertDirMixin, SandBoxDirMixin
 
 _log = logging.getLogger(__name__)
@@ -81,7 +82,8 @@ class ReadmeTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
             return msg
 
         self.assertEquals(0, return_code, msg=format_msg("exit status: %s != 0" % return_code))
-        self.assertDirectoriesEqual(actual_dir, expected_dir, format_msg=format_msg, fuzzy=fuzzy)
+        self.assertDirectoriesEqual(actual_dir, expected_dir, format_msg=format_msg, fuzzy=fuzzy,
+                                    should_ignore=template_should_ignore)
         self.assertEquals(stdout.strip(), expected_output)
 
     def test_try_it(self):
@@ -118,5 +120,5 @@ class EndToEndTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
             actual_dir = output_dir
             expected_dir = DEMO_TEMPLATE_DIR
 
-            self.assertDirectoriesEqual(actual_dir, expected_dir)
+            self.assertDirectoriesEqual(actual_dir, expected_dir, should_ignore=template_should_ignore)
             self.assertEquals(stdout.strip(), output_dir)
