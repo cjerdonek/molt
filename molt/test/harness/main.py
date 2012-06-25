@@ -109,6 +109,11 @@ def run_molt_tests(source_dir=None, verbose=False,test_names=None,
     doctest_paths = locator.doctest_paths()
     extra_package_dirs = locator.extra_package_dirs()
 
+    for package_dir in extra_package_dirs:
+        dir_path = os.path.dirname(package_dir)
+        # This allows us to import the extra packages later on.
+        sys.path.append(dir_path)
+
     package_dirs = [os.path.dirname(molt.__file__)] + extra_package_dirs
     test_run_dir = make_test_run_dir(test_output_dir)
 
