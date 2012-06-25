@@ -13,7 +13,7 @@ project templates.
 You can use Molt to decrease the amount of boilerplate code you need to write
 when starting any new project: the README, copyright notices, license
 info, logging configuration, option parsing, test harness,
-packaging information (i.e. setup.py in the case of Python), .gitignore,
+packaging information (i.e. setup.py in the case of Python), `.gitignore`,
 directory hierarchy, etc.
 
 A minimal sample usage looks like--

@@ -1,7 +1,13 @@
 *.DS_Store
 *.pyc
 *.temp.rst
-# TextMate project file
-*.tmproj
 # The directory created by tox: http://pypi.python.org/pypi/tox
 .tox/
+# Directories created by setup.py.
+build/
+dist/
+molt.egg-info/
+# For extra convenience--
+temp/
+# TextMate project file
+*.tmproj
