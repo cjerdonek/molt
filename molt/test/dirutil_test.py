@@ -28,7 +28,7 @@
 #
 
 """
-Unit tests for dirchooser.py.
+Unit tests for dirutil.py.
 
 """
 
@@ -37,8 +37,8 @@ import unittest
 
 from molt.common.error import Error
 from molt.common.popen import call_script
-from molt.dirchooser import make_output_dir, set_executable_bit
-from molt.dirchooser import DirectoryChooser as Chooser
+from molt.dirutil import make_output_dir, set_executable_bit
+from molt.dirutil import DirectoryChooser as Chooser
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 
 

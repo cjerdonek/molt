@@ -43,7 +43,7 @@ from molt import __version__
 #   http://docs.python.org/library/argparse.html#module-argparse
 from molt.common.optionparser import Option, OptionParser, UsageError
 from molt import defaults
-from molt.dirchooser import DirectoryChooser
+from molt.dirutil import DirectoryChooser
 
 
 _log = logging.getLogger(__name__)

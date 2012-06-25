@@ -46,7 +46,7 @@ from molt.common import io
 from molt.common.error import Error
 from molt.common.popen import call_script
 from  molt import defaults
-from molt.dirchooser import DirectoryChooser
+from molt.dirutil import DirectoryChooser
 
 
 TEMPLATE_EXT = '.mustache'

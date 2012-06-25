@@ -40,7 +40,7 @@ import unittest
 
 from molt.common.popen import call_script
 from molt.constants import TEST_DATA_DIR
-from molt.dirchooser import set_executable_bit
+from molt.dirutil import set_executable_bit
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 from molt.test.harness.common import AssertStringMixin
 

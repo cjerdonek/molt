@@ -45,7 +45,7 @@ from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt import constants
 from molt import defaults
-from molt.dirchooser import make_output_dir, stage_template_dir, DirectoryChooser
+from molt.dirutil import make_output_dir, stage_template_dir, DirectoryChooser
 from molt.molter import Molter
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer

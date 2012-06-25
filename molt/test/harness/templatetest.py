@@ -41,7 +41,7 @@ from unittest import TestCase
 
 
 from molt.defaults import template_should_ignore
-from molt.dirchooser import make_expected_dir, stage_template_dir
+from molt.dirutil import make_expected_dir, stage_template_dir
 from molt.molter import Molter
 from molt.test.harness import indent, AssertDirMixin, SandBoxDirMixin
 

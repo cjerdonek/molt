@@ -82,7 +82,7 @@ def _sandbox_dir_manager(test_case, test_run_dir, suffix=None):
 
     """
     # TestCase.id() is the fully-qualified name of the method, e.g.--
-    #   molt.test.dirchooser_test.GenerateOutputDirTestCase.test_foo
+    #   molt.test.dirutil_test.GenerateOutputDirTestCase.test_foo
     case_id = test_case.id()
     parts = case_id.split(".")
     parts = parts[-2:]  # the class name and method name.
