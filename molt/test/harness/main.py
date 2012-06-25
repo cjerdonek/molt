@@ -33,6 +33,7 @@ Exposes a run_molt_tests() function to run all tests in this project.
 """
 
 from datetime import datetime
+import logging
 import os
 from shutil import rmtree
 import sys
@@ -40,8 +41,10 @@ from tempfile import mkdtemp
 
 import molt
 from molt.projectmap import Locator
-from molt.test.harness import test_logger as _log
 from molt.test.harness.alltest import run_tests
+
+
+_log = logging.getLogger(__name__)
 
 
 IS_UNITTEST_MODULE = lambda name: name.endswith('_test')
@@ -110,8 +113,10 @@ def run_molt_tests(source_dir=None, verbose=False,test_names=None,
     extra_package_dirs = locator.extra_package_dirs()
 
     for package_dir in extra_package_dirs:
-        dir_path = os.path.dirname(package_dir)
+        dir_path, package_name = os.path.split(package_dir)
         # This allows us to import the extra packages later on.
+        _log.info("Adding to sys.path for %s: %s" % (package_name, repr(dir_path)))
+        # TODO: we only need to do this when source_dir is provided.
         sys.path.append(dir_path)
 
     package_dirs = [os.path.dirname(molt.__file__)] + extra_package_dirs

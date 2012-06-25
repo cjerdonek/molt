@@ -31,5 +31,4 @@ For after the initial release:
   a subfolder.
 * Consider running pylint, PyChecker, and/or pep8 in addition to the
   doctests in each module.
-* [move to groome-python] Add git files.
-* Add a tox environment that does not have Groome tests.
+* [move to groome-python].  Add git files.
