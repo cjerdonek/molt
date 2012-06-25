@@ -21,7 +21,11 @@ A minimal sample usage looks like--
 
 Molt is written in [Python](http://www.python.org/) and follows the
 [Groome](http://cjerdonek.github.com/groome/) rules for Mustache-based
-project templates.  See the Groome page for project template syntax.
+project templates.
+
+See the [Groome](http://cjerdonek.github.com/groome/) page for project
+template syntax.  This version of Molt follows
+[version 0.1.0](https://github.com/cjerdonek/groome/tree/v0.1.0) of Groome.
 
 
 Requirements
