@@ -36,7 +36,6 @@ import logging
 import os
 import unittest
 
-from molt.constants import GROOME_INPUT_DIR
 from molt.test.harness import config_load_tests, test_logger as _log
 from molt.test.harness.templatetest import make_template_tests_class
 
@@ -51,9 +50,9 @@ def load_tests(loader, tests, pattern):
         from this module.
 
     """
-    groome_dir = GROOME_INPUT_DIR
+    groome_dir = loader.test_config.groome_tests_dir
 
-    template_tests = []
+    template_tests = unittest.TestSuite()
     if os.path.exists(groome_dir):
        type_args = make_template_tests_class(group_name='Groome',
                                               parent_input_dir=groome_dir)

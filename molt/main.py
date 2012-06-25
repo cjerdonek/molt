@@ -152,19 +152,13 @@ def run_molt(sys_argv, configure_logging=_configure_logging, process_args=None, 
     _app_log.debug("sys.argv: %s" % repr(sys_argv))
     _app_log.debug("kwargs: %s" % repr(kwargs))
 
-    extra_test_packages = []
-    setup_package_name = kwargs.get('setup_package')
-    if setup_package_name is not None:
-        extra_test_packages.append(setup_package_name)
-
     try:
         if process_args is None:
             # See this module's docstring for an explanation of why
             # we do this import inside a function body.
             from molt.argprocessor import run_args
             process_args = run_args
-        status = process_args(sys_argv, test_runner_stream=stderr_stream,
-                              extra_test_packages=extra_test_packages)
+        status = process_args(sys_argv, test_runner_stream=stderr_stream)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         details = """\

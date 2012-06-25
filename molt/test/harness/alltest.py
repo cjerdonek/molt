@@ -84,23 +84,22 @@ def make_doctests(module_names, text_paths):
     return suites
 
 
-def find_modules(package):
+def find_modules(package_dir):
     """
     Return a list of the names of modules inside a package.
 
     """
-    dir_path = os.path.dirname(package.__file__)
-    prefix = "%s." % package.__name__
+    prefix = "%s." % os.path.basename(package_dir)
 
     names = []
-    for info in walk_packages(path=[dir_path], prefix=prefix):
+    for info in walk_packages(path=[package_dir], prefix=prefix):
         loader, name, ispkg = info
         names.append(name)
 
     return names
 
 
-def find_tests(packages, is_unittest_module, doctest_paths, extra_tests):
+def find_tests(package_dirs, is_unittest_module, doctest_paths, extra_tests):
     """
     Find all tests and return a pair (test_suites, test_module_names).
 
@@ -114,7 +113,7 @@ def find_tests(packages, is_unittest_module, doctest_paths, extra_tests):
     #
     # We use our own test discovery method here to support test discovery
     # in Python 2.6 and earlier.
-    module_names_list = [find_modules(package) for package in packages]
+    module_names_list = [find_modules(package_dir) for package_dir in package_dirs]
     module_names = reduce(lambda names1, names2: names1 + names2, module_names_list)
 
     doctests = make_doctests(module_names, doctest_paths)
@@ -125,7 +124,7 @@ def find_tests(packages, is_unittest_module, doctest_paths, extra_tests):
 
     return tests, test_module_names
 
-def run_tests(packages, is_unittest_module, test_config, test_names=None,
+def run_tests(package_dirs, is_unittest_module, test_config, test_names=None,
               extra_tests=None, doctest_paths=None, verbosity=1,
               test_runner_stream=None):
     """
@@ -133,7 +132,7 @@ def run_tests(packages, is_unittest_module, test_config, test_names=None,
 
     Arguments:
 
-      packages: the packages in which to look for tests.
+      package_dirs: the directories of the packages in which to look for tests.
 
       is_unittest_module: a lambda that accepts a module name and returns
         whether the module should be searched for unit tests.
@@ -157,7 +156,7 @@ def run_tests(packages, is_unittest_module, test_config, test_names=None,
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
-    tests, test_module_names = find_tests(packages, is_unittest_module,
+    tests, test_module_names = find_tests(package_dirs, is_unittest_module,
                                           doctest_paths, extra_tests)
 
     def should_include(test_case):

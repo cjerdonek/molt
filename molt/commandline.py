@@ -53,10 +53,11 @@ METAVAR_INPUT_DIR = 'DIRECTORY'
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
 OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
-OPTION_MODE_DEMO = Option(('--create-demo',))
-OPTION_MODE_TESTS = Option(('--run-tests',))
-OPTION_MODE_VISUALIZE = Option(('--visualize',))
-OPTION_WITH_VISUALIZE = Option(('--with-visualize',))
+OPTION_MODE_DEMO = Option(('--create-demo', ))
+OPTION_MODE_TESTS = Option(('--run-tests', ))
+OPTION_MODE_VISUALIZE = Option(('--visualize', ))
+OPTION_SOURCE_DIR = Option(('--dev-source-dir', ))
+OPTION_WITH_VISUALIZE = Option(('--with-visualize', ))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
 
 # We escape the leading "%" so that the leading "%p" is not interpreted as
@@ -207,6 +208,13 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                            'instead of creating a new project.  '
                            'Uses `diff` under the hood.' %
                            METAVAR_INPUT_DIR)
+    parser.add_option(*OPTION_SOURCE_DIR, metavar='DIRECTORY', dest='source_dir',
+                      action='store', default=None,
+                      help='path to a source checkout or source distribution.  '
+                           'This lets one specify project resources not '
+                           'available in a package build or install, when '
+                           'doing development testing.  '
+                           'Defaults to no source directory.')
     parser.add_option(*OPTION_LICENSE, dest="license_mode",
                       action="store_true", default=False,
                       help="print license info to stdout.")

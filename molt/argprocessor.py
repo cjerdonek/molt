@@ -85,21 +85,18 @@ def _get_input_dir(options, args, mode_description):
     return input_dir
 
 
-def run_tests(options, test_names, test_runner_stream, extra_packages):
+def run_tests(options, test_names, test_runner_stream):
     """
     Run project tests, and return the exit status to exit with.
-
-    Arguments:
-
-      extra_packages: packages to test in addition to the main package.
 
     """
     # Suppress the display of standard out while tests are running.
     stdout = sys.stdout
     sys.stdout = StringIO()
+
     try:
         test_result, test_run_dir = run_molt_tests(verbose=options.verbose,
-                                                   extra_packages=extra_packages,
+                                                   source_dir=options.source_dir,
                                                    test_names=test_names,
                                                    test_output_dir=options.output_directory,
                                                    test_runner_stream=test_runner_stream)
@@ -155,28 +152,18 @@ def run_visualize_mode(options, args):
     return None  # no need to print anything more.
 
 
-def run_args(sys_argv, chooser=None, test_runner_stream=None, extra_test_packages=None):
-    """
-    Arguments:
-
-      extra_test_packages: packages to test in addition to the main package.
-        Defaults to the empty list.
-
-    """
+def run_args(sys_argv, chooser=None, test_runner_stream=None):
     if chooser is None:
         chooser = DirectoryChooser()
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
-    if extra_test_packages is None:
-        extra_test_packages=[]
 
     options, args = commandline.parse_args(sys_argv, chooser)
 
     if options.run_test_mode:
         # Do not print the result to standard out.
         test_names = None if not args else args
-        return run_tests(options, test_names=test_names, test_runner_stream=test_runner_stream,
-                         extra_packages=extra_test_packages)
+        return run_tests(options, test_names=test_names, test_runner_stream=test_runner_stream)
 
     if options.create_demo_mode:
         result = create_demo(options)

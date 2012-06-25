@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,39 +28,62 @@
 #
 
 """
-Unit tests for the main module.
+Provides functionality to locate files and folders in the project directory.
 
 """
 
+from __future__ import absolute_import
+
 import os
-from unittest import TestCase
 
-import molt_setup
-from molt_setup.main import find_package_data, make_temp_path
-
-
-class MakeTempPathTestCase(TestCase):
-
-    def test_txt(self):
-        actual = make_temp_path('foo.txt')
-        self.assertEquals(actual, 'foo.temp.txt')
-
-    def test_rst(self):
-        actual = make_temp_path('foo.rst')
-        self.assertEquals(actual, 'foo.temp.rst')
-
-    def test_new_ext(self):
-        actual = make_temp_path('foo.rst', new_ext='.txt')
-        self.assertEquals(actual, 'foo.temp.txt')
+import molt
+import molt.test
 
 
-class FindPackageDataTestCase(TestCase):
+SETUP_PACKAGE_NAME = 'molt_setup'
 
-    def test(self):
-        root_dir = os.path.dirname(molt_setup.__file__)
-        root_dir = os.path.join(root_dir, 'test', 'data', 'find_package_data')
+# The below are relative to the source directory
+GROOME_TEST_DIR = 'sub/groome/tests'
+README_PATH = 'README.md'
 
-        self.assertTrue(os.path.isdir(root_dir), msg="Not found: %s" % root_dir)
 
-        actual = find_package_data(root_dir, 'foo', ['*.txt'])
-        self.assertEquals(actual, ['foo/*.txt', 'foo/bar/*.txt'])
+class Locator(object):
+
+    """
+    Provides access to key files and folders in the project folder hierarchy.
+
+    """
+
+    def __init__(self, source_dir):
+        """
+        Arguments:
+
+          source_dir: the path to a source distribution or source checkout,
+            or None if one is not available (e.g. if running from a package
+            install).
+
+        """
+        self.source_dir = source_dir
+
+    def groome_tests_dir(self):
+        if self.source_dir is None:
+            return None
+        return os.path.join(self.source_dir, GROOME_TEST_DIR)
+
+    def doctest_paths(self):
+        paths = []
+
+        if self.source_dir is not None:
+            readme_path = os.path.join(self.source_dir, README_PATH)
+            paths.append(readme_path)
+
+        return paths
+
+    def extra_package_dirs(self):
+        extra_package_dirs = []
+
+        if self.source_dir is not None:
+            setup_dir = os.path.join(self.source_dir, SETUP_PACKAGE_NAME)
+            extra_package_dirs.append(setup_dir)
+
+        return extra_package_dirs

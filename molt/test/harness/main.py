@@ -39,11 +39,11 @@ import sys
 from tempfile import mkdtemp
 
 import molt
+from molt.projectmap import Locator
 from molt.test.harness import test_logger as _log
 from molt.test.harness.alltest import run_tests
 
 
-README_REL_PATH = 'README.md'  # relative to the project directory.
 IS_UNITTEST_MODULE = lambda name: name.endswith('_test')
 
 
@@ -74,36 +74,15 @@ def make_test_run_dir(test_output_dir):
     return dir_path
 
 
-def _run_tests(packages, test_run_dir, doctest_paths, verbose,
-               test_runner_stream, test_names):
-    # TODO: also add support for --quiet.
-    verbosity = 2 if verbose else 1
-
-    test_config = TestConfig(test_run_dir)
-
-    test_result = run_tests(packages=packages,
-                            is_unittest_module=IS_UNITTEST_MODULE,
-                            test_config=test_config,
-                            doctest_paths=doctest_paths,
-                            verbosity=verbosity,
-                            test_runner_stream=test_runner_stream,
-                            test_names=test_names)
-    return test_result
-
-
-def run_molt_tests(project_dir=None, verbose=False, extra_packages=None,
-                   test_names=None, test_output_dir=None, test_runner_stream=None):
+def run_molt_tests(source_dir=None, verbose=False,test_names=None,
+                   test_output_dir=None, test_runner_stream=None):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
     Arguments:
 
-      project_dir: the path to the source control root, or None if the
-        source control root does not exist (e.g. if running from an
-        installed version).
-
-      extra_packages: a list of packages to test in addition to the main
-        molt package.  Defaults to the empty list.
+      source_dir: the path to a source distribution or source checkout, or
+        None if one is not available (e.g. if running from a package install).
 
       test_names: the list of test-name prefixes to filter tests by.
         If None, all available tests are run.
@@ -118,29 +97,34 @@ def run_molt_tests(project_dir=None, verbose=False, extra_packages=None,
     """
     _log.info("running tests")
 
-    if extra_packages is None:
-        extra_packages = []
-
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
-
-    doctest_paths = []
-    if project_dir is not None:
-        readme_path = os.path.join(project_dir, README_REL_PATH)
-        doctest_paths.append(readme_path)
-    # Otherwise, we don't have access to the README.
 
     if test_output_dir is not None and not os.path.exists(test_output_dir):
         _log.info("creating test output dir: %s" % test_output_dir)
         os.makedirs(test_output_dir)
 
-    packages = [molt] + extra_packages
+    locator = Locator(source_dir)
+
+    doctest_paths = locator.doctest_paths()
+    extra_package_dirs = locator.extra_package_dirs()
+
+    package_dirs = [os.path.dirname(molt.__file__)] + extra_package_dirs
     test_run_dir = make_test_run_dir(test_output_dir)
 
+    # TODO: also add support for --quiet.
+    verbosity = 2 if verbose else 1
+
+    test_config = TestConfig(test_run_dir, source_dir)
+
     try:
-        test_result = _run_tests(packages, test_run_dir, doctest_paths, verbose,
-                                 test_runner_stream=test_runner_stream,
-                                 test_names=test_names)
+        test_result = run_tests(package_dirs=package_dirs,
+                                is_unittest_module=IS_UNITTEST_MODULE,
+                                test_config=test_config,
+                                doctest_paths=doctest_paths,
+                                verbosity=verbosity,
+                                test_runner_stream=test_runner_stream,
+                                test_names=test_names)
     finally:
         if test_output_dir is None or is_empty(test_run_dir):
             _log.info("cleaning up: deleting: %s" % test_run_dir)
@@ -159,7 +143,7 @@ class TestConfig(object):
 
     """
 
-    def __init__(self, test_run_dir):
+    def __init__(self, test_run_dir, source_dir):
         """
         Arguments:
 
@@ -167,5 +151,13 @@ class TestConfig(object):
             test data (for example the output directory of rendering
             a Groome template directory to compare with an expected directory).
 
+          source_dir: the path to a source distribution or source checkout,
+            or None if one is not available (e.g. if running from a package
+            install).
+
         """
+        locator = Locator(source_dir)
+
         self.test_run_dir = test_run_dir
+        self.groome_tests_dir = locator.groome_tests_dir()
+
