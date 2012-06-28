@@ -34,7 +34,8 @@ TODO: add a docstring.
 
 import os
 
-ENCODING_DEFAULT = 'utf-8'
+ENCODING_UTF8 = 'utf-8'
+ENCODING_DEFAULT = ENCODING_UTF8
 TEMP_EXTENSION = '.temp'
 
 
@@ -132,11 +133,11 @@ def make_temp_path(path, new_ext=None):
     return temp_path
 
 
-def convert_md_to_rst(path, docstring_path):
+def _convert_md_to_rst(path, docstring_path):
     """
     Convert the given file from markdown to reStructuredText.
 
-    Returns the new path.
+    Returns the path to a UTF-8 encoded file.
 
     """
     target_path = make_temp_path(path, new_ext='.rst')
@@ -155,3 +156,22 @@ def convert_md_to_rst(path, docstring_path):
         sys.exit(s)
 
     return target_path
+
+
+def convert_md_to_rst(path, docstring_path):
+    """
+    Convert the file contents from markdown to reStructuredText.
+
+    Returns the converted contents as a unicode string.
+
+    Arguments:
+
+      path: the path to the UTF-8 encoded file to be converted.
+
+      docstring_path: the path to the Python file whose docstring contains
+        instructions on how to install pandoc.
+
+    """
+    rst_path = _convert_md_to_rst(path, __file__)
+
+    return read(rst_path, encoding=ENCODING_UTF8)
