@@ -274,24 +274,12 @@ def find_package_data():
     return package_data
 
 
-def main(sys_argv):
+def run_setup(sys_argv):
+    """
+    Call setup().
 
-    # TODO: use the logging module instead of printing.
-    # TODO: include the following in a verbose mode.
-    print("%s: using: version %s of %s" % (PACKAGE_NAME, repr(dist.__version__), repr(dist)))
-
+    """
     should_force2to3 = parse_args(sys_argv)
-
-    command = sys_argv[-1]
-
-    # TODO: eliminate needing to call sys.exit(), for example by calling
-    #   a main function in an else clause.
-    if command == COMMAND_PUBLISH:
-        publish()
-        sys.exit()
-    elif command == COMMAND_PREP:
-        prep()
-        sys.exit()
 
     long_description = get_long_description()
     package_data = find_package_data()
@@ -321,6 +309,21 @@ def main(sys_argv):
           classifiers = CLASSIFIERS,
           **extra_args
     )
+
+
+def main(sys_argv):
+    # TODO: use the logging module instead of printing.
+    # TODO: include the following in a verbose mode.
+    print("%s: using: version %s of %s" % (PACKAGE_NAME, repr(dist.__version__), repr(dist)))
+
+    command = sys_argv[-1]
+
+    if command == COMMAND_PUBLISH:
+        publish()
+    elif command == COMMAND_PREP:
+        prep()
+    else:
+        run_setup(sys_argv)
 
 
 if __name__=='__main__':
