@@ -3,20 +3,17 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Rename project to structure inside molter.py and dirutil.
  * Review README.
  * Review command-line and remove project-specific terminology.
  * Add more end-to-end tests to cover all main use cases.
- * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.
- * Add keywords to setup.py.
 
 For after the initial release:
 
+* Rename project to structure inside molter.py and dirutil.
 * Confirm whether setup.py's publishing can only be done with Python 2.x.
 * Add the ability to "check" a template directory from the command-line.
 * Add a unit test for --verbose working with unit tests.
-* Link to PyPI in the README.
 * Add an --overwrite option to write over (but not delete) existing output
   directories.
 * Add a --strict-output-dir mode that causes the program to fail if
