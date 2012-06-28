@@ -6,34 +6,35 @@ Molt
 
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
-[Molt](http://cjerdonek.github.com/molt/) is a script to start projects
-instantly using [Mustache](http://mustache.github.com/)-based
+[Molt](http://cjerdonek.github.com/molt/) is a script to stub out projects
+in any language instantly using [Mustache](http://mustache.github.com/)-based
 project templates.
 
 You can use Molt to decrease the amount of boilerplate code you need to write
 when starting any new project: the README, copyright notices, license
 info, logging configuration, option parsing, test harness,
-packaging information (i.e. setup.py in the case of Python), `.gitignore`,
-directory hierarchy, etc.
+packaging information, `.gitignore`, directory hierarchy, etc.
 
 A minimal sample usage looks like--
 
     $ molt -c path_to_config.json path_to_template_dir/
 
-Molt is written in [Python](http://www.python.org/) and follows the
-[Groome](http://cjerdonek.github.com/groome/) rules for Mustache-based
-project templates.
-
+Molt follows the [Groome](http://cjerdonek.github.com/groome/) rules for
+Mustache-based project templates.
 See the [Groome](http://cjerdonek.github.com/groome/) page for project
 template syntax.  This version of Molt follows
 [version 0.1.0](https://github.com/cjerdonek/groome/tree/v0.1.0) of Groome.
+
+Molt is written in [Python](http://www.python.org/) and can be found on
+[GitHub](https://github.com/cjerdonek/molt) and in the Python Package
+Index ([PyPI](http://pypi.python.org/pypi/molt)).
 
 
 Requirements
 ------------
 
-Molt requires Python 2.7.  Python 3.x support is coming soon.  As Molt is a
-development tool, there are no plans to support Python 2.6 or earlier.
+Molt requires Python 2.7.  Python 3.x support is coming soon.  Since Molt
+is a development tool, there are no plans to support Python 2.6 or earlier.
 
 Molt's dependencies are--
 
@@ -42,9 +43,11 @@ Molt's dependencies are--
 * [PyYAML](http://pypi.python.org/pypi/PyYAML) (optional, to support
   YAML format for configuration files)
 
-TODO: include setup dependencies
-
 The installation process below installs these dependencies automatically.
+
+Both [setuptools](http://pypi.python.org/pypi/setuptools) and
+[Distribute](http://packages.python.org/distribute/) (preferred) are
+supported for installing.
 
 
 Install It

@@ -9,6 +9,7 @@ Before releasing version 0.1.0:
  * Add more end-to-end tests to cover all main use cases.
  * make setup.py file
  * Make sure HISTORY file, etc. is included in the MANIFEST.
+ * Add keywords to setup.py.
 
 For after the initial release:
 
