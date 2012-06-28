@@ -106,6 +106,7 @@ LONG_DESCRIPTION_PATH = 'setup_long_description.rst'
 
 COMMAND_PREP = 'prep'
 COMMAND_PUBLISH = 'publish'
+COMMAND_UPLOAD = 'upload'
 OPTION_FORCE_2TO3 = '--force2to3'
 
 CLASSIFIERS = (
@@ -182,7 +183,7 @@ def prep():
     make_description_file(LONG_DESCRIPTION_PATH)
 
 
-def publish():
+def publish(sys_argv):
     """
     Publish this package to PyPI (aka "the Cheeseshop").
 
@@ -202,12 +203,9 @@ Run the following command and commit the changes--
 
     print("Description up-to-date: %s" % description_path)
 
-    answer = raw_input("Are you sure you want to publish to PyPI (yes/no)?")
-
-    if answer != "yes":
-        exit("Aborted: nothing published")
-
-    os.system('python setup.py sdist upload')
+    # Upload to PyPI.
+    sys_argv.extend(['sdist', COMMAND_UPLOAD])
+    run_setup(sys_argv)
 
 
 def parse_args(sys_argv):
@@ -285,6 +283,12 @@ def run_setup(sys_argv):
     package_data = find_package_data()
     extra_args = get_extra_args(should_force2to3)
 
+    # Prevent accidental uploads to PyPI.
+    if COMMAND_UPLOAD in [arg.lower() for arg in sys_argv]:
+        answer = raw_input("Are you sure you want to upload to PyPI (yes/no)?")
+        if answer != "yes":
+            exit("Aborted: nothing uploaded")
+
     # We exclude the following arguments since we are able to use a
     # corresponding Trove classifier instead:
     #
@@ -319,7 +323,8 @@ def main(sys_argv):
     command = sys_argv[-1]
 
     if command == COMMAND_PUBLISH:
-        publish()
+        sys_argv.pop()
+        publish(sys_argv)
     elif command == COMMAND_PREP:
         prep()
     else:
