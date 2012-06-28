@@ -113,9 +113,9 @@ To run unit tests--
 
 This is equivalent to--
 
-    $ python -m molt.commands.molt --run-tests
+    $ python -m molt.commands.molt --run-tests [plus more options]
 
-In particular, to test from source any molt command (of the form)--
+In particular, to test from source any molt command of the form--
 
     $ molt [options] [DIRECTORY]
 
