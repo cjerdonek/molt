@@ -77,7 +77,7 @@ Render the template with the sample context provided:
     $ molt --output output --config demo/sample.json demo
 
 Run the newly-created project (which can also be seen
-[here](https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo)):
+[here](https://github.com/cjerdonek/molt/tree/master/molt/demo/expected))):
 
     $ python output/hello.py world
     Hello, world!
