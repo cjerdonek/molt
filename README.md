@@ -26,8 +26,8 @@ template syntax.  This version of Molt follows
 [version 0.1.0](https://github.com/cjerdonek/groome/tree/v0.1.0) of Groome.
 
 Molt is written in [Python](http://www.python.org/) and can be found on
-[GitHub](https://github.com/cjerdonek/molt) and in the Python Package
-Index ([PyPI](http://pypi.python.org/pypi/molt)).
+[GitHub](https://github.com/cjerdonek/molt) and on
+[PyPI](http://pypi.python.org/pypi/molt) (the Python Package Index).
 
 
 Requirements
@@ -70,7 +70,7 @@ Groome template to play with:
 
     $ molt --create-demo --output demo
     $ ls -p demo
-    lambdas/    partials/    project/    sample.json
+    expected/	lambdas/	partials/	sample.json	structure/
 
 Render the template with the sample context provided:
 
@@ -79,9 +79,7 @@ Render the template with the sample context provided:
 Run the newly-created project (which can also be seen
 [here](https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo)):
 
-TODO: do I need to correct the next line?
-
-    $ molt output/hello.py world
+    $ python output/hello.py world
     Hello, world!
 
 For help documentation and available options--
