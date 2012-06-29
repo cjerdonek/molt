@@ -6,7 +6,7 @@ python:
 
 script:
   - python setup.py install
-  # Include the source directory for Groome tests and doctests.
+  # Include the source directory for Groome tests, doctests, setup tests, etc.
   # The working directory for Travis when running scripts is the project
   # source directory.
   - molt --run-tests --dev-source-dir .
