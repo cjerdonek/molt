@@ -33,8 +33,13 @@ Molt is written in [Python](http://www.python.org/) and can be found on
 Requirements
 ------------
 
-Molt requires Python 2.7.  Python 3.x support is coming soon.  Since Molt
-is a development tool, there are no plans to support Python 2.6 or earlier.
+Molt supports the following Python versions:
+
+* Python 2.7
+* [PyPy](http://pypy.org/)
+
+Python 3.x support is coming soon.  Since Molt is a development tool, there
+are no plans to support Python 2.6 or earlier.
 
 Molt's dependencies are--
 
