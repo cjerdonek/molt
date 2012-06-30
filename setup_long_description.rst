@@ -13,15 +13,14 @@ Molt
    :align: center
    :alt: molting snake
 
-`Molt <http://cjerdonek.github.com/molt/>`_ is a script to start
-projects instantly using `Mustache <http://mustache.github.com/>`_-based
-project templates.
+`Molt <http://cjerdonek.github.com/molt/>`_ is a script to stub out
+projects in any language instantly using
+`Mustache <http://mustache.github.com/>`_-based project templates.
 
 You can use Molt to decrease the amount of boilerplate code you need to
 write when starting any new project: the README, copyright notices,
 license info, logging configuration, option parsing, test harness,
-packaging information (i.e. setup.py in the case of Python),
-``.gitignore``, directory hierarchy, etc.
+packaging information, ``.gitignore``, directory hierarchy, etc.
 
 A minimal sample usage looks like--
 
@@ -29,19 +28,26 @@ A minimal sample usage looks like--
 
     $ molt -c path_to_config.json path_to_template_dir/
 
-Molt is written in `Python <http://www.python.org/>`_ and follows the
-`Groome <http://cjerdonek.github.com/groome/>`_ rules for Mustache-based
-project templates.
-
-See the `Groome <http://cjerdonek.github.com/groome/>`_ page for project
+Molt follows the `Groome <http://cjerdonek.github.com/groome/>`_ rules
+for Mustache-based project templates. See the
+`Groome <http://cjerdonek.github.com/groome/>`_ page for project
 template syntax. This version of Molt follows `version
 0.1.0 <https://github.com/cjerdonek/groome/tree/v0.1.0>`_ of Groome.
+
+Molt is written in `Python <http://www.python.org/>`_ and can be found
+on `GitHub <https://github.com/cjerdonek/molt>`_ and on
+`PyPI <http://pypi.python.org/pypi/molt>`_ (the Python Package Index).
 
 Requirements
 ------------
 
-Molt requires Python 2.7. Python 3.x support is coming soon. As Molt is
-a development tool, there are no plans to support Python 2.6 or earlier.
+Molt supports the following Python versions:
+
+-  Python 2.7
+-  `PyPy <http://pypy.org/>`_
+
+Python 3.x support is coming soon. Since Molt is a development tool,
+there are no plans to support Python 2.6 or earlier.
 
 Molt's dependencies are--
 
@@ -50,10 +56,12 @@ Molt's dependencies are--
 -  `PyYAML <http://pypi.python.org/pypi/PyYAML>`_ (optional, to support
    YAML format for configuration files)
 
-TODO: include setup dependencies
-
 The installation process below installs these dependencies
 automatically.
+
+Both `setuptools <http://pypi.python.org/pypi/setuptools>`_ and
+`Distribute <http://packages.python.org/distribute/>`_ (preferred) are
+supported for installing.
 
 Install It
 ----------
@@ -80,7 +88,7 @@ template to play with:
 
     $ molt --create-demo --output demo
     $ ls -p demo
-    lambdas/    partials/    project/    sample.json
+    expected/   lambdas/    partials/   sample.json structure/
 
 Render the template with the sample context provided:
 
@@ -89,13 +97,11 @@ Render the template with the sample context provided:
     $ molt --output output --config demo/sample.json demo
 
 Run the newly-created project (which can also be seen
-`here <https://github.com/cjerdonek/molt/tree/master/molt/test/data/demo>`_):
-
-TODO: do I need to correct the next line?
+`here <https://github.com/cjerdonek/molt/tree/master/molt/demo/expected>`_)):
 
 ::
 
-    $ molt output/hello.py world
+    $ python output/hello.py world
     Hello, world!
 
 For help documentation and available options--
@@ -138,9 +144,9 @@ This is equivalent to--
 
 ::
 
-    $ python -m molt.commands.molt --run-tests
+    $ python -m molt.commands.molt --run-tests [plus more options]
 
-In particular, to test from source any molt command (of the form)--
+In particular, to test from source any molt command of the form--
 
 ::
 
