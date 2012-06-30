@@ -54,14 +54,19 @@ def load_tests(loader, tests, pattern):
 
     template_tests = unittest.TestSuite()
 
-    if groome_dir is not None:
+    if groome_dir is None:
+        # Then Groome tests are not expected to be available.
+        pass
+    elif not os.path.exists(groome_dir):
+        _log.warn("Groome tests directory not found: %s\n"
+                  "  Consult the documentation on how to include them." % groome_dir)
+    else:
        type_args = make_template_tests_class(group_name='Groome',
-                                              parent_input_dir=groome_dir)
+                                             parent_input_dir=groome_dir)
        # We define the class in this module so that the test harness reports
        # the TestCase class as originating from this module.
        test_class = type(*type_args)
        template_tests = loader.loadTestsFromTestCase(test_class)
-    # Otherwise, Groome tests are not available.
 
     _log.info("found %s Groome tests in dir: %s" % (template_tests.countTestCases(), groome_dir))
 
