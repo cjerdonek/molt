@@ -149,7 +149,7 @@ more prefixes.  For example--
     $ python test_molt.py molt.test.common molt.test.dir
 
 Molt is also [set up](https://github.com/cjerdonek/molt/blob/master/.travis.yml)
-to work with [Travis CI](http://travis-ci.org/).
+on GitHub to work with [Travis CI](http://travis-ci.org/).
 
 
 Author

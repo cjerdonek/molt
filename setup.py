@@ -107,7 +107,7 @@ setup = dist.setup
 
 PACKAGE_NAME = 'molt'
 # TODO: instead scrape molt/__init__.py for the version number.
-VERSION = '0.1.0-alpha'  # Also change in molt/__init__.py.
+VERSION = '0.1.0'  # Also change in molt/__init__.py.
 
 FILE_ENCODING = ENCODING_DEFAULT
 
