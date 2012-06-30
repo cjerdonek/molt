@@ -4,6 +4,9 @@
 #   MANIFEST.in
 #   setup.py
 #
+include .gitignore
+include .gitmodules
+include .travis.yml
 include HISTORY.md
 include README.md
 include setup_long_description.rst
@@ -18,4 +21,4 @@ recursive-include molt/test/data *.sh
 # We include molt_setup in MANIFEST.in but not in setup()'s `packages`
 # argument to include molt_setup in the source distribution but not
 # in the build/install.
-recursive-include molt_setup *.py
+recursive-include molt_setup *.py *.txt

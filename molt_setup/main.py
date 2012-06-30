@@ -179,9 +179,10 @@ def describe_differences(dir_path1, dir_path2, ignore_right=None, indent='  '):
         ignore_right = lambda path: False
 
     def format(header, elements):
+        header = '%s:' % header
         if not elements:
-            return ''
-        strings = ['%s:' % header] + sorted(elements)
+            header += " none"
+        strings = [header] + sorted(elements)
         glue = '\n' + indent
 
         return glue.join(strings)
