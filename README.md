@@ -120,7 +120,7 @@ To run unit tests--
     $ python test_molt.py
 
 To test Molt with multiple versions of Python (with a single command!),
-you can use [tox](http://pypi.python.org/pypi/tox):
+you can use [tox](http://tox.testrun.org/):
 
     pip install tox
     tox
