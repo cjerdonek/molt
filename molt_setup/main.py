@@ -32,7 +32,9 @@ TODO: add a docstring.
 
 """
 
+from filecmp import dircmp
 import os
+import tarfile
 
 ENCODING_UTF8 = 'utf-8'
 ENCODING_DEFAULT = ENCODING_UTF8
@@ -69,19 +71,118 @@ def write(u, path, encoding=None):
         f.write(b)
 
 
-def find_directories(root_dir):
+def make_temp_dir(base_dir):
     """
-    Return a list of the directories inside dir_path, including dir_path.
-
-    The function returns the directories as relative to the given directory.
+    Create and return a temp directory.
 
     """
-    dir_paths = ['']  # Start with root directory.
-    for (dir_path, dir_names, filenames) in os.walk(root_dir):
-        for dir_name in dir_names:
-            path = os.path.join(dir_path, dir_name)
-            path = os.path.relpath(path, root_dir)
+    i = 0
+    target_dir = base_dir
+    while True:
+        try:
+            os.mkdir(target_dir)
+            break
+        except OSError:
+            if not os.path.exists(target_dir):
+                # Then there was some other kind of error that we can't handle.
+                raise
+        i += 1
+        target_dir = "%s (%s)" % (base_dir, i)
+
+    return target_dir
+
+
+class DistHelper(object):
+
+    def __init__(self, package_name, version, dist_dir='dist', extracted_name='extracted'):
+        self.dist_dir = dist_dir
+        self.extracted_name = extracted_name
+        self.package_name = package_name
+        self.version = version
+
+    def sdist_base_name(self):
+        return "%s-%s" % (self.package_name, self.version)
+
+    def sdist_file_name(self):
+        return "%s.tar.gz" % self.sdist_base_name()
+
+    def sdist_path(self):
+        return os.path.join(self.dist_dir, self.sdist_file_name())
+
+    def _extract(self, target_dir):
+        """
+        Extract the sdist, and return the directory to which it extracted.
+
+        """
+        unextracted_path = self.sdist_path()
+        base_name = self.sdist_base_name()
+
+        with tarfile.open(unextracted_path) as tar:
+            tar.extractall(target_dir)
+
+        return os.path.join(target_dir, base_name)
+
+    def extract(self):
+        """
+        Extract the sdist, and return the directory to which it extracted.
+
+        """
+        base_temp_dir = os.path.join(self.dist_dir, self.extracted_name)
+        temp_dir = make_temp_dir(base_temp_dir)
+        extracted_dir = self._extract(temp_dir)
+
+        return extracted_dir
+
+
+# TODO: make this recursive.
+def describe_difference(tar_path, project_dir, indent='  '):
+    """
+    Return a string describing the difference between the given directories.
+
+    """
+    def format(header, elements):
+        if not elements:
+            return ''
+        strings = ['%s:' % header] + sorted(elements)
+        glue = '\n' + indent
+
+        return glue.join(strings)
+
+    dcmp = dircmp(tar_path, project_dir)
+
+    strings = [format('Only in %s' % tar_path, dcmp.left_only),
+               format('Only in %s' % project_dir, dcmp.right_only),
+               format('Differing', dcmp.diff_files)]
+
+    return "\n".join(strings)
+
+
+def walk_dir(top_dir, exclude_files=False, ignore=None):
+    """
+    Return a list of the paths inside the given directory.
+
+    The function returns the paths as relative to the given directory
+    and excludes the directory itself.
+
+    """
+    if ignore is None:
+        ignore = lambda path: path.startswith('.')
+
+    dir_paths = []
+    for (dir_path, dir_names, file_names) in os.walk(top_dir):
+        base_names = dir_names
+        if not exclude_files:
+            base_names += file_names
+
+        for base_name in base_names:
+            if ignore(base_name):
+                # Ignore hidden files.
+                continue
+            path = os.path.join(dir_path, base_name)
+            path = os.path.relpath(path, top_dir)
             dir_paths.append(path)
+
+    dir_paths.sort()
 
     return dir_paths
 
@@ -91,7 +192,8 @@ def _find_rel_package_data(root_dir, file_globs):
     Return the relative path names inside the given root directory.
 
     """
-    dir_paths = find_directories(root_dir)
+    dir_paths = walk_dir(root_dir, exclude_files=True)
+    dir_paths.insert(0, '')
 
     paths = []
     for dir_path in dir_paths:

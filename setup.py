@@ -14,7 +14,11 @@ release a new version of this project to PyPI.
 (1) Prepare the release.
 
 Make sure the code is finalized and merged to master.  Bump the version
-number in setup.py, etc.
+number in setup.py, etc.  You can use the following convenience command to
+help check that the right files are being included in the source
+distribution:
+
+    python setup.py --show-sdist sdist
 
 (2) Generate the reStructuredText description for setup()'s 'long_description'
 keyword argument using--
@@ -78,8 +82,15 @@ import shutil
 import sys
 
 from molt_setup import main as setup_lib
-from molt_setup.main import ENCODING_DEFAULT, convert_md_to_rst, make_temp_path, read, write
-
+from molt_setup.main import (
+    ENCODING_DEFAULT,
+    convert_md_to_rst,
+    describe_difference,
+    make_temp_path,
+    read,
+    write,
+    DistHelper,
+)
 
 py_version = sys.version_info
 
@@ -106,8 +117,11 @@ LONG_DESCRIPTION_PATH = 'setup_long_description.rst'
 
 COMMAND_PREP = 'prep'
 COMMAND_PUBLISH = 'publish'
+COMMAND_SDIST = 'sdist'
 COMMAND_UPLOAD = 'upload'
+
 OPTION_FORCE_2TO3 = '--force2to3'
+OPTION_SHOW_SDIST = '--show-sdist'
 
 CLASSIFIERS = (
     'Development Status :: 4 - Beta',
@@ -151,6 +165,11 @@ DATA_FILE_GLOBS = [
     '*.py',
     '*.sh',
 ]
+
+
+# TODO: use the logging package.
+def log(msg):
+    print("%s: %s" % (PACKAGE_NAME, msg))
 
 
 def make_description_file(target_path):
@@ -205,7 +224,7 @@ Run the following command and commit the changes--
     print("Description up-to-date: %s" % description_path)
 
     # Upload to PyPI.
-    sys_argv.extend(['sdist', COMMAND_UPLOAD])
+    sys_argv.extend([COMMAND_SDIST, COMMAND_UPLOAD])
     run_setup(sys_argv)
 
 
@@ -290,6 +309,11 @@ def run_setup(sys_argv):
         if answer != "yes":
             exit("Aborted: nothing uploaded")
 
+    show_sdist = False
+    if OPTION_SHOW_SDIST in sys_argv:
+        show_sdist = True
+        sys_argv.remove(OPTION_SHOW_SDIST)
+
     # We exclude the following arguments since we are able to use a
     # corresponding Trove classifier instead:
     #
@@ -315,11 +339,19 @@ def run_setup(sys_argv):
           **extra_args
     )
 
+    if COMMAND_SDIST in sys_argv and show_sdist:
+        log('running option: %s' % OPTION_SHOW_SDIST)
+        helper = DistHelper(PACKAGE_NAME, VERSION)
+        sdist_path = helper.sdist_path()
+        log("extracting: %s" % sdist_path)
+        extracted_dir = helper.extract()
+        log("showing differences to: %s" % extracted_dir)
+        print(describe_difference(extracted_dir, os.curdir))
+
 
 def main(sys_argv):
-    # TODO: use the logging module instead of printing.
     # TODO: include the following in a verbose mode.
-    print("%s: using: version %s of %s" % (PACKAGE_NAME, repr(dist.__version__), repr(dist)))
+    log("using: version %s of %s" % (repr(dist.__version__), repr(dist)))
 
     command = sys_argv[-1]
 
@@ -330,6 +362,7 @@ def main(sys_argv):
         prep()
     else:
         run_setup(sys_argv)
+
 
 
 if __name__=='__main__':

@@ -36,7 +36,24 @@ import os
 from unittest import TestCase
 
 import molt_setup
-from molt_setup.main import find_package_data, make_temp_path
+from molt_setup.main import (
+    describe_difference,
+    find_package_data,
+    make_temp_path,
+    walk_dir,
+)
+
+
+setup_dir = os.path.dirname(molt_setup.__file__)
+PACKAGE_DIR = os.path.join(setup_dir, 'test', 'data', 'package_dir')
+
+
+def assert_paths_equal(test_case, actual_paths, expected_paths):
+    normalize = lambda paths: [os.path.normpath(path) for path in paths]
+
+    actual, expected = normalize(actual_paths), normalize(expected_paths)
+
+    test_case.assertEquals(actual, expected)
 
 
 class MakeTempPathTestCase(TestCase):
@@ -54,13 +71,26 @@ class MakeTempPathTestCase(TestCase):
         self.assertEquals(actual, 'foo.temp.txt')
 
 
+class WalkDirTestCase(TestCase):
+
+    def test_walk_dir(self):
+        top_dir = PACKAGE_DIR
+
+        actual = walk_dir(top_dir)
+        assert_paths_equal(self, actual, ['foo', 'foo/bar', 'foo/bar/foo.txt', 'foo/foo.txt'])
+
+    def test_find_dirs(self):
+        top_dir = PACKAGE_DIR
+
+        actual = walk_dir(top_dir, exclude_files=True)
+        assert_paths_equal(self, actual, ['foo', 'foo/bar'])
+
+
 class FindPackageDataTestCase(TestCase):
 
     def test(self):
-        root_dir = os.path.dirname(molt_setup.__file__)
-        root_dir = os.path.join(root_dir, 'test', 'data', 'find_package_data')
-
+        root_dir = PACKAGE_DIR
         self.assertTrue(os.path.isdir(root_dir), msg="Not found: %s" % root_dir)
 
         actual = find_package_data(root_dir, 'foo', ['*.txt'])
-        self.assertEquals(actual, ['foo/*.txt', 'foo/bar/*.txt'])
+        assert_paths_equal(self, actual, ['foo/*.txt', 'foo/bar/*.txt'])
