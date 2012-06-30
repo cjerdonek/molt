@@ -171,8 +171,9 @@ class AssertDirMixin(AssertFileMixin):
           format_msg: a function that accepts a details string and returns
             the desired text for the assertion error message.
 
-          should_ignore: a boolean-value function that accepts a file name
-            and returns whether to ignore it.  Defaults to ignoring no files.
+          should_ignore: a boolean-value function that accepts a file or
+            directory name and returns whether to ignore it.
+            Defaults to ignoring no files.
 
         """
         if format_msg is None:

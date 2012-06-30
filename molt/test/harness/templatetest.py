@@ -40,10 +40,9 @@ from textwrap import dedent
 from unittest import TestCase
 
 
-from molt.defaults import template_should_ignore
 from molt.dirutil import make_expected_dir, stage_template_dir
 from molt.molter import Molter
-from molt.test.harness import indent, AssertDirMixin, SandBoxDirMixin
+from molt.test.harness import indent, should_ignore_file, AssertDirMixin, SandBoxDirMixin
 
 
 def make_test_class_type_args(group_name, template_dir, should_stage=False):
@@ -187,4 +186,4 @@ class TemplateTestCaseBase(TestCase, AssertDirMixin, SandBoxDirMixin):
                                           test_description=description)
             self.assertDirectoriesEqual(actual_dir, expected_dir, fuzzy=True,
                                         format_msg=format_msg,
-                                        should_ignore=template_should_ignore)
+                                        should_ignore=should_ignore_file)

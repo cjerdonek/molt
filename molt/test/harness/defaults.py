@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,12 +28,24 @@
 #
 
 """
-This package provides infrastructure for running project unit tests.
+Provides test-related code that may need to be tweaked on occasion.
 
 """
 
-from molt.test.harness.common import indent, test_logger
-from molt.test.harness.defaults import should_ignore_file
-from molt.test.harness.dirmixin import AssertDirMixin
-from molt.test.harness.loading import config_load_tests
-from molt.test.harness.sandbox import SandBoxDirMixin
+from __future__ import absolute_import
+
+# For passing to AssertDirMixin.assertDirectoriesEqual() as the
+# should_ignore argument.
+# TODO: consider adding this to TestConfig.
+def should_ignore_file(base_name):
+    """
+    Arguments:
+
+      base_name: a file or directory name.
+
+    """
+    if base_name.endswith('.pyc'):
+        return True
+    if base_name == '__pycache__':
+        return True
+    return False

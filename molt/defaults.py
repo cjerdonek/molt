@@ -58,11 +58,3 @@ OUTPUT_DIR_FORMAT = "%s_%s"  # subsituted with (dir_path, index).
 
 OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME)
 DEMO_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME_DEMO)
-
-# For passing to AssertDirMixin.assertDirectoriesEqual() as the
-# should_ignore argument.
-def template_should_ignore(file_name):
-    # TODO: move '.pyc' to a constant above.
-    if file_name.endswith('.pyc'):
-        return True
-    return False
