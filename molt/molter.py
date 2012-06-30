@@ -28,7 +28,7 @@
 #
 
 """
-Exposes a Molter class to render a project template.
+Exposes a Molter class to render a template directory.
 
 """
 
