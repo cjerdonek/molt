@@ -313,7 +313,7 @@ def show_differences():
     log("extracting: %s" % sdist_path)
     extracted_dir = helper.extract()
 
-    log("showing differences to: %s" % extracted_dir)
+    log("showing differences with: %s" % extracted_dir)
     print(describe_differences(extracted_dir, os.curdir, ignore_right=ignore_in_project_dir))
 
 

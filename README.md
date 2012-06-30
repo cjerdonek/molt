@@ -11,9 +11,9 @@ in any language instantly using [Mustache](http://mustache.github.com/)-based
 project templates.
 
 You can use Molt to decrease the amount of boilerplate code you need to write
-when starting any new project: the README, copyright notices, license
-info, logging configuration, option parsing, test harness,
-packaging information, `.gitignore`, directory hierarchy, etc.
+when starting new projects: the README, copyright notices, license info,
+logging configuration, option parsing, test harness, packaging information,
+`.gitignore`, directory hierarchy, etc.
 
 A minimal sample usage looks like--
 
@@ -28,6 +28,9 @@ template syntax.  This version of Molt follows
 Molt is written in [Python](http://www.python.org/) and can be found on
 [GitHub](https://github.com/cjerdonek/molt) and on
 [PyPI](http://pypi.python.org/pypi/molt) (the Python Package Index).
+
+Feedback is welcome.  You can also file bug reports and feature requests
+on the GitHub [issues page](https://github.com/cjerdonek/molt/issues).
 
 
 Requirements
@@ -116,11 +119,17 @@ To run unit tests--
 
     $ python test_molt.py
 
-This is equivalent to--
+To test Molt with multiple versions of Python (with a single command!),
+you can use [tox](http://pypi.python.org/pypi/tox):
 
-    $ python -m molt.commands.molt --run-tests [plus more options]
+    pip install tox
+    tox
 
-In particular, to test from source any molt command of the form--
+If you don't have all Python versions listed in `tox.ini`, you can do--
+
+    tox -e py27  # for example
+
+To run from source any molt command of the form--
 
     $ molt [options] [DIRECTORY]
 
@@ -128,7 +137,7 @@ simply type--
 
     $ python -m molt.commands.molt [options] [DIRECTORY]
 
-To include the Groome [tests](https://github.com/cjerdonek/groome/tree/master/tests)
+To include the [Groome tests](https://github.com/cjerdonek/groome/tree/master/tests)
 in your test runs, initialize and update the Groome project submodule--
 
     $ git submodule init
@@ -138,6 +147,9 @@ To run a subset of the tests, you can filter your test runs using one or
 more prefixes.  For example--
 
     $ python test_molt.py molt.test.common molt.test.dir
+
+Molt is also [set up](https://github.com/cjerdonek/molt/blob/master/.travis.yml)
+to work with [Travis CI](http://travis-ci.org/).
 
 
 Author

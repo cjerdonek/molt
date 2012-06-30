@@ -4,10 +4,10 @@ TODO
 Before releasing version 0.1.0:
 
 * Add more end-to-end tests to cover all main use cases.
-* Make sure HISTORY file, etc. is included in the MANIFEST.
 
 For after the initial release:
 
+* In setup.py, scrape the version number from the package `__init__.py`.
 * Rename project to structure inside molter.py and dirutil.
 * Confirm whether setup.py's publishing can only be done with Python 2.x.
 * Add the ability to "check" a template directory from the command-line.
