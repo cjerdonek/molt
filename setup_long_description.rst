@@ -18,9 +18,9 @@ projects in any language instantly using
 `Mustache <http://mustache.github.com/>`_-based project templates.
 
 You can use Molt to decrease the amount of boilerplate code you need to
-write when starting any new project: the README, copyright notices,
-license info, logging configuration, option parsing, test harness,
-packaging information, ``.gitignore``, directory hierarchy, etc.
+write when starting new projects: the README, copyright notices, license
+info, logging configuration, option parsing, test harness, packaging
+information, ``.gitignore``, directory hierarchy, etc.
 
 A minimal sample usage looks like--
 
@@ -37,6 +37,9 @@ template syntax. This version of Molt follows `version
 Molt is written in `Python <http://www.python.org/>`_ and can be found
 on `GitHub <https://github.com/cjerdonek/molt>`_ and on
 `PyPI <http://pypi.python.org/pypi/molt>`_ (the Python Package Index).
+
+Feedback is welcome. You can also file bug reports and feature requests
+on the GitHub `issues page <https://github.com/cjerdonek/molt/issues>`_.
 
 Requirements
 ------------
@@ -140,13 +143,22 @@ To run unit tests--
 
     $ python test_molt.py
 
-This is equivalent to--
+To test Molt with multiple versions of Python (with a single command!),
+you can use `tox <http://tox.testrun.org/>`_:
 
 ::
 
-    $ python -m molt.commands.molt --run-tests [plus more options]
+    pip install tox
+    tox
 
-In particular, to test from source any molt command of the form--
+If you don't have all Python versions listed in ``tox.ini``, you can
+do--
+
+::
+
+    tox -e py27  # for example
+
+To run from source any molt command of the form--
 
 ::
 
@@ -158,8 +170,8 @@ simply type--
 
     $ python -m molt.commands.molt [options] [DIRECTORY]
 
-To include the Groome
-`tests <https://github.com/cjerdonek/groome/tree/master/tests>`_ in your
+To include the `Groome
+tests <https://github.com/cjerdonek/groome/tree/master/tests>`_ in your
 test runs, initialize and update the Groome project submodule--
 
 ::
@@ -173,6 +185,10 @@ more prefixes. For example--
 ::
 
     $ python test_molt.py molt.test.common molt.test.dir
+
+Molt is also `set
+up <https://github.com/cjerdonek/molt/blob/master/.travis.yml>`_ on
+GitHub to work with `Travis CI <http://travis-ci.org/>`_.
 
 Author
 ------
@@ -215,8 +231,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 History
 =======
 
-0.1.0 (TBD)
------------
+0.1.0 (2012-06-30)
+------------------
 
--  Initial release.
+-  Initial release (for Python 2.7 and PyPy).
 
