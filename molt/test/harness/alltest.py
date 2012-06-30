@@ -42,6 +42,7 @@ from pkgutil import walk_packages
 import sys
 from unittest import TestCase, TestLoader, TestProgram, TestSuite, TextTestRunner
 
+from molt.common.error import reraise
 from molt.test.harness.common import test_logger as _log
 
 
@@ -51,12 +52,13 @@ def make_doctest_test_suites(module_names):
 
     """
     suites = []
-    for module in module_names:
+    for module_name in module_names:
         try:
-            suite = doctest.DocTestSuite(module)
+            suite = doctest.DocTestSuite(module_name)
         except ImportError, err:
-            raise Exception("Error building doctests for %s:\n  %s: %s" %
-                            (module, err.__class__.__name__, err))
+            extra_info = "Error creating doctests for: %s" % module_name
+            reraise(extra_info)
+
         suites.append(suite)
     return suites
 

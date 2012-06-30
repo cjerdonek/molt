@@ -37,7 +37,6 @@ from unittest import TestCase
 
 import molt_setup
 from molt_setup.main import (
-    describe_difference,
     find_package_data,
     make_temp_path,
     walk_dir,
