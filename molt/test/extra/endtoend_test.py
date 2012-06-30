@@ -28,7 +28,7 @@
 #
 
 """
-Provides end-to-end tests that exercise Molt from the command-line.
+Provides end-to-end tests that call Molt from the command-line.
 
 """
 
@@ -54,41 +54,89 @@ _log = logging.getLogger(__name__)
 load_tests = config_load_tests
 
 
-def _call_molt(args):
+def _call_python_script(args):
     """
-    Call molt using the command-line.
+    Call `python` from the command-line.
 
     """
     python_path = sys.executable
-    args = [python_path, '-m', molt.commands.molt.__name__] + args
+    args = [python_path] + args
     stdout, stderr, return_code = call_script(args)
 
-    return stdout, stderr, return_code
+    return args, stdout, stderr, return_code
 
 
-class ReadmeTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
+def _call_molt(args):
+    """
+    Call `molt` from the command-line.
+
+    """
+    args = ['-m', molt.commands.molt.__name__] + args
+    args, stdout, stderr, return_code = _call_python_script(args)
+
+    return args, stdout, stderr, return_code
+
+
+class EndToEndMixin(SandBoxDirMixin, AssertDirMixin):
+
+    """
+    Mixin class for TestCase classes in this module.
+
+    """
+
+    def make_format_message(self, args, stderr):
+        """
+        Return a format_msg(details) function for assertion failures.
+
+        """
+        def format_msg(details):
+            msg = "%s\n-->stderr from command-line call: %s\n--->%s" % (details,
+                repr(" ".join(args)), stderr)
+            return msg
+        return format_msg
+
+    def assert_call(self, call_func, args, expected_stdout):
+        """
+        Call the given command-line calling function and assert the outcome.
+
+        Returns (args, stderr).
+
+        """
+        args, stdout, stderr, return_code = call_func(args)
+
+        format_msg = self.make_format_message(args, stderr)
+
+        self.assertEquals(0, return_code, msg=format_msg("exit status: %s != 0" % return_code))
+        self.assertEquals(stdout.strip(), expected_stdout)
+
+        return args, stderr
+
+    def assert_python(self, args, expected_stdout):
+        """
+        Call a Python script from the command-line and assert the outcome.
+
+        """
+        self.assert_call(_call_python_script, args, expected_stdout)
+
+    def assert_molt(self, args, actual_dir, expected_dir, expected_stdout, fuzzy=False):
+        """
+        Call molt from the command-line and assert the outcome.
+
+        """
+        args, stderr = self.assert_call(_call_molt, args, expected_stdout)
+
+        format_msg = self.make_format_message(args, stderr)
+
+        self.assertDirectoriesEqual(actual_dir, expected_dir, format_msg=format_msg, fuzzy=fuzzy,
+                                    should_ignore=should_ignore_file)
+
+
+class ReadmeTestCase(TestCase, EndToEndMixin):
 
     """
     Tests the instructions given in the README.
 
     """
-
-    def _assert_molt(self, args, actual_dir, expected_dir, expected_output, fuzzy=False):
-        """
-        Call molt from the command-line and assert the outcome.
-
-        """
-        stdout, stderr, return_code = _call_molt(args)
-
-        def format_msg(details):
-            msg = "%s\n-->stderr from molt call: %s\n--->%s" % (details,
-                repr(" ".join(args)), stderr)
-            return msg
-
-        self.assertEquals(0, return_code, msg=format_msg("exit status: %s != 0" % return_code))
-        self.assertDirectoriesEqual(actual_dir, expected_dir, format_msg=format_msg, fuzzy=fuzzy,
-                                    should_ignore=should_ignore_file)
-        self.assertEquals(stdout.strip(), expected_output)
 
     def test_try_it(self):
         """
@@ -100,29 +148,32 @@ class ReadmeTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
             # Test creating the demo.
             output_dir = demo_dir
             args = ['--create-demo', '--output', output_dir]
-            self._assert_molt(args, output_dir, expected_dir=DEMO_TEMPLATE_DIR,
-                              expected_output=output_dir)
+            self.assert_molt(args, output_dir, expected_dir=DEMO_TEMPLATE_DIR,
+                             expected_stdout=output_dir)
 
             # Test rendering the demo.
             output_dir = os.path.join(temp_dir, 'output')
             config_path = os.path.join(demo_dir, 'sample.json')
             args = ['--output', output_dir, '--config', config_path, demo_dir]
             expected_dir = os.path.join(demo_dir, 'expected')
-            self._assert_molt(args, output_dir, expected_dir=expected_dir,
-                              expected_output=output_dir, fuzzy=True)
+            self.assert_molt(args, output_dir, expected_dir=expected_dir,
+                             expected_stdout=output_dir, fuzzy=True)
+
+            # Test executing the rendered project.
+            main_path = os.path.join(output_dir, 'hello.py')
+            args = [main_path, 'world']
+            self.assert_python(args, "Hello, world!")
 
 
-# TODO: share subclass and leverage self._assert_molt().
-class EndToEndTestCase(TestCase, SandBoxDirMixin, AssertDirMixin):
+class CreateDemoTestCase(TestCase, EndToEndMixin):
 
     def test_create_demo__with_output(self):
         with self.sandboxDir() as temp_dir:
             output_dir = os.path.join(temp_dir, 'demo')
-            options = ['--create-demo', '--output', output_dir]
-            stdout, stderr, return_code = _call_molt(options)
+            args = ['--create-demo', '--output', output_dir]
 
             actual_dir = output_dir
             expected_dir = DEMO_TEMPLATE_DIR
 
-            self.assertDirectoriesEqual(actual_dir, expected_dir, should_ignore=should_ignore_file)
-            self.assertEquals(stdout.strip(), output_dir)
+            self.assert_molt(args, output_dir, expected_dir=expected_dir,
+                             expected_stdout=output_dir)
