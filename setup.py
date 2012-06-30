@@ -85,7 +85,7 @@ from molt_setup import main as setup_lib
 from molt_setup.main import (
     ENCODING_DEFAULT,
     convert_md_to_rst,
-    describe_difference,
+    describe_differences,
     make_temp_path,
     read,
     write,
@@ -292,6 +292,31 @@ def find_package_data():
     return package_data
 
 
+def show_differences():
+    """
+    Display how the sdist differs from the project directory.
+
+    """
+    def ignore_in_project_dir(path):
+        dir_path, base_name = os.path.split(path)
+        if base_name.endswith('.pyc'):
+            return True
+        if base_name == '__pycache__':
+            return True
+        if base_name == '.DS_Store':
+            return True
+        return False
+
+    helper = DistHelper(PACKAGE_NAME, VERSION)
+    sdist_path = helper.sdist_path()
+
+    log("extracting: %s" % sdist_path)
+    extracted_dir = helper.extract()
+
+    log("showing differences to: %s" % extracted_dir)
+    print(describe_differences(extracted_dir, os.curdir, ignore_right=ignore_in_project_dir))
+
+
 def run_setup(sys_argv):
     """
     Call setup().
@@ -341,12 +366,7 @@ def run_setup(sys_argv):
 
     if COMMAND_SDIST in sys_argv and show_sdist:
         log('running option: %s' % OPTION_SHOW_SDIST)
-        helper = DistHelper(PACKAGE_NAME, VERSION)
-        sdist_path = helper.sdist_path()
-        log("extracting: %s" % sdist_path)
-        extracted_dir = helper.extract()
-        log("showing differences to: %s" % extracted_dir)
-        print(describe_difference(extracted_dir, os.curdir))
+        show_differences()
 
 
 def main(sys_argv):

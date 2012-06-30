@@ -36,7 +36,8 @@ from __future__ import absolute_import
 
 # For passing to AssertDirMixin.assertDirectoriesEqual() as the
 # should_ignore argument.
-# TODO: consider adding this to TestConfig.
+# TODO: consider calling this from TestConfig to avoid having
+#   to import this from individual test modules.
 def should_ignore_file(base_name):
     """
     Arguments:
