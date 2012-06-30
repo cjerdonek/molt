@@ -43,7 +43,7 @@ from molt import __version__
 #   http://docs.python.org/library/argparse.html#module-argparse
 from molt.common.optionparser import Option, OptionParser, UsageError
 from molt import defaults
-from molt.dirutil import DirectoryChooser
+from molt.dirutil import get_default_config_files, DirectoryChooser
 
 
 _log = logging.getLogger(__name__)
@@ -79,19 +79,20 @@ See the Groome web page for details on Groome templates:
 
   http://cjerdonek.github.com/groome/
 
-Behavior:
+Per the Groome guidelines, the script looks in the following locations
+when rendering a Groome template directory.  For the directory structure,
+the script looks for a directory named "%(project_dir)s" in the template
+directory.  For the optional directories of partials and lambdas, the
+script looks in the template directory for directories named "%(partials_dir)s"
+and "%(lambdas_dir)s", respectively.
 
-Per the Groome guidelines, when creating a project, for the project
-structure the script looks for a directory named "%(project_dir)s" in the
-template directory.  It also looks in the template directory for
-optional directories named "%(partials_dir)s" and "%(lambdas_dir)s", for partials
-and lambdas, respectively.
-
-Also per the guidelines, for the rendering context, the script looks at
-the value of the key "%(context_key)s" in the input configuration file.
+Also per the guidelines, for the rendering context, the script uses
+the value of the key "%(context_key)s" in the input configuration file
+containing the rendering context.
 
 The script writes the name of the output directory to stdout when
-complete.""" % {
+complete.  This is useful, in particular, when the output directory written
+to is different from that given by the user.""" % {
     'context_key': defaults.CONFIG_CONTEXT_KEY,
     'project_dir': defaults.TEMPLATE_PROJECT_DIR_NAME,
     'partials_dir': defaults.TEMPLATE_PARTIALS_DIR_NAME,
@@ -171,11 +172,13 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                            'required.  Defaults to %s.  If the output directory '
                            'already exists, then the directory name is incremented '
                            'until the resulting directory would be new.' % repr(defaults.OUTPUT_DIR))
+    config_paths = get_default_config_files()
     parser.add_option("-c", "--config-file", metavar='FILE', dest="config_path",
                       action="store", type='string', default=None,
-                      help='the path to the JSON or YAML configuration file '
-                           'containing the rendering context to use.  '
-                           'Defaults to %s' % chooser.get_config_path_string())
+                      help='the path to the configuration file containing '
+                           'the rendering context to use.  '
+                           'Defaults to looking in the template directory '
+                           'in order for one of: %s' % ', '.join(config_paths))
     parser.add_option(*OPTION_WITH_VISUALIZE, dest="with_visualize",
                       action="store_true", default=False,
                       help='run the %s option on the output directory '
@@ -188,15 +191,16 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
     parser.add_option(*OPTION_MODE_DEMO, dest="create_demo_mode",
                       action="store_true", default=False,
                       help='create a copy of the Molt demo template to play with, '
-                           'instead of creating a new project.  '
+                           'instead of rendering a template directory.  '
                            'The demo illustrates most major features of Groome.  '
                            'The command writes the demo template to the directory '
-                           'provided by the %s option or, if the option is not '
+                           'provided by the %s option or, if that option is not '
                            'provided, to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
     parser.add_option(*OPTION_MODE_TESTS, dest="run_test_mode",
                       action="store_true", default=False,
-                      help='run project tests, instead of creating a new project.  '
+                      help='run project tests, instead of instead of rendering '
+                           'a template directory.  '
                            'Tests include unit tests, doctests, and, if present, '
                            'Groome project test cases.  If the %s option is provided, '
                            'then test failure data is retained for inspection '
@@ -205,12 +209,12 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                       action="store_true", default=False,
                       help='print to stdout in a human-readable format '
                            'the contents of all files in input directory %s, '
-                           'instead of creating a new project.  '
+                           'instead of rendering a template directory.  '
                            'Uses `diff` under the hood.' %
                            METAVAR_INPUT_DIR)
     parser.add_option(*OPTION_SOURCE_DIR, metavar='DIRECTORY', dest='source_dir',
                       action='store', default=None,
-                      help='path to a source checkout or source distribution.  '
+                      help='the path to a source checkout or source distribution.  '
                            'This lets one specify project resources not '
                            'available in a package build or install, when '
                            'doing development testing.  '

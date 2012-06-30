@@ -197,12 +197,6 @@ class DirectoryChooser(object):
     def get_lambdas_dir(self, template_dir):
         return self._get_dir(template_dir, defaults.TEMPLATE_LAMBDAS_DIR_NAME)
 
-    def get_config_path_string(self):
-        s = ("looking in the template directory for one of: %s." %
-             ", ".join(get_default_config_files()))
-
-        return s
-
     def get_config_path(self, path, template_dir):
         """
         Arguments:

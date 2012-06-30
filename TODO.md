@@ -3,9 +3,8 @@ TODO
 
 Before releasing version 0.1.0:
 
- * Review command-line and remove project-specific terminology.
- * Add more end-to-end tests to cover all main use cases.
- * Make sure HISTORY file, etc. is included in the MANIFEST.
+* Add more end-to-end tests to cover all main use cases.
+* Make sure HISTORY file, etc. is included in the MANIFEST.
 
 For after the initial release:
 
