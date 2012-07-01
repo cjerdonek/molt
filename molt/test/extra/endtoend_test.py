@@ -37,7 +37,6 @@ import os
 import sys
 from unittest import TestCase
 
-import molt.commands.molt
 from molt.common.popen import call_script
 from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness import (
@@ -57,6 +56,14 @@ _log = logging.getLogger(__name__)
 load_tests = config_load_tests
 
 
+def _call_script(args):
+    stdout, stderr, return_code = call_script(args)
+
+    stdout, stderr = (s.decode(ENCODING_DEFAULT) for s in (stdout, stderr))
+
+    return stdout, stderr, return_code
+
+
 def _call_python_script(args):
     """
     Call `python` from the command-line.
@@ -64,20 +71,7 @@ def _call_python_script(args):
     """
     python_path = sys.executable
     args = [python_path] + args
-    stdout, stderr, return_code = call_script(args)
-
-    stdout, stderr = (s.decode(ENCODING_DEFAULT) for s in (stdout, stderr))
-
-    return args, stdout, stderr, return_code
-
-
-def _call_molt(args):
-    """
-    Call `molt` from the command-line.
-
-    """
-    args = ['-m', molt.commands.molt.__name__] + args
-    args, stdout, stderr, return_code = _call_python_script(args)
+    stdout, stderr, return_code = _call_script(args)
 
     return args, stdout, stderr, return_code
 
@@ -88,6 +82,18 @@ class EndToEndMixin(SandBoxDirMixin, AssertDirMixin):
     Mixin class for TestCase classes in this module.
 
     """
+
+    def _call_molt(self, args):
+        """
+        Call `molt` from the command-line.
+
+        """
+        first_args = self.test_config.call_molt_args
+        args = first_args + args
+
+        stdout, stderr, return_code = _call_script(args)
+
+        return args, stdout, stderr, return_code
 
     def make_format_message(self, args, stderr):
         """
@@ -105,6 +111,9 @@ class EndToEndMixin(SandBoxDirMixin, AssertDirMixin):
         Call the given command-line calling function and assert the outcome.
 
         Arguments:
+
+          call_func: a function that accepts args and returns a tuple
+            (args, stdout, stderr, return_code).
 
           expected_stdout: a unicode string.
 
@@ -132,7 +141,7 @@ class EndToEndMixin(SandBoxDirMixin, AssertDirMixin):
         Call molt from the command-line and assert the outcome.
 
         """
-        args, stderr = self.assert_call(_call_molt, args, expected_stdout)
+        args, stderr = self.assert_call(self._call_molt, args, expected_stdout)
 
         format_msg = self.make_format_message(args, stderr)
 

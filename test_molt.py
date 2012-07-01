@@ -22,9 +22,10 @@ def main(argv=None):
 
     # TODO: consider passing the extra info via **kwargs instead of sys_argv.
     source_dir = os.path.dirname(__file__)
+    # Modifies argv in place.
     argv += [OPTION_MODE_TESTS[0], OPTION_SOURCE_DIR[0], source_dir]
 
-    return molt.main(sys_argv=argv)
+    return molt.main(sys_argv=argv, from_source=True)
 
 
 if __name__ == "__main__":

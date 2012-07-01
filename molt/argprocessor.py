@@ -85,7 +85,7 @@ def _get_input_dir(options, args, mode_description):
     return input_dir
 
 
-def run_tests(options, test_names, test_runner_stream):
+def run_tests(options, test_names, test_runner_stream, from_source):
     """
     Run project tests, and return the exit status to exit with.
 
@@ -95,7 +95,8 @@ def run_tests(options, test_names, test_runner_stream):
     sys.stdout = StringIO()
 
     try:
-        test_result, test_run_dir = run_molt_tests(verbose=options.verbose,
+        test_result, test_run_dir = run_molt_tests(from_source,
+                                                   verbose=options.verbose,
                                                    source_dir=options.source_dir,
                                                    test_names=test_names,
                                                    test_output_dir=options.output_directory,
@@ -152,7 +153,7 @@ def run_visualize_mode(options, args):
     return None  # no need to print anything more.
 
 
-def run_args(sys_argv, chooser=None, test_runner_stream=None):
+def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False):
     if chooser is None:
         chooser = DirectoryChooser()
     if test_runner_stream is None:
@@ -163,7 +164,8 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None):
     if options.run_test_mode:
         # Do not print the result to standard out.
         test_names = None if not args else args
-        return run_tests(options, test_names=test_names, test_runner_stream=test_runner_stream)
+        return run_tests(options, test_names=test_names, test_runner_stream=test_runner_stream,
+                         from_source=from_source)
 
     if options.create_demo_mode:
         result = create_demo(options)

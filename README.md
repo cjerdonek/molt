@@ -41,6 +41,7 @@ Requirements
 Molt supports the following Python versions:
 
 * Python 2.7
+* Python 3.2
 * [PyPy](http://pypy.org/)
 
 Python 3.x support is coming soon.  Since Molt is a development tool, there

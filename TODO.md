@@ -1,6 +1,12 @@
 TODO
 ====
 
+Do next:
+
+* README documentation for Python 3.
+
+Others:
+
 * Add some test cases with non-latin1 filename encodings.
 * In setup.py, scrape the version number from the package `__init__.py`.
 * Rename project to structure inside molter.py and dirutil.
