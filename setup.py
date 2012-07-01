@@ -205,6 +205,8 @@ def make_description_file(target_path):
 
     convert = lambda path: convert_md_to_rst(path, __file__)
 
+    # TODO: change this to concatenate Markdown files prior to
+    #   converting with pandoc.
     readme_text = convert(README_PATH)
     history_text = convert(HISTORY_PATH)
 
