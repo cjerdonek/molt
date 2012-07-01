@@ -47,6 +47,9 @@ from molt.test.harness import (
     SandBoxDirMixin,
 )
 
+
+ENCODING_DEFAULT = 'utf-8'
+
 _log = logging.getLogger(__name__)
 
 
@@ -62,6 +65,8 @@ def _call_python_script(args):
     python_path = sys.executable
     args = [python_path] + args
     stdout, stderr, return_code = call_script(args)
+
+    stdout, stderr = (s.decode(ENCODING_DEFAULT) for s in (stdout, stderr))
 
     return args, stdout, stderr, return_code
 
@@ -98,6 +103,10 @@ class EndToEndMixin(SandBoxDirMixin, AssertDirMixin):
     def assert_call(self, call_func, args, expected_stdout):
         """
         Call the given command-line calling function and assert the outcome.
+
+        Arguments:
+
+          expected_stdout: a unicode string.
 
         Returns (args, stderr).
 

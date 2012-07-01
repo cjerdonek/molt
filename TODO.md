@@ -1,6 +1,7 @@
 TODO
 ====
 
+* Add some test cases with non-latin1 filename encodings.
 * In setup.py, scrape the version number from the package `__init__.py`.
 * Rename project to structure inside molter.py and dirutil.
 * Confirm whether setup.py's publishing can only be done with Python 2.x.
