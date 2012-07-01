@@ -20,19 +20,30 @@ distribution:
 
     python setup.py --show-sdist sdist
 
-(2) Generate the reStructuredText description for setup()'s 'long_description'
-keyword argument using--
+(2) Update the reStructuredText long_description file.
+
+Update the file containing the long_description argument to setup():
 
     python setup.py prep
 
-and be sure this new version is checked in.  You must have pandoc installed
-to do this step:
+and then check in the new version.  You must have pandoc installed to run
+the command above:
 
     http://johnmacfarlane.net/pandoc/
 
 It helps to review this auto-generated file on GitHub as a sanity check
-prior to uploading because the long description will be sent to PyPI and
-appear there after publishing.
+prior to uploading.  PyPI attempts to convert this string to HTML
+before displaying it on the PyPI project page.  If PyPI finds any
+issues, it will render it instead as plain-text, which we do not want.
+You can also check the file for warnings by running:
+
+    rst2html.py --no-raw setup_long_description.rst > temp.html
+
+Also see:
+
+  http://docs.python.org/dev/distutils/uploading.html#pypi-package-display
+  http://bugs.python.org/issue15231
+
 
 (3) Push to PyPI.  To release a new version to PyPI--
 
