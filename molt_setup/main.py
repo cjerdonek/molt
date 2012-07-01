@@ -71,6 +71,32 @@ def write(u, path, encoding=None):
         f.write(b)
 
 
+# This function lets us keep things more DRY.  See this e-mail exchange
+# for a brief discussion, for example:
+#   http://mail.python.org/pipermail/python-porting/2012-May/000298.html
+def get_version(package_dir):
+    """
+    Parse the version string from a package.
+
+    """
+    init_path = os.path.join(package_dir, '__init__.py')
+    text = read(init_path)
+
+    needle = '__version__ ='
+    try:
+        line = next(line for line in text.splitlines() if line.startswith(needle))
+    except StopIteration:
+        raise Exception("version string not found in: %s" % init_path)
+
+    expr = line[len(needle):]
+    # Using eval() is more robust than using a regular expression.
+    # For example, this method can handle single and double quotes,
+    # end-of-line comments, and more complex version string expressions.
+    version = eval(expr)
+
+    return version
+
+
 def make_temp_dir(base_dir):
     """
     Create and return a temp directory.

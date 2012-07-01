@@ -13,9 +13,9 @@ release a new version of this project to PyPI.
 
 (1) Prepare the release.
 
-Make sure the code is finalized and merged to master.  Bump the version
-number in setup.py, etc.  You can use the following convenience command to
-help check that the right files are being included in the source
+Make sure the code is finalized and merged to master, and bump the version
+number in the package __init__.py.  You can use the following convenience
+command to help check that the right files are being included in the source
 distribution:
 
     python setup.py --show-sdist sdist
@@ -99,6 +99,7 @@ from molt_setup.main import (
     ENCODING_DEFAULT,
     convert_md_to_rst,
     describe_differences,
+    get_version,
     make_temp_path,
     read,
     strip_html_comments,
@@ -120,8 +121,6 @@ setup = dist.setup
 
 
 PACKAGE_NAME = 'molt'
-# TODO: instead scrape molt/__init__.py for the version number.
-VERSION = '0.1.0'  # Also change in molt/__init__.py.
 
 FILE_ENCODING = ENCODING_DEFAULT
 
@@ -314,7 +313,7 @@ def find_package_data():
     return package_data
 
 
-def show_differences():
+def show_differences(package_version):
     """
     Display how the sdist differs from the project directory.
 
@@ -329,7 +328,7 @@ def show_differences():
             return True
         return False
 
-    helper = DistHelper(PACKAGE_NAME, VERSION)
+    helper = DistHelper(PACKAGE_NAME, package_version)
     sdist_path = helper.sdist_path()
 
     log("extracting: %s" % sdist_path)
@@ -344,6 +343,10 @@ def run_setup(sys_argv):
     Call setup().
 
     """
+    package_dir = os.path.join(os.path.dirname(__file__), PACKAGE_NAME)
+    package_version = get_version(package_dir)
+    log("read version: %s" % package_version)
+
     long_description = get_long_description()
     package_data = find_package_data()
     extra_args = get_extra_args()
@@ -368,7 +371,7 @@ def run_setup(sys_argv):
     #  * license
     #
     setup(name=PACKAGE_NAME,
-          version=VERSION,
+          version=package_version,
           description='Mustache project templates using Python and Groome',
           long_description=long_description,
           keywords='project template mustache pystache groome',
@@ -389,7 +392,7 @@ def run_setup(sys_argv):
 
     if COMMAND_SDIST in sys_argv and show_sdist:
         log('running option: %s' % OPTION_SHOW_SDIST)
-        show_differences()
+        show_differences(package_version)
 
 
 def main(sys_argv):
@@ -405,7 +408,6 @@ def main(sys_argv):
         prep()
     else:
         run_setup(sys_argv)
-
 
 
 if __name__=='__main__':
