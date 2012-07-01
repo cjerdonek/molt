@@ -64,7 +64,7 @@ def write(u, path, encoding=None):
     if encoding is None:
         encoding = ENCODING_DEFAULT
 
-    print("Writing to: %s" % path)
+    print("writing to: %s" % path)
     # This function implementation was chosen to be compatible across Python 2/3.
     b = u.encode(encoding)
     with open(path, 'wb') as f:
@@ -283,6 +283,32 @@ def make_temp_path(path, new_ext=None):
     return temp_path
 
 
+def _strip_html_comments(source_path):
+    """
+    Create a new file with HTML comments stripped.
+
+    Returns the new file path.
+
+    """
+    target_path = make_temp_path(source_path)
+    print("stripping HTML comments: %s" % source_path)
+
+    text = read(source_path)
+    lines = text.splitlines(True)  # preserve line endings.
+
+    # Remove HTML comments (which we only allow to take a special form).
+    new_lines = filter(lambda line: not line.startswith("<!--"), lines)
+
+    if len(new_lines) == len(lines):
+        # Then nothing was stripped; no need to create an additional file.
+        return source_path
+
+    text = "".join(new_lines)
+    write(text, target_path)
+
+    return target_path
+
+
 def _convert_md_to_rst(path, docstring_path):
     """
     Convert the given file from markdown to reStructuredText.
@@ -291,10 +317,13 @@ def _convert_md_to_rst(path, docstring_path):
 
     """
     target_path = make_temp_path(path, new_ext='.rst')
+    # Remove our HTML comments because PyPI does not allow it.
+    # See the setup.py docstring for more info on this.
+    source_path = _strip_html_comments(path)
 
     # Pandoc uses the UTF-8 character encoding for both input and output.
-    command = "pandoc --write=rst --output=%s %s" % (target_path, path)
-    print("Converting with pandoc: %s to %s\n-->%s" % (path, target_path, command))
+    command = "pandoc --write=rst --output=%s %s" % (target_path, source_path)
+    print("converting with pandoc: %s to %s\n-->%s" % (source_path, target_path, command))
 
     if os.path.exists(target_path):
         os.remove(target_path)

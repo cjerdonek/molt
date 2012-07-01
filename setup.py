@@ -37,7 +37,9 @@ before displaying it on the PyPI project page.  If PyPI finds any
 issues, it will render it instead as plain-text, which we do not want.
 You can also check the file for warnings by running:
 
-    rst2html.py --no-raw setup_long_description.rst > temp.html
+    $ python setup.py --long-description | rst2html.py --no-raw > temp.html
+
+after installing Docutils (http://docutils.sourceforge.net/).
 
 Also see:
 

@@ -1,6 +1,11 @@
 Molt
 ====
 
+<!-- We strip out 1-line HTML comments prior to passing to pandoc because -->
+<!-- PyPI rejects reST long descriptions that contain HTML. -->
+
+<!-- We leave the leading brackets empty here.  Otherwise, unwanted -->
+<!-- caption text shows up in the reST version converted by pandoc. -->
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
 [Molt](http://cjerdonek.github.com/molt/) is a script to stub out projects
