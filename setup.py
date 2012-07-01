@@ -133,6 +133,8 @@ COMMAND_PUBLISH = 'publish'
 COMMAND_SDIST = 'sdist'
 COMMAND_UPLOAD = 'upload'
 
+ARG_USE_2TO3 = 'use_2to3'
+
 OPTION_FORCE_2TO3 = '--force2to3'
 OPTION_SHOW_SDIST = '--show-sdist'
 
@@ -269,7 +271,7 @@ def get_extra_args(should_force2to3):
     extra = {}
     if py_version >= (3, ) or should_force2to3:
         # Causes 2to3 to be run during the build step.
-        extra['use_2to3'] = True
+        extra[ARG_USE_2TO3] = True
 
     return extra
 
@@ -351,6 +353,9 @@ def run_setup(sys_argv):
     if OPTION_SHOW_SDIST in sys_argv:
         show_sdist = True
         sys_argv.remove(OPTION_SHOW_SDIST)
+
+    if ARG_USE_2TO3 in extra_args:
+        log('including kwarg: %s: %s' % (ARG_USE_2TO3, extra_args[ARG_USE_2TO3]))
 
     # We exclude the following arguments since we are able to use a
     # corresponding Trove classifier instead:
