@@ -108,7 +108,7 @@ module.
 Contribute
 ----------
 
-If using [GitHub](https://github.com/), after forking--
+If using GitHub, after forking--
 
     $ git clone git@github.com:yourusername/molt.git
     $ cd molt

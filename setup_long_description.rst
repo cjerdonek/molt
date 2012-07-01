@@ -128,7 +128,7 @@ module.
 Contribute
 ----------
 
-If using `GitHub <https://github.com/>`_, after forking--
+If using GitHub, after forking--
 
 ::
 
