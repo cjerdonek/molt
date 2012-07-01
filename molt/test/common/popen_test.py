@@ -45,6 +45,9 @@ from molt.test.harness import config_load_tests, SandBoxDirMixin
 from molt.test.harness.common import AssertStringMixin
 
 
+ENCODING_DEFAULT = 'utf-8'
+
+
 # Trigger the load_tests protocol.
 load_tests = config_load_tests
 
@@ -65,7 +68,11 @@ class CallScriptTestCase(unittest.TestCase, AssertStringMixin, SandBoxDirMixin):
     def _get_script_path(self, script_name):
         return os.path.join(TEST_DATA_DIR, 'lambdas', script_name + ".sh")
 
-    def _call_script(self, script_name, bytes_in):
+    def _call_script(self, script_name, u):
+        """
+        Return stdout as a unicode string.
+
+        """
         script_path = self._get_script_path(script_name)
 
         base_name = os.path.basename(script_path)
@@ -74,7 +81,12 @@ class CallScriptTestCase(unittest.TestCase, AssertStringMixin, SandBoxDirMixin):
         copyfile(script_path, new_path)
         set_executable_bit(new_path)
 
+        bytes_in = u.encode(ENCODING_DEFAULT)
+
         stdout, stderr, return_code = call_script([new_path], bytes_in)
+
+        stdout = stdout.decode(ENCODING_DEFAULT)
+
         return stdout
 
     def test_echo_string(self):
@@ -88,17 +100,17 @@ class CallScriptTestCase(unittest.TestCase, AssertStringMixin, SandBoxDirMixin):
         script_name = 'hash_comment'
 
         actual = self._call_script(script_name, '')
-        expected = ''
+        expected = u''
         self.assertString(actual, expected)
 
         actual = self._call_script(script_name, 'line1\nline2')
-        expected = '# line1\n'
+        expected = u'# line1\n'
         self.assertString(actual, expected)
 
         actual = self._call_script(script_name, 'line1\nline2\n')
-        expected = '# line1\n# line2\n'
+        expected = u'# line1\n# line2\n'
         self.assertString(actual, expected)
 
         actual = self._call_script(script_name, 'line1\nline2\n\n')
-        expected = '# line1\n# line2\n# \n'
+        expected = u'# line1\n# line2\n# \n'
         self.assertString(actual, expected)

@@ -134,11 +134,16 @@ def _configure_logging(sys_argv, sys_stderr=None):
     return verbose, stderr_stream
 
 
-def run_molt(sys_argv, configure_logging=_configure_logging, process_args=None, **kwargs):
+def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
+             process_args=None, **kwargs):
     """
     Execute this script's main function, and return the exit status.
 
     Args:
+
+      from_source: whether or not the script was initiated from a source
+        checkout (e.g. by calling `python -m molt.commands.molt` as
+        opposed to via an installed setup entry point).
 
       process_args: the function called within this method's try-except
         block and that accepts sys.argv as a single parameter.
@@ -158,7 +163,8 @@ def run_molt(sys_argv, configure_logging=_configure_logging, process_args=None, 
             # we do this import inside a function body.
             from molt.argprocessor import run_args
             process_args = run_args
-        status = process_args(sys_argv, test_runner_stream=stderr_stream)
+        status = process_args(sys_argv, test_runner_stream=stderr_stream,
+                              from_source=from_source)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:
         details = """\

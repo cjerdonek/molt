@@ -19,4 +19,4 @@ def run(sys_argv):
     renderer = pystache.Renderer(search_dirs=[template_dir])
     renderered = renderer.render_path(template_path, {'to': user_input})
 
-    print renderered
+    print(renderered)

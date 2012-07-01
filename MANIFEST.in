@@ -13,9 +13,9 @@ include setup_long_description.rst
 include test_molt.py
 include TODO.md
 include tox.ini
+recursive-include images *.png
 # You cannot use package_data, for example, to include data files in a
 # source distribution when using Distribute.
-recursive-include images *.png
 recursive-include molt/demo *.json *.mustache *.py *.sh
 recursive-include molt/test/data *.sh
 # We include molt_setup in MANIFEST.in but not in setup()'s `packages`

@@ -1,6 +1,11 @@
 Molt
 ====
 
+<!-- We strip out 1-line HTML comments prior to passing to pandoc because -->
+<!-- PyPI rejects reST long descriptions that contain HTML. -->
+
+<!-- We leave the leading brackets empty here.  Otherwise, unwanted -->
+<!-- caption text shows up in the reST version converted by pandoc. -->
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
 [Molt](http://cjerdonek.github.com/molt/) is a script to stub out projects
@@ -36,6 +41,7 @@ Requirements
 Molt supports the following Python versions:
 
 * Python 2.7
+* Python 3.2
 * [PyPy](http://pypy.org/)
 
 Python 3.x support is coming soon.  Since Molt is a development tool, there
@@ -50,9 +56,10 @@ Molt's dependencies are--
 
 The installation process below installs these dependencies automatically.
 
-Both [setuptools](http://pypi.python.org/pypi/setuptools) and
-[Distribute](http://packages.python.org/distribute/) (preferred) are
-supported for installing.
+You can install to Python 2 with either
+[setuptools](http://pypi.python.org/pypi/setuptools) or
+[Distribute](http://packages.python.org/distribute/) (preferred).
+For Python 3, you must use Distribute.
 
 
 Install It
@@ -98,7 +105,7 @@ quickly visualize entire directory contents.
 
 If using Python, you can also use Molt as a library (though the API is
 not yet stable).  See the `Molter` class in the
-[`molt.molter`](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
+[molt.molter](https://github.com/cjerdonek/molt/blob/master/molt/molter.py)
 module.
 
 
@@ -147,6 +154,36 @@ more prefixes.  For example--
 
 Molt is also [set up](https://github.com/cjerdonek/molt/blob/master/.travis.yml)
 on GitHub to work with [Travis CI](http://travis-ci.org/).
+
+
+### Python 3 Tips
+
+Molt is written in Python 2, so the code must be converted to Python 3 prior
+to using with Python 3.  The installation process does this automatically.
+
+To convert the code to Python 3 manually, run the following using Python 3
+(with Distribute installed)--
+
+    python setup.py build
+
+This writes the converted code to a subdirectory of the project directory
+called `build`.
+
+It is possible (though not recommended) to convert the code without using
+`setup.py`.  You can try this with [2to3](http://docs.python.org/library/2to3.html),
+as follows (two steps):
+
+    2to3 --write --nobackups --no-diffs --doctests_only molt
+    2to3 --write --nobackups --no-diffs molt
+
+This converts the code (and doctests) in place.
+
+To `import molt` from a source distribution while using Python 3, be sure
+that you are importing from a directory containing the converted code
+(e.g. from the `build` directory after converting), and not from the
+original (unconverted) source directory.  Otherwise, you will get a
+syntax error.  You can help prevent this by not running the Python
+IDE from the project directory when importing Molt while using Python 3.
 
 
 Author

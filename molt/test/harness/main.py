@@ -40,6 +40,7 @@ import sys
 from tempfile import mkdtemp
 
 import molt
+import molt.commands.molt
 from molt.projectmap import Locator
 from molt.test.harness.alltest import run_tests
 
@@ -77,12 +78,16 @@ def make_test_run_dir(test_output_dir):
     return dir_path
 
 
-def run_molt_tests(source_dir=None, verbose=False,test_names=None,
+def run_molt_tests(from_source, source_dir=None, verbose=False, test_names=None,
                    test_output_dir=None, test_runner_stream=None):
     """
     Run all project tests, and return a unittest.TestResult instance.
 
     Arguments:
+
+      from_source: whether or not the script was initiated from a source
+        checkout (e.g. by calling `python -m molt.commands.molt` as
+        opposed to via an installed setup entry point).
 
       source_dir: the path to a source distribution or source checkout, or
         None if one is not available (e.g. if running from a package install).
@@ -98,7 +103,7 @@ def run_molt_tests(source_dir=None, verbose=False,test_names=None,
         Defaults to sys.stderr.
 
     """
-    _log.info("running tests")
+    _log.info("running tests: from_source: %s" % from_source)
 
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
@@ -125,7 +130,7 @@ def run_molt_tests(source_dir=None, verbose=False,test_names=None,
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
-    test_config = TestConfig(test_run_dir, source_dir)
+    test_config = TestConfig(test_run_dir, source_dir, from_source=from_source)
 
     try:
         test_result = run_tests(package_dirs=package_dirs,
@@ -153,7 +158,7 @@ class TestConfig(object):
 
     """
 
-    def __init__(self, test_run_dir, source_dir):
+    def __init__(self, test_run_dir, source_dir, from_source=False):
         """
         Arguments:
 
@@ -165,9 +170,19 @@ class TestConfig(object):
             or None if one is not available (e.g. if running from a package
             install).
 
+          from_source: whether or not the script was initiated from a source
+            checkout (e.g. by calling `python -m molt.commands.molt` as
+            opposed to via an installed setup entry point).
+
         """
+        python_path = sys.executable
+        # Call molt the "same" way that the current script execution
+        # was initiated.
+        call_molt_args = ([molt.__name__] if not from_source else
+                          [python_path, '-m', molt.commands.molt.__name__])
+
         locator = Locator(source_dir)
 
-        self.test_run_dir = test_run_dir
+        self.call_molt_args = call_molt_args
         self.groome_tests_dir = locator.groome_tests_dir()
-
+        self.test_run_dir = test_run_dir

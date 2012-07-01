@@ -64,7 +64,7 @@ def write(u, path, encoding=None):
     if encoding is None:
         encoding = ENCODING_DEFAULT
 
-    print("Writing to: %s" % path)
+    print("writing to: %s" % path)
     # This function implementation was chosen to be compatible across Python 2/3.
     b = u.encode(encoding)
     with open(path, 'wb') as f:
@@ -283,18 +283,32 @@ def make_temp_path(path, new_ext=None):
     return temp_path
 
 
-def _convert_md_to_rst(path, docstring_path):
+def strip_html_comments(source_path):
+    """
+    Read the file, and strip HTML comments.
+
+    Returns a unicode string.
+
+    """
+    text = read(source_path)
+    lines = text.splitlines(True)  # preserve line endings.
+
+    # Remove HTML comments (which we only allow to take a special form).
+    new_lines = filter(lambda line: not line.startswith("<!--"), lines)
+
+    return "".join(new_lines)
+
+
+def _convert_md_to_rst(source_path, target_path, docstring_path):
     """
     Convert the given file from markdown to reStructuredText.
 
     Returns the path to a UTF-8 encoded file.
 
     """
-    target_path = make_temp_path(path, new_ext='.rst')
-
     # Pandoc uses the UTF-8 character encoding for both input and output.
-    command = "pandoc --write=rst --output=%s %s" % (target_path, path)
-    print("Converting with pandoc: %s to %s\n-->%s" % (path, target_path, command))
+    command = "pandoc --write=rst --output=%s %s" % (target_path, source_path)
+    print("converting with pandoc: %s to %s\n-->%s" % (source_path, target_path, command))
 
     if os.path.exists(target_path):
         os.remove(target_path)
@@ -309,7 +323,7 @@ def _convert_md_to_rst(path, docstring_path):
     return target_path
 
 
-def convert_md_to_rst(path, docstring_path):
+def convert_md_to_rst(source_path, target_path, docstring_path):
     """
     Convert the file contents from markdown to reStructuredText.
 
@@ -323,6 +337,6 @@ def convert_md_to_rst(path, docstring_path):
         instructions on how to install pandoc.
 
     """
-    rst_path = _convert_md_to_rst(path, __file__)
+    rst_path = _convert_md_to_rst(source_path, target_path, __file__)
 
     return read(rst_path, encoding=ENCODING_UTF8)

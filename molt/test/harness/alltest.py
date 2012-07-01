@@ -186,6 +186,7 @@ def run_tests(package_dirs, is_unittest_module, test_config, test_names=None,
 
     test_runner = TextTestRunner(stream=test_runner_stream, verbosity=verbosity)
 
+    # The verbosity argument was added to Python 3 in Python 3.2.
     test_program = test_program_class(argv=argv, module=None, exit=False, verbosity=verbosity,
                                       testLoader=test_loader, testRunner=test_runner)
 

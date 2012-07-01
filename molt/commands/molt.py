@@ -39,10 +39,18 @@ import sys
 from molt.main import run_molt
 
 
-def main(sys_argv=sys.argv, **kwargs):
-    return run_molt(sys_argv=sys_argv, **kwargs)
+def main(sys_argv=sys.argv, from_source=False, **kwargs):
+    """
+    Arguments:
+
+      from_source: whether this function is being called from a source
+        checkout (e.g. by running `python test_molt.py` or
+        `python -m molt.commands.molt`).
+
+    """
+    return run_molt(sys_argv=sys_argv, from_source=from_source, **kwargs)
 
 
 if __name__ == "__main__":
-    result = main()
+    result = main(from_source=True)
     sys.exit(result)

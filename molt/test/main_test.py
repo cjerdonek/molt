@@ -75,7 +75,7 @@ class MainTestCase(unittest.TestCase):
         self.logging = MockLogging()
 
     def test_error(self):
-        def process_args(sys_argv, chooser=None, test_runner_stream=None):
+        def process_args(sys_argv, chooser=None, test_runner_stream=None, **kwargs):
             raise Error("test")
 
         sys_argv = []
