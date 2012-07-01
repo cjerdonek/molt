@@ -56,9 +56,10 @@ Molt's dependencies are--
 
 The installation process below installs these dependencies automatically.
 
-Both [setuptools](http://pypi.python.org/pypi/setuptools) and
-[Distribute](http://packages.python.org/distribute/) (preferred) are
-supported for installing.
+You can install to Python 2 with either
+[setuptools](http://pypi.python.org/pypi/setuptools) and
+[Distribute](http://packages.python.org/distribute/) (preferred).
+For Python 3, you must use Distribute.
 
 
 Install It
@@ -153,6 +154,34 @@ more prefixes.  For example--
 
 Molt is also [set up](https://github.com/cjerdonek/molt/blob/master/.travis.yml)
 on GitHub to work with [Travis CI](http://travis-ci.org/).
+
+
+### Python 3 Tips
+
+Molt is written in Python 2, so the code must be converted to Python 3 prior
+to using with Python 3.  The installation process does this automatically.
+
+To convert the code to Python 3 manually, run the following with Python 3--
+
+    python setup.py build
+
+This writes the converted code to a subdirectory of the project directory
+called `build`.
+
+To convert the code without using setup.py, you can use
+[2to3](http://docs.python.org/library/2to3.html) as follows (two steps)--
+
+    2to3 --write --nobackups --no-diffs --doctests_only molt
+    2to3 --write --nobackups --no-diffs molt
+
+This converts the code (and doctests) in place.
+
+To `import molt` from a source distribution while using Python 3, be sure
+that you are importing from a directory containing the converted code
+(e.g. from the `build` directory after converting), and not from the
+original (unconverted) source directory.  Otherwise, you will get a
+syntax error.  You can help prevent this by not running the Python
+IDE from the project directory when importing Molt while using Python 3.
 
 
 Author
