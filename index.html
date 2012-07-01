@@ -1,0 +1,282 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Molt by cjerdonek</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Molt</h1>
+        <p>Mustache project templates using Python and Groome. Shed the pain of starting new projects.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/cjerdonek/molt" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/cjerdonek/molt/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/cjerdonek/molt/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>Molt</h1>
+
+
+
+
+
+
+
+
+
+<p><img src="https://github.com/cjerdonek/molt/raw/master/images/molt.png" alt="" title="molting snake"></p>
+
+<p><a href="http://cjerdonek.github.com/molt/">Molt</a> is a script to stub out projects
+in any language instantly using <a href="http://mustache.github.com/">Mustache</a>-based
+project templates.</p>
+
+<p>You can use Molt to decrease the amount of boilerplate code you need to write
+when starting new projects: the README, copyright notices, license info,
+logging configuration, option parsing, test harness, packaging information,
+<code>.gitignore</code>, directory hierarchy, etc.</p>
+
+<p>A minimal sample usage looks like--</p>
+
+<pre><code>$ molt -c path_to_config.json path_to_template_dir/
+</code></pre>
+
+<p>Molt follows the <a href="http://cjerdonek.github.com/groome/">Groome</a> rules for
+Mustache-based project templates.
+See the <a href="http://cjerdonek.github.com/groome/">Groome</a> page for project
+template syntax.  This version of Molt follows
+<a href="https://github.com/cjerdonek/groome/tree/v0.1.0">version 0.1.0</a> of Groome.</p>
+
+<p>Molt is written in <a href="http://www.python.org/">Python</a> and can be found on
+<a href="https://github.com/cjerdonek/molt">GitHub</a> and on
+<a href="http://pypi.python.org/pypi/molt">PyPI</a> (the Python Package Index).</p>
+
+<p>Feedback is welcome.  You can also file bug reports and feature requests
+on the GitHub <a href="https://github.com/cjerdonek/molt/issues">issues page</a>.</p>
+
+<h2>Requirements</h2>
+
+<p>Molt supports the following Python versions:</p>
+
+<ul>
+<li>Python 2.7</li>
+<li>Python 3.2</li>
+<li><a href="http://pypy.org/">PyPy</a></li>
+</ul><p>Python 3.x support is coming soon.  Since Molt is a development tool, there
+are no plans to support Python 2.6 or earlier.</p>
+
+<p>Molt's dependencies are--</p>
+
+<ul>
+<li>
+<a href="https://github.com/defunkt/pystache">Pystache</a> version
+<a href="http://pypi.python.org/pypi/pystache">0.5.2</a> or above</li>
+<li>
+<a href="http://pypi.python.org/pypi/PyYAML">PyYAML</a> (optional, to support
+YAML format for configuration files)</li>
+</ul><p>The installation process below installs these dependencies automatically.</p>
+
+<p>You can install to Python 2 with either
+<a href="http://pypi.python.org/pypi/setuptools">setuptools</a> or
+<a href="http://packages.python.org/distribute/">Distribute</a> (preferred).
+For Python 3, you must use Distribute.</p>
+
+<h2>Install It</h2>
+
+<pre><code>$ pip install molt
+</code></pre>
+
+<h2>Test it</h2>
+
+<pre><code>$ molt --run-tests
+</code></pre>
+
+<h2>Try it</h2>
+
+<p>Start with the <a href="https://github.com/cjerdonek/molt/tree/master/molt/demo">demo</a>
+Groome template to play with:</p>
+
+<pre><code>$ molt --create-demo --output demo
+$ ls -p demo
+expected/   lambdas/    partials/   sample.json structure/
+</code></pre>
+
+<p>Render the template with the sample context provided:</p>
+
+<pre><code>$ molt --output output --config demo/sample.json demo
+</code></pre>
+
+<p>Run the newly-created project (which can also be seen
+<a href="https://github.com/cjerdonek/molt/tree/master/molt/demo/expected">here</a>)):</p>
+
+<pre><code>$ python output/hello.py world
+Hello, world!
+</code></pre>
+
+<p>For help documentation and available options--</p>
+
+<pre><code>$ molt -h
+</code></pre>
+
+<p>Note the <code>--visualize</code> and <code>--with-visualize</code> options that let you
+quickly visualize entire directory contents.</p>
+
+<pre><code>$ molt --visualize output
+</code></pre>
+
+<p>If using Python, you can also use Molt as a library (though the API is
+not yet stable).  See the <code>Molter</code> class in the
+<a href="https://github.com/cjerdonek/molt/blob/master/molt/molter.py">molt.molter</a>
+module.</p>
+
+<h2>Contribute</h2>
+
+<p>If using GitHub, after forking--</p>
+
+<pre><code>$ git clone git@github.com:yourusername/molt.git
+$ cd molt
+$ git remote add upstream git://github.com/cjerdonek/molt.git
+$ git fetch upstream
+</code></pre>
+
+<p>To run unit tests--</p>
+
+<pre><code>$ python test_molt.py
+</code></pre>
+
+<p>To test Molt with multiple versions of Python (with a single command!),
+you can use <a href="http://tox.testrun.org/">tox</a>:</p>
+
+<pre><code>pip install tox
+tox
+</code></pre>
+
+<p>If you don't have all Python versions listed in <code>tox.ini</code>, you can do--</p>
+
+<pre><code>tox -e py27  # for example
+</code></pre>
+
+<p>To run from source any molt command of the form--</p>
+
+<pre><code>$ molt [options] [DIRECTORY]
+</code></pre>
+
+<p>simply type--</p>
+
+<pre><code>$ python -m molt.commands.molt [options] [DIRECTORY]
+</code></pre>
+
+<p>To include the <a href="https://github.com/cjerdonek/groome/tree/master/tests">Groome tests</a>
+in your test runs, initialize and update the Groome project submodule--</p>
+
+<pre><code>$ git submodule init
+$ git submodule update
+</code></pre>
+
+<p>To run a subset of the tests, you can filter your test runs using one or
+more prefixes.  For example--</p>
+
+<pre><code>$ python test_molt.py molt.test.common molt.test.dir
+</code></pre>
+
+<p>Molt is also <a href="https://github.com/cjerdonek/molt/blob/master/.travis.yml">set up</a>
+on GitHub to work with <a href="http://travis-ci.org/">Travis CI</a>.</p>
+
+<h3>Python 3 Tips</h3>
+
+<p>Molt is written in Python 2, so the code must be converted to Python 3 prior
+to using with Python 3.  The installation process does this automatically.</p>
+
+<p>To convert the code to Python 3 manually, run the following using Python 3
+(with Distribute installed)--</p>
+
+<pre><code>python setup.py build
+</code></pre>
+
+<p>This writes the converted code to a subdirectory of the project directory
+called <code>build</code>.</p>
+
+<p>It is possible (though not recommended) to convert the code without using
+<code>setup.py</code>.  You can try this with <a href="http://docs.python.org/library/2to3.html">2to3</a>,
+as follows (two steps):</p>
+
+<pre><code>2to3 --write --nobackups --no-diffs --doctests_only molt
+2to3 --write --nobackups --no-diffs molt
+</code></pre>
+
+<p>This converts the code (and doctests) in place.</p>
+
+<p>To <code>import molt</code> from a source distribution while using Python 3, be sure
+that you are importing from a directory containing the converted code
+(e.g. from the <code>build</code> directory after converting), and not from the
+original (unconverted) source directory.  Otherwise, you will get a
+syntax error.  You can help prevent this by not running the Python
+IDE from the project directory when importing Molt while using Python 3.</p>
+
+<h2>Author</h2>
+
+<p>Molt is authored by <a href="https://github.com/cjerdonek">Chris Jerdonek</a>.
+Chris is also the author of <a href="http://cjerdonek.github.com/groome/">Groome</a> and
+is the current <a href="https://github.com/defunkt/pystache">Pystache</a> maintainer.</p>
+
+<h2>Copyright</h2>
+
+<p>Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.</p>
+
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:</p>
+
+<ul>
+<li>Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.</li>
+<li>Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.</li>
+<li>The names of the copyright holders may not be used to endorse or promote
+products derived from this software without specific prior written
+permission.</li>
+</ul><p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/cjerdonek">cjerdonek</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
