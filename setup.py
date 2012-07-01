@@ -50,7 +50,7 @@ If you get an error like the following--
 
     Upload failed (401): You must be identified to edit package information
 
-then add a file called .pyirc to your home directory with the following
+then add a file called .pypirc to your home directory with the following
 contents:
 
     [server-login]
