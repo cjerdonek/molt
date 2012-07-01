@@ -4,11 +4,6 @@
 Molt
 ====
 
-.. raw:: html
-
-   <!-- We leave the brackets empty.  Otherwise, text shows up in the reST
-     version converted by pandoc. -->
-
 .. figure:: https://github.com/cjerdonek/molt/raw/master/images/molt.png
    :align: center
    :alt: molting snake
