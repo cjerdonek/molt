@@ -57,7 +57,7 @@ Molt's dependencies are--
 The installation process below installs these dependencies automatically.
 
 You can install to Python 2 with either
-[setuptools](http://pypi.python.org/pypi/setuptools) and
+[setuptools](http://pypi.python.org/pypi/setuptools) or
 [Distribute](http://packages.python.org/distribute/) (preferred).
 For Python 3, you must use Distribute.
 
@@ -171,7 +171,7 @@ called `build`.
 
 It is possible (though not recommended) to convert the code without using
 `setup.py`.  You can try this with [2to3](http://docs.python.org/library/2to3.html),
-as follows (two steps)--
+as follows (two steps):
 
     2to3 --write --nobackups --no-diffs --doctests_only molt
     2to3 --write --nobackups --no-diffs molt
