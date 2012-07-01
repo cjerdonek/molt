@@ -135,7 +135,6 @@ COMMAND_UPLOAD = 'upload'
 
 ARG_USE_2TO3 = 'use_2to3'
 
-OPTION_FORCE_2TO3 = '--force2to3'
 OPTION_SHOW_SDIST = '--show-sdist'
 
 CLASSIFIERS = (
@@ -243,19 +242,6 @@ Run the following command and commit the changes--
     run_setup(sys_argv)
 
 
-def parse_args(sys_argv):
-    """
-    Modify sys_argv in place and return whether to force use of 2to3.
-
-    """
-    should_force2to3 = False
-    if len(sys_argv) > 1 and sys_argv[1] == OPTION_FORCE_2TO3:
-        sys_argv.pop(1)
-        should_force2to3 = True
-
-    return should_force2to3
-
-
 # The purpose of this function is to follow the guidance suggested here:
 #
 #   http://packages.python.org/distribute/python3.html#note-on-compatibility-with-setuptools
@@ -263,13 +249,16 @@ def parse_args(sys_argv):
 # The guidance is for better compatibility when using setuptools (e.g. with
 # earlier versions of Python 2) instead of Distribute, because of new
 # keyword arguments to setup() that setuptools may not recognize.
-def get_extra_args(should_force2to3):
+def get_extra_args():
     """
     Return a dictionary of extra args to pass to setup().
 
     """
     extra = {}
-    if py_version >= (3, ) or should_force2to3:
+    # TODO: it might be more correct to check whether we are using
+    #   Distribute instead of setuptools, since use_2to3 doesn't take
+    #   effect when using Python 2, even when using Distribute.
+    if py_version >= (3, ):
         # Causes 2to3 to be run during the build step.
         extra[ARG_USE_2TO3] = True
 
@@ -337,11 +326,9 @@ def run_setup(sys_argv):
     Call setup().
 
     """
-    should_force2to3 = parse_args(sys_argv)
-
     long_description = get_long_description()
     package_data = find_package_data()
-    extra_args = get_extra_args(should_force2to3)
+    extra_args = get_extra_args()
 
     # Prevent accidental uploads to PyPI.
     if COMMAND_UPLOAD in [arg.lower() for arg in sys_argv]:
