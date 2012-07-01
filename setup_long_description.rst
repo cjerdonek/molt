@@ -264,8 +264,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 History
 =======
 
-0.1.1 (TBD)
------------
+0.1.1 (2012-07-01)
+------------------
 
 -  Add Python 3 support.
 
