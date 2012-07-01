@@ -215,9 +215,9 @@ def make_description_file(target_path):
     log('writing: %s' % md_description_path)
     write(md_description, md_description_path)
 
-    target_path = make_temp_path(LONG_DESCRIPTION_PATH)
+    temp_path = make_temp_path(LONG_DESCRIPTION_PATH)
     rst_description = convert_md_to_rst(source_path=md_description_path,
-                                        target_path=target_path,
+                                        target_path=temp_path,
                                         docstring_path=__file__)
 
     # Comments in reST begin with two dots.
@@ -228,7 +228,7 @@ def make_description_file(target_path):
 
     rst_description = '\n'.join([intro_text, rst_description])
 
-    write(rst_description, LONG_DESCRIPTION_PATH)
+    write(rst_description, target_path)
 
 
 def prep():
@@ -250,7 +250,7 @@ Description file not up-to-date: %s
 Run the following command and commit the changes--
 
     python setup.py %s
-""" % (description_path, PREP_COMMAND))
+""" % (description_path, COMMAND_PREP))
         sys.exit()
 
     print("Description up-to-date: %s" % description_path)
