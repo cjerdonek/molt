@@ -291,13 +291,14 @@ def _convert_md_to_rst(path, docstring_path):
 
     """
     target_path = make_temp_path(path, new_ext='.rst')
-    print("Converting with pandoc: %s to %s" % (path, target_path))
+
+    # Pandoc uses the UTF-8 character encoding for both input and output.
+    command = "pandoc --write=rst --output=%s %s" % (target_path, path)
+    print("Converting with pandoc: %s to %s\n-->%s" % (path, target_path, command))
 
     if os.path.exists(target_path):
         os.remove(target_path)
 
-    # Pandoc uses the UTF-8 character encoding for both input and output.
-    command = "pandoc --write=rst --output=%s %s" % (target_path, path)
     os.system(command)
 
     if not os.path.exists(target_path):

@@ -1,9 +1,6 @@
 Molt
 ====
 
-<!-- We leave the brackets empty.  Otherwise, text shows up in the reST
-  version converted by pandoc. -->
-
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
 [Molt](http://cjerdonek.github.com/molt/) is a script to stub out projects
