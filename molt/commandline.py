@@ -126,19 +126,58 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 
-def get_version_header():
+def _get_version_header():
     return "Molt %s" % __version__
 
 
 def get_version_string():
     using_string = "Using: Python %s\n at %s" % (sys.version, sys.executable)
-    s = "\n\n".join([get_version_header(), using_string, COPYRIGHT_LINE])
+    s = "\n\n".join([_get_version_header(), using_string, COPYRIGHT_LINE])
     return s
 
 
 def get_license_string():
-    s = "\n\n".join([get_version_header(), COPYRIGHT_LINE, LICENSE_STRING])
+    s = "\n\n".join([_get_version_header(), COPYRIGHT_LINE, LICENSE_STRING])
     return s
+
+
+def preparse_args(sys_argv):
+    """
+    Parse command arguments without raising an exception (or exiting).
+
+    This function allows one to have access to the command-line options
+    before configuring logging (in particular before exception logging).
+
+    Returns: the pair (options, args).
+
+    """
+    try:
+        # Suppress the help option to prevent exiting.
+        args = parse_args(sys_argv, None, suppress_help_exit=True)
+    except UsageError:
+        # Any usage error will occur again during the real parse.
+        return None
+
+    return args
+
+
+def parse_args(sys_argv, chooser=None, suppress_help_exit=False, usage=None):
+    """
+    Parse arguments and return (options, args).
+
+    Raises UsageError on command-line usage error.
+
+    """
+    parser = _create_parser(chooser, suppress_help_exit=suppress_help_exit, usage=usage)
+
+    # The optparse module's parse_args() normally expects sys.argv[1:].
+    args = sys_argv[1:]
+
+    # Use our decorator.
+    namespace = Namespace()
+    pargs = parser.parse_args(args, namespace=namespace)
+
+    return pargs
 
 
 # TODO: rename usage to description throughout.
@@ -264,43 +303,3 @@ class Namespace(argparse.Namespace):
         """
         # In particular, an empty list of test names should return True.
         return not self.test_names is None
-
-
-# TODO: move the functions below above _create_parser().
-def preparse_args(sys_argv):
-    """
-    Parse command arguments without raising an exception (or exiting).
-
-    This function allows one to have access to the command-line options
-    before configuring logging (in particular before exception logging).
-
-    Returns: the pair (options, args).
-
-    """
-    try:
-        # Suppress the help option to prevent exiting.
-        args = parse_args(sys_argv, None, suppress_help_exit=True)
-    except UsageError:
-        # Any usage error will occur again during the real parse.
-        return None
-
-    return args
-
-
-def parse_args(sys_argv, chooser=None, suppress_help_exit=False, usage=None):
-    """
-    Parse arguments and return (options, args).
-
-    Raises UsageError on command-line usage error.
-
-    """
-    parser = _create_parser(chooser, suppress_help_exit=suppress_help_exit, usage=usage)
-
-    # The optparse module's parse_args() normally expects sys.argv[1:].
-    args = sys_argv[1:]
-
-    # Use our decorator.
-    namespace = Namespace()
-    pargs = parser.parse_args(args, namespace=namespace)
-
-    return pargs
