@@ -54,7 +54,7 @@ CONFIG_FILE_NAME = 'sample'  # without extension
 CONFIG_FILE_EXTENSIONS = ['.json', '.yaml', '.yml']
 CONFIG_CONTEXT_KEY = 'context'
 
-OUTPUT_DIR_FORMAT = "%s_%s"  # subsituted with (dir_path, index).
+FORMAT_NEW_DIR = lambda dir_path, index: "%s_%s" % (dir_path, index)
 
 OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME)
 DEMO_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME_DEMO)

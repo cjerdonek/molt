@@ -37,7 +37,7 @@ import unittest
 
 from molt.common.error import Error
 from molt.common.popen import call_script
-from molt.dirutil import make_output_dir, set_executable_bit
+from molt.dirutil import make_available_dir, set_executable_bit
 from molt.dirutil import DirectoryChooser as Chooser
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 
@@ -54,18 +54,12 @@ def _create_file(path, text=''):
         f.write(text)
 
 
-class GenerateOutputDirTestCase(unittest.TestCase, SandBoxDirMixin):
-
-    def test_none(self):
-        with self.sandboxDir() as dir_path:
-            output_dir = os.path.join(dir_path, 'foo')
-            actual = make_output_dir(None, output_dir)
-            self.assertEqual(output_dir, actual)
+class MakeAvailableDirTestCase(unittest.TestCase, SandBoxDirMixin):
 
     def test_new_dir(self):
         with self.sandboxDir() as dir_path:
             output_dir = os.path.join(dir_path, 'foo')
-            actual = make_output_dir(output_dir, 'bar')
+            actual = make_available_dir(output_dir)
             self.assertEqual(output_dir, actual)
 
     def test_existing_dir(self):
@@ -74,12 +68,12 @@ class GenerateOutputDirTestCase(unittest.TestCase, SandBoxDirMixin):
 
             os.mkdir(output_dir)
 
-            actual = make_output_dir(output_dir, 'bar')
+            actual = make_available_dir(output_dir)
             expected = "%s_1" % output_dir
             self.assertEqual(expected, actual)
 
             # Test iterating a second time.
-            actual = make_output_dir(output_dir, 'bar')
+            actual = make_available_dir(output_dir)
             expected = "%s_2" % output_dir
             self.assertEqual(expected, actual)
 

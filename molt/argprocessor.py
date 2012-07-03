@@ -45,7 +45,7 @@ from molt.common.error import Error
 from molt.common.optionparser import UsageError
 from molt import constants
 from molt import defaults
-from molt.dirutil import make_output_dir, stage_template_dir, DirectoryChooser
+from molt.dirutil import make_available_dir, stage_template_dir, DirectoryChooser
 from molt.molter import Molter
 from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
@@ -115,7 +115,10 @@ def run_test_mode(pargs, test_names, test_runner_stream, from_source):
 
 def _make_output_directory(pargs, default_output_dir):
     output_dir = pargs.output_directory
-    return make_output_dir(output_dir, default_output_dir)
+    if output_dir is None:
+        output_dir = default_output_dir
+
+    return make_available_dir(output_dir)
 
 
 def create_demo(pargs):

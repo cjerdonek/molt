@@ -34,6 +34,7 @@ Unit tests for commandline.py.
 
 import unittest
 
+from molt.common.optionparser import UsageError
 from molt.commandline import parse_args
 
 
@@ -58,8 +59,7 @@ class ParseArgsTestCase(unittest.TestCase):
 
         """
         argv = ['prog', 'foo', 'bar']
-        pargs = parse_args(argv)
-        self.assertIs(pargs.input_directory, None)
+        self.assertRaises(UsageError, parse_args, argv)
 
     def test_test_names__not_running_tests(self):
         argv = ['prog', 'foo']

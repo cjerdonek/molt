@@ -50,7 +50,10 @@ def get_default_config_files():
 
 def _try_make_dir(dir_path):
     """
-    Make the given directory and return whether successful.
+    Create a directory recursively and return whether successful.
+
+    Raises an exception if not successful and nothing exists at the
+    given path.
 
     """
     try:
@@ -73,17 +76,27 @@ def make_project_dir(template_dir):
     return os.path.join(template_dir, defaults.TEMPLATE_PROJECT_DIR_NAME)
 
 
-# TODO: remove the default_output_dir argument.
-def make_output_dir(output_dir, default_output_dir):
-    if output_dir is None:
-        output_dir = default_output_dir
+def make_available_dir(output_dir, format_dir_name=None):
+    """
+    Make a new directory -- creating a new directory name if necessary.
 
-    initial_output_dir = output_dir
+    Arguments:
+
+      output_dir: the initial directory path to try.
+
+      new_dir_name: a function that accepts a (dir_path, index) and
+        returns a new directory name.  Defaults to the package default.
+
+    """
+    if format_dir_name is None:
+        format_dir_name = defaults.FORMAT_NEW_DIR
+
+    initial_dir = output_dir
     index = 1
     while True:
         if _try_make_dir(output_dir):
             return output_dir
-        output_dir = defaults.OUTPUT_DIR_FORMAT % (initial_output_dir, index)
+        output_dir = format_dir_name(initial_dir, index)
         index += 1
 
 

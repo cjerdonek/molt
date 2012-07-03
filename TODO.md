@@ -1,7 +1,6 @@
 TODO
 ====
 
-* Remove the `default_output_dir` argument from `dirutil.make_output_dir`.
 * Rename the main functions in argprocessor to begin with `run_mode_...`.
 * Rename molt.common to molt.generic.
 
