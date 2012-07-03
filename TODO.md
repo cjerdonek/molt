@@ -1,7 +1,6 @@
 TODO
 ====
 
-* Rename the main functions in argprocessor to begin with `run_mode_...`.
 * Rename molt.common to molt.generic.
 
 * Add some test cases with non-latin1 filename encodings.

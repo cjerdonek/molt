@@ -87,7 +87,7 @@ def _get_input_dir(pargs, mode_description):
     return input_dir
 
 
-def run_test_mode(pargs, test_names, test_runner_stream, from_source):
+def run_mode_tests(pargs, test_names, test_runner_stream, from_source):
     """
     Run project tests, and return the exit status to exit with.
 
@@ -121,7 +121,7 @@ def _make_output_directory(pargs, default_output_dir):
     return make_available_dir(output_dir)
 
 
-def create_demo(pargs):
+def run_mode_create_demo(pargs):
     output_dir = _make_output_directory(pargs, defaults.DEMO_OUTPUT_DIR)
 
     os.rmdir(output_dir)
@@ -135,7 +135,7 @@ def create_demo(pargs):
     return output_dir
 
 
-def _render(pargs, chooser):
+def run_mode_render(pargs, chooser):
     template_dir = _get_input_dir(pargs, 'template rendering')
 
     config_path = pargs.config_path
@@ -152,7 +152,7 @@ def _render(pargs, chooser):
     return output_dir
 
 
-def run_visualize_mode(pargs):
+def run_mode_visualize(pargs):
     target_dir = _get_input_dir(pargs, '%s option' % commandline.OPTION_MODE_VISUALIZE)
     visualize(target_dir)
 
@@ -170,20 +170,20 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     if pargs.run_test_mode:
         # Run all tests if no test names provided.
         test_names = pargs.test_names or None
-        return run_test_mode(pargs, test_names=test_names, test_runner_stream=test_runner_stream,
+        return run_mode_tests(pargs, test_names=test_names, test_runner_stream=test_runner_stream,
                              from_source=from_source)
 
     # TODO: rename the functions for running each mode to run_mode_*().
     if pargs.create_demo_mode:
-        result = create_demo(pargs)
+        result = run_mode_create_demo(pargs)
     elif pargs.visualize_mode:
-        result = run_visualize_mode(pargs)
+        result = run_mode_visualize(pargs)
     elif pargs.version_mode:
         result = commandline.get_version_string()
     elif pargs.license_mode:
         result = commandline.get_license_string()
     else:
-        result = _render(pargs, chooser)
+        result = run_mode_render(pargs, chooser)
 
     if result is not None:
         print result
