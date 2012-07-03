@@ -61,7 +61,7 @@ class Option(tuple):
 
 
 # We subclass optparse.OptionParser to customize the behavior of error().
-# The base class's implementation of error() prints the usage string
+# The base class's implementation of error() prints the help string
 # and exits with status code 2.
 class OptionParser(argparse.ArgumentParser):
 

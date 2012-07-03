@@ -180,7 +180,6 @@ def parse_args(sys_argv, chooser=None, suppress_help_exit=False, usage=None):
     return pargs
 
 
-# TODO: rename usage to description throughout.
 def _create_parser(chooser, suppress_help_exit=False, usage=None):
     """
     Return an OptionParser for the program.

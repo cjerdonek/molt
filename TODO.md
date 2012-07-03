@@ -1,19 +1,20 @@
 TODO
 ====
 
-* Rename molt.common to molt.generic.
-
-* Add some test cases with non-latin1 filename encodings.
-* Rename project to structure inside molter.py and dirutil.
-* Confirm whether setup.py's publishing can only be done with Python 2.x.
+* Create a pure-Python diff() function and switch the unit tests to use it.
 * Add the ability to "check" a template directory from the command-line.
+* Rename project to structure inside molter.py and dirutil.
+* Review all appearances of `__file__` (using projectmap as necessary).
+
+* Rename molt.common to molt.generic.
+* Add some test cases with non-latin1 filename encodings.
+* Confirm whether setup.py's publishing can only be done with Python 2.x.
 * Add a unit test for --verbose working with unit tests.
 * Add an --overwrite option to write over (but not delete) existing output
   directories.
 * Add a --strict-output-dir mode that causes the program to fail if
   the output directory already exists.
 * Add an option to enable stdout for tests.
-* Consider switching from optparse to argparse.
 * Incorporate this advice:
     http://mail.python.org/pipermail/distutils-sig/2009-November/014370.html
 * Add an exception class that you can add messages to.
