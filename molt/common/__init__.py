@@ -28,6 +28,14 @@
 #
 
 """
-TODO: add a docstring.
+This package exposes generic functionality not specific to Molt.
+
+In particular, this package should not contain any business logic
+specific to Molt.  This package should also not import anything from
+Molt outside this package.
+
+TODO: rename this package to "generic" -- or something else?
+  The name "common" seems off because it can be taken to mean common
+  across all areas of the Molt application.
 
 """

@@ -103,8 +103,6 @@ def run_molt_tests(from_source, source_dir=None, verbose=False, test_names=None,
         Defaults to sys.stderr.
 
     """
-    _log.info("running tests: from_source: %s" % from_source)
-
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
@@ -120,7 +118,7 @@ def run_molt_tests(from_source, source_dir=None, verbose=False, test_names=None,
     for package_dir in extra_package_dirs:
         dir_path, package_name = os.path.split(package_dir)
         # This allows us to import the extra packages later on.
-        _log.info("Adding to sys.path for %s: %s" % (package_name, repr(dir_path)))
+        _log.info("adding to sys.path for %s: %s" % (package_name, repr(dir_path)))
         # TODO: we only need to do this when source_dir is provided.
         sys.path.append(dir_path)
 

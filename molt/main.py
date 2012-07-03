@@ -107,6 +107,7 @@ def _configure_logging(sys_argv, sys_stderr=None):
 
     logging_level = LOGGING_LEVEL_DEFAULT
     is_running_tests = False
+    verbose = False
 
     # We pass a newline as last_text to prevent a newline from being added
     # before the first log message.
@@ -115,21 +116,21 @@ def _configure_logging(sys_argv, sys_stderr=None):
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
-    # Configure logging before parsing options for real.
-    options, args = commandline.preparse_args(sys_argv)
-    if options is not None:
-        # Then options parsed without error.
-        if options.verbose:
+    # Configure logging before parsing arguments for real.
+    pargs = commandline.preparse_args(sys_argv)
+
+    if pargs is not None:
+        # Then args parsed without error.
+        verbose = pargs.verbose
+        if verbose:
             logging_level = logging.DEBUG
-        if options.run_test_mode:
+        if pargs.run_test_mode:
             is_running_tests = True
 
     persistent_loggers = [_app_log, test_logger]
 
     logconfig.configure_logging(logging_level, persistent_loggers=persistent_loggers,
                                 stderr_stream=stderr_stream, test_config=is_running_tests)
-
-    verbose = False if options is None else options.verbose
 
     return verbose, stderr_stream
 

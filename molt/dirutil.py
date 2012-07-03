@@ -73,6 +73,7 @@ def make_project_dir(template_dir):
     return os.path.join(template_dir, defaults.TEMPLATE_PROJECT_DIR_NAME)
 
 
+# TODO: remove the default_output_dir argument.
 def make_output_dir(output_dir, default_output_dir):
     if output_dir is None:
         output_dir = default_output_dir

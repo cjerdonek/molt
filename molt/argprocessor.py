@@ -47,6 +47,7 @@ from molt import constants
 from molt import defaults
 from molt.dirutil import make_output_dir, stage_template_dir, DirectoryChooser
 from molt.molter import Molter
+from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
 
@@ -71,10 +72,11 @@ Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
     _log.error(msg)
 
 
-def _get_input_dir(options, args, mode_description):
-    try:
-        input_dir = args[0]
-    except IndexError:
+# TODO: consider whether we can have argparse handle this logic.
+def _get_input_dir(pargs, mode_description):
+    input_dir = pargs.input_directory
+
+    if input_dir is None:
         raise UsageError("Argument %s not provided.\n"
                          "  Input directory needed for %s." %
                          (METAVAR_INPUT_DIR, mode_description))
@@ -85,43 +87,44 @@ def _get_input_dir(options, args, mode_description):
     return input_dir
 
 
-def run_tests(options, test_names, test_runner_stream, from_source):
+def run_test_mode(pargs, test_names, test_runner_stream, from_source):
     """
     Run project tests, and return the exit status to exit with.
 
     """
     # Suppress the display of standard out while tests are running.
+    tlog.info("running tests: suppressing stdout; from_source: %s" % from_source)
     stdout = sys.stdout
     sys.stdout = StringIO()
 
     try:
         test_result, test_run_dir = run_molt_tests(from_source,
-                                                   verbose=options.verbose,
-                                                   source_dir=options.source_dir,
+                                                   verbose=pargs.verbose,
+                                                   source_dir=pargs.source_dir,
                                                    test_names=test_names,
-                                                   test_output_dir=options.output_directory,
+                                                   test_output_dir=pargs.output_directory,
                                                    test_runner_stream=test_runner_stream)
     finally:
         sys.stdout = stdout
 
-    if options.with_visualize and test_run_dir is not None:
+    if pargs.with_visualize and test_run_dir is not None:
         visualize(test_run_dir)
 
     return constants.EXIT_STATUS_SUCCESS if test_result.wasSuccessful() else constants.EXIT_STATUS_FAIL
 
 
-def _make_output_directory(options, default_output_dir):
-    output_dir = options.output_directory
+def _make_output_directory(pargs, default_output_dir):
+    output_dir = pargs.output_directory
     return make_output_dir(output_dir, default_output_dir)
 
 
-def create_demo(options):
-    output_dir = _make_output_directory(options, defaults.DEMO_OUTPUT_DIR)
+def create_demo(pargs):
+    output_dir = _make_output_directory(pargs, defaults.DEMO_OUTPUT_DIR)
 
     os.rmdir(output_dir)
     stage_template_dir(constants.DEMO_TEMPLATE_DIR, output_dir)
 
-    if options.with_visualize:
+    if pargs.with_visualize:
         visualize(output_dir)
 
     _log.info("Created demo template directory: %s" % output_dir)
@@ -129,25 +132,25 @@ def create_demo(options):
     return output_dir
 
 
-def _render(options, args, chooser):
-    template_dir = _get_input_dir(options, args, 'template rendering')
+def _render(pargs, chooser):
+    template_dir = _get_input_dir(pargs, 'template rendering')
 
-    config_path = options.config_path
-    output_dir = _make_output_directory(options, defaults.OUTPUT_DIR)
+    config_path = pargs.config_path
+    output_dir = _make_output_directory(pargs, defaults.OUTPUT_DIR)
 
     molter = Molter(chooser=chooser)
     molter.molt(template_dir=template_dir,
                 output_dir=output_dir,
                 config_path=config_path)
 
-    if options.with_visualize:
+    if pargs.with_visualize:
         visualize(output_dir)
 
     return output_dir
 
 
-def run_visualize_mode(options, args):
-    target_dir = _get_input_dir(options, args, '%s option' % commandline.OPTION_MODE_VISUALIZE)
+def run_visualize_mode(pargs):
+    target_dir = _get_input_dir(pargs, '%s option' % commandline.OPTION_MODE_VISUALIZE)
     visualize(target_dir)
 
     return None  # no need to print anything more.
@@ -159,24 +162,25 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
-    options, args = commandline.parse_args(sys_argv, chooser)
+    pargs = commandline.parse_args(sys_argv, chooser)
 
-    if options.run_test_mode:
-        # Do not print the result to standard out.
-        test_names = None if not args else args
-        return run_tests(options, test_names=test_names, test_runner_stream=test_runner_stream,
-                         from_source=from_source)
+    if pargs.run_test_mode:
+        # Run all tests if no test names provided.
+        test_names = pargs.test_names or None
+        return run_test_mode(pargs, test_names=test_names, test_runner_stream=test_runner_stream,
+                             from_source=from_source)
 
-    if options.create_demo_mode:
-        result = create_demo(options)
-    elif options.visualize_mode:
-        result = run_visualize_mode(options, args)
-    elif options.version_mode:
+    # TODO: rename the functions for running each mode to run_mode_*().
+    if pargs.create_demo_mode:
+        result = create_demo(pargs)
+    elif pargs.visualize_mode:
+        result = run_visualize_mode(pargs)
+    elif pargs.version_mode:
         result = commandline.get_version_string()
-    elif options.license_mode:
+    elif pargs.license_mode:
         result = commandline.get_license_string()
     else:
-        result = _render(options, args, chooser)
+        result = _render(pargs, chooser)
 
     if result is not None:
         print result

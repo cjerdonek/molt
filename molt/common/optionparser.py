@@ -35,9 +35,7 @@ Exposes an option parser that is a subclass of optparse.OptionParser.
 from __future__ import absolute_import
 
 import logging
-# The optparse module is deprecated in Python 2.7 in favor of argparse.
-# However, argparse is not available in Python 2.6.
-import optparse
+import argparse
 import sys
 
 from molt.common.error import Error
@@ -65,7 +63,7 @@ class Option(tuple):
 # We subclass optparse.OptionParser to customize the behavior of error().
 # The base class's implementation of error() prints the usage string
 # and exits with status code 2.
-class OptionParser(optparse.OptionParser):
+class OptionParser(argparse.ArgumentParser):
 
     def error(self, message):
         """

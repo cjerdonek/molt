@@ -34,6 +34,7 @@ Contains the command-line documenation and command-line parsing code.
 
 from __future__ import absolute_import
 
+import argparse
 import logging
 import os
 import sys
@@ -60,18 +61,12 @@ OPTION_SOURCE_DIR = Option(('--dev-source-dir', ))
 OPTION_WITH_VISUALIZE = Option(('--with-visualize', ))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
 
-# We escape the leading "%" so that the leading "%p" is not interpreted as
-# a Python string formatting conversion specifier.  The optparse.OptionParser
-# class, however, recognizes "%prog" by replacing it with the current
-# script name when passed to the constructor as a usage string.
-# TODO: use argparse's description argument for the description portion
-#   of the below.  We will need to use a custom formatter_class as
-#   described here:
-#
-#     http://docs.python.org/dev/library/argparse.html#description
-#
-OPTPARSE_USAGE = """%%prog [options] [%(input_dir_metavar)s]
+# We escape the leading "%" so that the leading "%" is not interpreted as a
+# Python string formatting conversion specifier.  The argparse.ArgumentParser
+# class will do its own substition for "%(prog)s", etc.
+OPTPARSE_USAGE = "%%(prog)s [options] [%s]" % METAVAR_INPUT_DIR
 
+OPTPARSE_DESCRIPTION = """\
 Render the Groome template directory in %(input_dir_metavar)s.
 
 A Groome template is a Mustache-based template for a directory of files.
@@ -146,7 +141,8 @@ def get_license_string():
     return s
 
 
-def create_parser(chooser, suppress_help_exit=False, usage=None):
+# TODO: rename usage to description throughout.
+def _create_parser(chooser, suppress_help_exit=False, usage=None):
     """
     Return an OptionParser for the program.
 
@@ -159,28 +155,42 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
 
     help_action = "store_true" if suppress_help_exit else "help"
 
+    # TODO: try reenabling help now that we are using argparse.
+    #
     # We prevent the help option from being added automatically so that
     # we can add our own optional manually.  This lets us prevent exiting
     # when a help option is passed (e.g. "-h" or "--help").
     parser = OptionParser(usage=usage,
+                          description=OPTPARSE_DESCRIPTION,
                           epilog=OPTPARSE_EPILOG,
-                          add_help_option=False)
+                          add_help=False,
+                          # Preserves formatting of the description and epilog.
+                          formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_option(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest="output_directory",
-                      action="store", type='string', default=None,
+    # TODO: incorporate the METAVAR names into the help messages, as appropriate.
+    # TODO: fix the help message.
+    parser.add_argument('input_directory', metavar='DIRECTORY',
+                        nargs='?', default=None,
+                        help='the input directory if one is required.  '
+                              'In most cases, this should be a path to a '
+                              'Groome template directory.')
+
+    # TODO: alignment.
+    parser.add_argument(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest='output_directory',
+                      action='store', default=None,
                       help='the directory to use when an output directory is '
                            'required.  Defaults to %s.  If the output directory '
                            'already exists, then the directory name is incremented '
                            'until the resulting directory would be new.' % repr(defaults.OUTPUT_DIR))
     config_paths = get_default_config_files()
-    parser.add_option("-c", "--config-file", metavar='FILE', dest="config_path",
-                      action="store", type='string', default=None,
+    parser.add_argument('-c', '--config-file', metavar='FILE', dest='config_path',
+                      action='store', default=None,
                       help='the path to the configuration file containing '
                            'the rendering context to use.  '
                            'Defaults to looking in the template directory '
                            'in order for one of: %s' % ', '.join(config_paths))
-    parser.add_option(*OPTION_WITH_VISUALIZE, dest="with_visualize",
-                      action="store_true", default=False,
+    parser.add_argument(*OPTION_WITH_VISUALIZE, dest='with_visualize',
+                      action='store_true', default=False,
                       help='run the %s option on the output directory '
                            'prior to printing the usual output to stdout.  '
                            'Useful for quickly visualizing script output.  '
@@ -188,8 +198,8 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                            (OPTION_MODE_VISUALIZE.display(' or '),
                             OPTION_MODE_TESTS.display(' or '),
                             OPTION_OUTPUT_DIR.display(' or ')))
-    parser.add_option(*OPTION_MODE_DEMO, dest="create_demo_mode",
-                      action="store_true", default=False,
+    parser.add_argument(*OPTION_MODE_DEMO, dest='create_demo_mode',
+                      action='store_true', default=False,
                       help='create a copy of the Molt demo template to play with, '
                            'instead of rendering a template directory.  '
                            'The demo illustrates most major features of Groome.  '
@@ -197,43 +207,66 @@ def create_parser(chooser, suppress_help_exit=False, usage=None):
                            'provided by the %s option or, if that option is not '
                            'provided, to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
-    parser.add_option(*OPTION_MODE_TESTS, dest="run_test_mode",
-                      action="store_true", default=False,
-                      help='run project tests, instead of instead of rendering '
-                           'a template directory.  '
-                           'Tests include unit tests, doctests, and, if present, '
-                           'Groome project test cases.  If the %s option is provided, '
-                           'then test failure data is retained for inspection '
-                           'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
-    parser.add_option(*OPTION_MODE_VISUALIZE, dest="visualize_mode",
-                      action="store_true", default=False,
+    # The default is used here only if the option is not present.
+    parser.add_argument(*OPTION_MODE_TESTS, metavar='NAME', dest='test_names',
+                        nargs='*', default=None,
+                         help='run project tests, instead of instead of rendering '
+                              'a template directory.  '
+                              'Tests include unit tests, doctests, and, if present, '
+                              'Groome project test cases.  '
+                              # Escape the %.
+                              'If %%(metavar)s arguments are provided, then only tests '
+                              'whose names begin with one of the strings are run.  '
+                              'If the %s option is provided, '
+                              'then test failure data is retained for inspection '
+                              'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
+    parser.add_argument(*OPTION_MODE_VISUALIZE, dest='visualize_mode',
+                      action='store_true', default=False,
                       help='print to stdout in a human-readable format '
                            'the contents of all files in input directory %s, '
                            'instead of rendering a template directory.  '
                            'Uses `diff` under the hood.' %
                            METAVAR_INPUT_DIR)
-    parser.add_option(*OPTION_SOURCE_DIR, metavar='DIRECTORY', dest='source_dir',
+    # This argument is the path to a source checkout or source distribution.
+    # This lets one specify project resources not available in a package
+    # build or install, when doing development testing.  Defaults to no
+    # source directory.
+    parser.add_argument(*OPTION_SOURCE_DIR, metavar='DIRECTORY', dest='source_dir',
                       action='store', default=None,
-                      help='the path to a source checkout or source distribution.  '
-                           'This lets one specify project resources not '
-                           'available in a package build or install, when '
-                           'doing development testing.  '
-                           'Defaults to no source directory.')
-    parser.add_option(*OPTION_LICENSE, dest="license_mode",
-                      action="store_true", default=False,
-                      help="print license info to stdout.")
-    parser.add_option("-V", "--version", dest="version_mode",
-                      action="store_true", default=False,
-                      help="print version info to stdout.")
-    parser.add_option(*OPTION_VERBOSE, dest="verbose",
-                      action="store_true", default=False,
-                      help="log verbosely.")
-    parser.add_option(*OPTION_HELP, action=help_action,
-                      help="show this help message and exit.")
+                      help=argparse.SUPPRESS)
+    parser.add_argument(*OPTION_LICENSE, dest='license_mode',
+                      action='store_true', default=False,
+                      help='print license info to stdout.')
+    parser.add_argument('-V', '--version', dest='version_mode',
+                      action='store_true', default=False,
+                      help='print version info to stdout.')
+    parser.add_argument(*OPTION_VERBOSE, dest='verbose',
+                      action='store_true', default=False,
+                      help='log verbosely.')
+    parser.add_argument(*OPTION_HELP, action=help_action,
+                      help='show this help message and exit.')
 
     return parser
 
 
+class Namespace(argparse.Namespace):
+
+    """
+    A decorator for argparse's Namespace.
+
+    """
+
+    @property
+    def run_test_mode(self):
+        """
+        Return whether to run unit tests.
+
+        """
+        # In particular, an empty list of test names should return True.
+        return not self.test_names is None
+
+
+# TODO: move the functions below above _create_parser().
 def preparse_args(sys_argv):
     """
     Parse command arguments without raising an exception (or exiting).
@@ -246,25 +279,28 @@ def preparse_args(sys_argv):
     """
     try:
         # Suppress the help option to prevent exiting.
-        options, args = parse_args(sys_argv, None, suppress_help_exit=True)
+        args = parse_args(sys_argv, None, suppress_help_exit=True)
     except UsageError:
         # Any usage error will occur again during the real parse.
-        return None, None
+        return None
 
-    return options, args
+    return args
 
 
-def parse_args(sys_argv, chooser, suppress_help_exit=False, usage=None):
+def parse_args(sys_argv, chooser=None, suppress_help_exit=False, usage=None):
     """
     Parse arguments and return (options, args).
 
     Raises UsageError on command-line usage error.
 
     """
-    parser = create_parser(chooser, suppress_help_exit=suppress_help_exit, usage=usage)
+    parser = _create_parser(chooser, suppress_help_exit=suppress_help_exit, usage=usage)
 
     # The optparse module's parse_args() normally expects sys.argv[1:].
     args = sys_argv[1:]
-    options, args = parser.parse_args(args)
 
-    return options, args
+    # Use our decorator.
+    namespace = Namespace()
+    pargs = parser.parse_args(args, namespace=namespace)
+
+    return pargs

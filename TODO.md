@@ -1,6 +1,10 @@
 TODO
 ====
 
+* Remove the `default_output_dir` argument from `dirutil.make_output_dir`.
+* Rename the main functions in argprocessor to begin with `run_mode_...`.
+* Rename molt.common to molt.generic.
+
 * Add some test cases with non-latin1 filename encodings.
 * Rename project to structure inside molter.py and dirutil.
 * Confirm whether setup.py's publishing can only be done with Python 2.x.
