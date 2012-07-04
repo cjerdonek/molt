@@ -1,6 +1,8 @@
 TODO
 ====
 
+* Refactor AssertFileMixin to use a new fuzzy file-matching function
+  that we can add to molt.diff.
 * Create a pure-Python diff() function and switch the unit tests to use it.
 * Add the ability to "check" a template directory from the command-line.
 * Rename project to structure inside molter.py and dirutil.

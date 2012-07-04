@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2012 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,36 +28,48 @@
 #
 
 """
-Exposes default functionality.
+Supports Molt-specific file and directory diff functionality.
 
 """
 
 from __future__ import absolute_import
 
+import logging
 import os
+import sys
+
+from molt.defaults import FUZZY_MARKER
 
 
-LAMBDA_ENCODING = 'utf-8'
-OUTPUT_FILE_ENCODING = 'utf-8'
-ENCODING_ERRORS = 'strict'
+_log = logging.getLogger(__name__)
 
-_OUTPUT_PARENT_DIR = 'temp'
-_OUTPUT_DIR_NAME = 'output'
-_OUTPUT_DIR_NAME_DEMO = 'demo-template'
+# TODO: expose a wrapper function for comparing directories that accepts
+#   a fuzzy argument.  It should internally call dirdiff.Differ.diff().
 
-TEMPLATE_PROJECT_DIR_NAME = 'structure'
-TEMPLATE_PARTIALS_DIR_NAME = 'partials'
-TEMPLATE_LAMBDAS_DIR_NAME = 'lambdas'
-TEMPLATE_EXPECTED_DIR_NAME = 'expected'
+def are_fuzzy_equal(u1, u2, marker=None):
+    """
+    Return whether the two unicode strings are "fuzzily" equal.
 
-CONFIG_FILE_NAME = 'sample'  # without extension
-CONFIG_FILE_EXTENSIONS = ['.json', '.yaml', '.yml']
-CONFIG_CONTEXT_KEY = 'context'
+    Fuzzily equal means they are equal except for ignoring ellipses final
+    segments in the second argument.
 
-# For fuzzy equality testing in molt.diff.
-FUZZY_MARKER = "..."
+    """
+    if marker is None:
+        marker = FUZZY_MARKER
 
-FORMAT_NEW_DIR = lambda dir_path, index: "%s_%s" % (dir_path, index)
+    lines1, lines2 = (u.splitlines(True) for u in (u1, u2))
 
-OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME)
-DEMO_OUTPUT_DIR = os.path.join(_OUTPUT_PARENT_DIR, _OUTPUT_DIR_NAME_DEMO)
+    if len(lines1) != len(lines2):
+        return False
+
+    for line1, line2 in zip(lines1, lines2):
+        if line1 == line2:
+            continue
+        # Otherwise, check for ellipses in the second line.
+        i = line2.find(marker)
+        # Note that an expression like `'abc'[:5]`, for example, will not
+        # raise an exception.
+        if i < 0 or line1[:i] != line2[:i]:
+            return False
+
+    return True

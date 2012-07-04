@@ -82,6 +82,8 @@ class Differ(object):
             path = make_path(dir_name)
             self._diff(sub_dcmp, results, leading_path=path)
 
+    # TODO: add a diff_path function to customize file comparison.
+    #   This lets us keep file-reading code out of this module.
     def diff(self, dir1, dir2):
         """
         Compare the directories at the given path.

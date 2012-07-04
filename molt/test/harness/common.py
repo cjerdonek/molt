@@ -38,11 +38,10 @@ import logging
 import os
 from textwrap import dedent
 
+from molt.diff import are_fuzzy_equal
 from molt.general import io
 import molt.test
 
-
-FUZZY_MARKER = "..."
 
 test_logger = logging.getLogger(molt.test.__name__)
 
@@ -59,29 +58,6 @@ def indent(text, prefix):
     lines = map(_indent, lines)
     return "".join(lines)
 
-
-def is_fuzzily_equal(actual, expected):
-    """
-    Return whether the two unicode strings are "fuzzily" equal.
-
-    Fuzzily equal means they are equal except for ignoring ellipses final
-    segments in expected.
-
-    """
-    alines, elines = (u.splitlines(True) for u in (actual, expected))
-
-    if len(alines) != len(elines):
-        return False
-
-    for aline, eline in zip(alines, elines):
-        if aline == eline:
-            continue
-        # Otherwise, check for ellipses in the expected line.
-        i = eline.find(FUZZY_MARKER)
-        if i < 0 or aline[:i] != eline[:i]:
-            return False
-
-    return True
 
 class AssertStringMixin(object):
 
@@ -119,7 +95,7 @@ class AssertStringMixin(object):
         try:
             self.assertEqual(actual, expected, make_message("different characters"))
         except AssertionError:
-            if not fuzzy or not is_fuzzily_equal(actual, expected):
+            if not fuzzy or not are_fuzzy_equal(actual, expected):
                 raise
             # Otherwise, ignore the exception.
 
