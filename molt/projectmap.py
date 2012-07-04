@@ -42,9 +42,9 @@ import molt.test
 
 
 # The below are relative to the source root (aka the project directory).
-GROOME_TEST_DIR = 'sub/groome/tests'
-README_PATH = 'README.md'
-SETUP_PACKAGE_DIR = 'molt_setup'
+_GROOME_TEST_DIR = 'sub/groome/tests'
+_README_PATH = 'README.md'
+_SETUP_PACKAGE_DIR = 'molt_setup'
 
 # The below are relative to the main Molt package directory.
 _TEST_DATA_DIR = 'test/data'
@@ -124,20 +124,19 @@ class Locator(object):
     @property
     @source_dir
     def groome_tests_dir(self):
-        return GROOME_TEST_DIR
+        return _GROOME_TEST_DIR
 
     @property
     @source_dirs
     def doctest_paths(self):
-        return [README_PATH]
+        return [_README_PATH]
 
     @property
     @source_dirs
     def extra_package_dirs(self):
-        return [SETUP_PACKAGE_DIR]
+        return [_SETUP_PACKAGE_DIR]
 
     @property
     @package_dir
     def test_data_dir(self):
         return _TEST_DATA_DIR
-
