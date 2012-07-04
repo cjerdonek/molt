@@ -34,7 +34,7 @@ Unit tests for commandline.py.
 
 import unittest
 
-from molt.common.optionparser import UsageError
+from molt.general.optionparser import UsageError
 from molt.commandline import parse_args
 
 

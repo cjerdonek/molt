@@ -42,7 +42,7 @@ import os
 from shutil import rmtree
 from tempfile import mkdtemp
 
-from molt.common.error import reraise
+from molt.general.error import reraise
 
 
 _log = logging.getLogger(__name__)

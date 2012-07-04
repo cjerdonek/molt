@@ -36,7 +36,7 @@ from __future__ import absolute_import
 
 from subprocess import Popen, PIPE, STDOUT
 
-from molt.common.error import reraise
+from molt.general.error import reraise
 
 
 def chain_script(args, handle_line):

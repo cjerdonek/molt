@@ -35,8 +35,8 @@ Unit tests for dirutil.py.
 import os
 import unittest
 
-from molt.common.error import Error
-from molt.common.popen import call_script
+from molt.general.error import Error
+from molt.general.popen import call_script
 from molt.dirutil import make_available_dir, set_executable_bit
 from molt.dirutil import DirectoryChooser as Chooser
 from molt.test.harness import config_load_tests, SandBoxDirMixin
@@ -48,7 +48,7 @@ SHEBANG_LINE = "#!/bin/sh\n"
 load_tests = config_load_tests
 
 
-# TODO: share code with common/io.
+# TODO: share code with general/io.
 def _create_file(path, text=''):
     with open(path, 'w') as f:
         f.write(text)

@@ -42,9 +42,9 @@ from subprocess import Popen, PIPE, STDOUT
 from pystache import Renderer as PystacheRenderer
 
 import molt
-from molt.common import io
-from molt.common.error import Error
-from molt.common.popen import call_script
+from molt.general import io
+from molt.general.error import Error
+from molt.general.popen import call_script
 from  molt import defaults
 from molt.dirutil import DirectoryChooser
 

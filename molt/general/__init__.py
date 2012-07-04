@@ -28,57 +28,10 @@
 #
 
 """
-TODO: add a docstring.
+This package exposes generic functionality not specific to Molt.
+
+In particular, this package should not contain any business logic
+specific to Molt.  This package should also not import anything from
+Molt outside this package.
 
 """
-
-from __future__ import absolute_import
-
-import unittest
-
-from molt.common.equality import Equalable
-
-
-class Foo(Equalable):
-
-    def __init__(self, bar):
-        self.bar = bar
-
-
-class Bar(Foo):
-
-    pass
-
-
-class EqualableTestCase(unittest.TestCase):
-
-    def testSameObject(self):
-        foo = Foo(1)
-        self.assertTrue(foo == foo)
-        self.assertFalse(foo != foo)
-
-    def testEqualObjects(self):
-        foo1, foo2 = Foo(1), Foo(1)
-        self.assertTrue(foo1 == foo2)
-        self.assertFalse(foo1 != foo2)
-
-    def testUnequalObjects(self):
-        foo1, foo2 = Foo(1), Foo(2)
-        self.assertTrue(foo1 != foo2)
-        self.assertFalse(foo1 == foo2)
-
-    # Make sure None doesn't throw exceptions, for example.
-    def testNone(self):
-        foo = Foo(1)
-        self.assertTrue(foo != None)
-        self.assertTrue(None != foo)
-        self.assertFalse(foo == None)
-        self.assertFalse(None == foo)
-
-    def testSubclass(self):
-        foo, bar = Foo(1), Bar(1)
-        self.assertTrue(foo != bar)
-        self.assertTrue(bar != foo)
-        self.assertFalse(foo == bar)
-        self.assertFalse(bar == foo)
-

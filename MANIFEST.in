@@ -17,7 +17,7 @@ recursive-include images *.png
 # You cannot use package_data, for example, to include data files in a
 # source distribution when using Distribute.
 recursive-include molt/demo *.json *.mustache *.py *.sh
-recursive-include molt/test/data *.sh
+recursive-include molt/test/data *.sh *.txt
 # We include molt_setup in MANIFEST.in but not in setup()'s `packages`
 # argument to include molt_setup in the source distribution but not
 # in the build/install.

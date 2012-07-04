@@ -36,8 +36,8 @@ from __future__ import absolute_import
 
 import sys
 
-from molt.common.popen import chain_script
-from molt.common.io import temp_directory
+from molt.general.popen import chain_script
+from molt.general.io import temp_directory
 
 # diff -Nur path1 path2
 # --- path1	1969-12-31 16:00:00.000000000 -0800

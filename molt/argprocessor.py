@@ -41,8 +41,8 @@ import sys
 
 import molt
 from molt import commandline
-from molt.common.error import Error
-from molt.common.optionparser import UsageError
+from molt.general.error import Error
+from molt.general.optionparser import UsageError
 from molt import constants
 from molt import defaults
 from molt.dirutil import make_available_dir, stage_template_dir, DirectoryChooser

@@ -159,10 +159,10 @@ INSTALL_REQUIRES = [
 PACKAGES = [
     'molt',
     'molt.commands',
-    'molt.common',
+    'molt.general',
     # The following packages are only for testing.
     'molt.test',
-    'molt.test.common',
+    'molt.test.general',
     'molt.test.extra',
     'molt.test.harness',
     # We exclude the following deliberately to exclude them from the build

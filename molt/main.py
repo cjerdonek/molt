@@ -47,8 +47,8 @@ import traceback
 
 from molt import commandline
 from molt.commandline import OPTION_HELP, OPTION_VERBOSE
-from molt.common.error import Error
-from molt.common.optionparser import UsageError
+from molt.general.error import Error
+from molt.general.optionparser import UsageError
 from molt import constants
 from molt import logconfig
 from molt.test.harness import test_logger

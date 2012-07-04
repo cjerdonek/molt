@@ -28,50 +28,57 @@
 #
 
 """
-Exposes an option parser that is a subclass of optparse.OptionParser.
+TODO: add a docstring.
 
 """
 
 from __future__ import absolute_import
 
-import logging
-import argparse
-import sys
+import unittest
 
-from molt.common.error import Error
-
-_log = logging.getLogger(__name__)
+from molt.general.equality import Equalable
 
 
-class UsageError(Error):
-    """
-    Exception class for command-line syntax errors.
+class Foo(Equalable):
 
-    """
+    def __init__(self, bar):
+        self.bar = bar
+
+
+class Bar(Foo):
+
     pass
 
 
-class Option(tuple):
-    """
-    Encapsulates a command option (e.g. "-h" and "--help", or "--run-tests").
+class EqualableTestCase(unittest.TestCase):
 
-    """
-    def display(self, glue):
-        return glue.join(self)
+    def testSameObject(self):
+        foo = Foo(1)
+        self.assertTrue(foo == foo)
+        self.assertFalse(foo != foo)
 
+    def testEqualObjects(self):
+        foo1, foo2 = Foo(1), Foo(1)
+        self.assertTrue(foo1 == foo2)
+        self.assertFalse(foo1 != foo2)
 
-# We subclass optparse.OptionParser to customize the behavior of error().
-# The base class's implementation of error() prints the help string
-# and exits with status code 2.
-class OptionParser(argparse.ArgumentParser):
+    def testUnequalObjects(self):
+        foo1, foo2 = Foo(1), Foo(2)
+        self.assertTrue(foo1 != foo2)
+        self.assertFalse(foo1 == foo2)
 
-    def error(self, message):
-        """
-        Handle an error occurring while parsing command arguments.
+    # Make sure None doesn't throw exceptions, for example.
+    def testNone(self):
+        foo = Foo(1)
+        self.assertTrue(foo != None)
+        self.assertTrue(None != foo)
+        self.assertFalse(foo == None)
+        self.assertFalse(None == foo)
 
-        This method overrides the OptionParser base class's error().  The
-        OptionParser class requires that this method either exit or raise
-        an exception.
+    def testSubclass(self):
+        foo, bar = Foo(1), Bar(1)
+        self.assertTrue(foo != bar)
+        self.assertTrue(bar != foo)
+        self.assertFalse(foo == bar)
+        self.assertFalse(bar == foo)
 
-        """
-        raise UsageError(message)

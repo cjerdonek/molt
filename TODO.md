@@ -6,7 +6,6 @@ TODO
 * Rename project to structure inside molter.py and dirutil.
 * Review all appearances of `__file__` (using projectmap as necessary).
 
-* Rename molt.common to molt.generic.
 * Add some test cases with non-latin1 filename encodings.
 * Confirm whether setup.py's publishing can only be done with Python 2.x.
 * Add a unit test for --verbose working with unit tests.

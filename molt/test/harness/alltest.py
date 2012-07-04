@@ -42,7 +42,7 @@ from pkgutil import walk_packages
 import sys
 from unittest import TestCase, TestLoader, TestProgram, TestSuite, TextTestRunner
 
-from molt.common.error import reraise
+from molt.general.error import reraise
 from molt.test.harness.common import test_logger as _log
 
 

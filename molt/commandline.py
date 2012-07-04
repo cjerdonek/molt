@@ -42,7 +42,7 @@ import sys
 from molt import __version__
 # TODO: use argparse instead of optparse:
 #   http://docs.python.org/library/argparse.html#module-argparse
-from molt.common.optionparser import Option, OptionParser, UsageError
+from molt.general.optionparser import Option, OptionParser, UsageError
 from molt import defaults
 from molt.dirutil import get_default_config_files, DirectoryChooser
 

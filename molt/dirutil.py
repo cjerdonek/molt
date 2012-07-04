@@ -39,7 +39,7 @@ import os
 from shutil import copytree
 import stat
 
-from molt.common.error import Error
+from molt.general.error import Error
 from molt import defaults
 
 

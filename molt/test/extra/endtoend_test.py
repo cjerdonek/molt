@@ -37,7 +37,7 @@ import os
 import sys
 from unittest import TestCase
 
-from molt.common.popen import call_script
+from molt.general.popen import call_script
 from molt.test.harness import (
     config_load_tests,
     should_ignore_file,

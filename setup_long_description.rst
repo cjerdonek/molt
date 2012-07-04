@@ -181,7 +181,7 @@ more prefixes. For example--
 
 ::
 
-    $ python test_molt.py molt.test.common molt.test.dir
+    $ python test_molt.py molt.test.general molt.test.dir
 
 Molt is also `set
 up <https://github.com/cjerdonek/molt/blob/master/.travis.yml>`_ on

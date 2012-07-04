@@ -28,14 +28,50 @@
 #
 
 """
-This package exposes generic functionality not specific to Molt.
-
-In particular, this package should not contain any business logic
-specific to Molt.  This package should also not import anything from
-Molt outside this package.
-
-TODO: rename this package to "generic" -- or something else?
-  The name "common" seems off because it can be taken to mean common
-  across all areas of the Molt application.
+Exposes an option parser that is a subclass of optparse.OptionParser.
 
 """
+
+from __future__ import absolute_import
+
+import logging
+import argparse
+import sys
+
+from molt.general.error import Error
+
+_log = logging.getLogger(__name__)
+
+
+class UsageError(Error):
+    """
+    Exception class for command-line syntax errors.
+
+    """
+    pass
+
+
+class Option(tuple):
+    """
+    Encapsulates a command option (e.g. "-h" and "--help", or "--run-tests").
+
+    """
+    def display(self, glue):
+        return glue.join(self)
+
+
+# We subclass optparse.OptionParser to customize the behavior of error().
+# The base class's implementation of error() prints the help string
+# and exits with status code 2.
+class OptionParser(argparse.ArgumentParser):
+
+    def error(self, message):
+        """
+        Handle an error occurring while parsing command arguments.
+
+        This method overrides the OptionParser base class's error().  The
+        OptionParser class requires that this method either exit or raise
+        an exception.
+
+        """
+        raise UsageError(message)

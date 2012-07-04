@@ -37,7 +37,7 @@ from __future__ import absolute_import
 import os
 import unittest
 
-from molt.common.dirdiff import Differ
+from molt.general.dirdiff import Differ
 from molt.test.harness import config_load_tests
 
 

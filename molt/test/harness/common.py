@@ -38,7 +38,7 @@ import logging
 import os
 from textwrap import dedent
 
-from molt.common import io
+from molt.general import io
 import molt.test
 
 

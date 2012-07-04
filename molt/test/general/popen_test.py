@@ -38,7 +38,7 @@ import os
 from shutil import copyfile
 import unittest
 
-from molt.common.popen import call_script
+from molt.general.popen import call_script
 from molt.dirutil import set_executable_bit
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 from molt.test.harness.common import AssertStringMixin
