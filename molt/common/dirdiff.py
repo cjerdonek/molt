@@ -34,7 +34,7 @@ Provides functionality to diff directories recursively.
 
 from __future__ import absolute_import
 
-from filecmp import dircmp
+from filecmp import cmpfiles, dircmp
 import os
 import sys
 
@@ -70,6 +70,13 @@ class Differ(object):
         for result_paths, attr in zip(results, attrs):
             paths = [make_path(name) for name in getattr(dcmp, attr)]
             result_paths.extend(paths)
+
+        # Since dircmp only does "shallow" file comparisons (i.e. doesn't
+        # look at file contents), we need to check the same files manually.
+        # See also: http://bugs.python.org/issue15250
+        (match, mismatch, errors) = cmpfiles(dcmp.left, dcmp.right, dcmp.same_files, shallow=False)
+        new_diff_files = [make_path(name) for name in (mismatch + errors)]
+        results[2].extend(new_diff_files)
 
         for dir_name, sub_dcmp in dcmp.subdirs.iteritems():
             path = make_path(dir_name)

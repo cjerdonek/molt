@@ -172,6 +172,7 @@ PACKAGES = [
 ]
 
 DATA_DIRS = [
+    # TODO: make this more fine-grained so package_data is smaller.
     ('molt', ['demo', 'test/data']),
 ]
 
@@ -180,6 +181,7 @@ DATA_FILE_GLOBS = [
     '*.mustache',
     '*.py',
     '*.sh',
+    '*.txt',
 ]
 
 
