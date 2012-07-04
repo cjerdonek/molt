@@ -39,7 +39,6 @@ from shutil import copyfile
 import unittest
 
 from molt.common.popen import call_script
-from molt.constants import TEST_DATA_DIR
 from molt.dirutil import set_executable_bit
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 from molt.test.harness.common import AssertStringMixin
@@ -66,7 +65,8 @@ class CallScriptTestCase(unittest.TestCase, AssertStringMixin, SandBoxDirMixin):
             super(CallScriptTestCase, self).run(result)
 
     def _get_script_path(self, script_name):
-        return os.path.join(TEST_DATA_DIR, 'lambdas', script_name + ".sh")
+        data_dir = self.test_config.project.test_data_dir
+        return os.path.join(data_dir, 'lambdas', script_name + ".sh")
 
     def _call_script(self, script_name, u):
         """

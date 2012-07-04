@@ -110,10 +110,10 @@ def run_molt_tests(from_source, source_dir=None, verbose=False, test_names=None,
         _log.info("creating test output dir: %s" % test_output_dir)
         os.makedirs(test_output_dir)
 
-    locator = Locator(source_dir)
+    locator = Locator(source_dir=source_dir)
 
-    doctest_paths = locator.doctest_paths()
-    extra_package_dirs = locator.extra_package_dirs()
+    doctest_paths = locator.doctest_paths
+    extra_package_dirs = locator.extra_package_dirs
 
     for package_dir in extra_package_dirs:
         dir_path, package_name = os.path.split(package_dir)
@@ -128,7 +128,7 @@ def run_molt_tests(from_source, source_dir=None, verbose=False, test_names=None,
     # TODO: also add support for --quiet.
     verbosity = 2 if verbose else 1
 
-    test_config = TestConfig(test_run_dir, source_dir, from_source=from_source)
+    test_config = TestConfig(test_run_dir, locator, from_source=from_source)
 
     try:
         test_result = run_tests(package_dirs=package_dirs,
@@ -156,7 +156,7 @@ class TestConfig(object):
 
     """
 
-    def __init__(self, test_run_dir, source_dir, from_source=False):
+    def __init__(self, test_run_dir, locator, from_source=False):
         """
         Arguments:
 
@@ -164,9 +164,7 @@ class TestConfig(object):
             test data (for example the output directory of rendering
             a Groome template directory to compare with an expected directory).
 
-          source_dir: the path to a source distribution or source checkout,
-            or None if one is not available (e.g. if running from a package
-            install).
+          locator: a Locator instance.
 
           from_source: whether or not the script was initiated from a source
             checkout (e.g. by calling `python -m molt.commands.molt` as
@@ -179,8 +177,6 @@ class TestConfig(object):
         call_molt_args = ([molt.__name__] if not from_source else
                           [python_path, '-m', molt.commands.molt.__name__])
 
-        locator = Locator(source_dir)
-
         self.call_molt_args = call_molt_args
-        self.groome_tests_dir = locator.groome_tests_dir()
+        self.project = locator
         self.test_run_dir = test_run_dir

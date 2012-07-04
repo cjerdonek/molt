@@ -34,17 +34,66 @@ Provides functionality to locate files and folders in the project directory.
 
 from __future__ import absolute_import
 
+from functools import wraps
 import os
 
 import molt
 import molt.test
 
 
-SETUP_PACKAGE_NAME = 'molt_setup'
-
-# The below are relative to the source directory
+# The below are relative to the source root (aka the project directory).
 GROOME_TEST_DIR = 'sub/groome/tests'
 README_PATH = 'README.md'
+SETUP_PACKAGE_DIR = 'molt_setup'
+
+# The below are relative to the main Molt package directory.
+_TEST_DATA_DIR = 'test/data'
+
+
+def package_dir(get_relpath):
+    """
+    Return a new method that returns the path to a package sub-path.
+
+    Use this as a method decorator.
+
+    """
+    @wraps(get_relpath)
+    def make_path(self):
+        return os.path.join(self.package_dir, get_relpath(self))
+
+    return make_path
+
+
+def source_dir(get_relpath):
+    """
+    Return a new method that returns the path to a source sub-path.
+
+    Use this as a method decorator.
+
+    """
+    @wraps(get_relpath)
+    def make_path(self):
+        if self.source_dir is None:
+            return None
+        return os.path.join(self.source_dir, get_relpath(self))
+
+    return make_path
+
+
+def source_dirs(get_relpaths):
+    """
+    Return a new method that returns the paths to a list of source sub-paths.
+
+    Use this as a method decorator.
+
+    """
+    @wraps(get_relpaths)
+    def make_paths(self):
+        if self.source_dir is None:
+            return []
+        return [os.path.join(self.source_dir, rel_path) for rel_path in get_relpaths(self)]
+
+    return make_paths
 
 
 class Locator(object):
@@ -54,36 +103,41 @@ class Locator(object):
 
     """
 
-    def __init__(self, source_dir):
+    def __init__(self, package_dir=None, source_dir=None):
         """
         Arguments:
+
+          package_dir: the path to the Molt package directory.  Defaults
+            to detecting the location via molt.__file__.
 
           source_dir: the path to a source distribution or source checkout,
             or None if one is not available (e.g. if running from a package
             install).
 
         """
+        if package_dir is None:
+            package_dir = os.path.dirname(molt.__file__)
+
+        self.package_dir = package_dir
         self.source_dir = source_dir
 
+    @property
+    @source_dir
     def groome_tests_dir(self):
-        if self.source_dir is None:
-            return None
-        return os.path.join(self.source_dir, GROOME_TEST_DIR)
+        return GROOME_TEST_DIR
 
+    @property
+    @source_dirs
     def doctest_paths(self):
-        paths = []
+        return [README_PATH]
 
-        if self.source_dir is not None:
-            readme_path = os.path.join(self.source_dir, README_PATH)
-            paths.append(readme_path)
-
-        return paths
-
+    @property
+    @source_dirs
     def extra_package_dirs(self):
-        extra_package_dirs = []
+        return [SETUP_PACKAGE_DIR]
 
-        if self.source_dir is not None:
-            setup_dir = os.path.join(self.source_dir, SETUP_PACKAGE_NAME)
-            extra_package_dirs.append(setup_dir)
+    @property
+    @package_dir
+    def test_data_dir(self):
+        return _TEST_DATA_DIR
 
-        return extra_package_dirs

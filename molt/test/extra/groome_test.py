@@ -50,7 +50,7 @@ def load_tests(loader, tests, pattern):
         from this module.
 
     """
-    groome_dir = loader.test_config.groome_tests_dir
+    groome_dir = loader.test_config.project.groome_tests_dir
 
     template_tests = unittest.TestSuite()
 
