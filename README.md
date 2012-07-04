@@ -44,8 +44,8 @@ Molt supports the following Python versions:
 * Python 3.2
 * [PyPy](http://pypy.org/)
 
-Python 3.x support is coming soon.  Since Molt is a development tool, there
-are no plans to support Python 2.6 or earlier.
+Since Molt is a development tool, there are no plans to support Python 2.6
+or earlier.
 
 Molt's dependencies are--
 
