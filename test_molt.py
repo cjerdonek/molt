@@ -22,8 +22,14 @@ def main(argv=None):
 
     # TODO: consider passing the extra info via **kwargs instead of sys_argv.
     source_dir = os.path.dirname(__file__)
-    # Modifies argv in place.
-    argv += [OPTION_MODE_TESTS[0], OPTION_SOURCE_DIR[0], source_dir]
+
+    # Modify argv in place.
+    # Insert the test option after the program name but before all other
+    # arguments.  In this way, test filters should always appear at the
+    # beginning of the argument list in this form of invoking the
+    # script in test mode.
+    argv.insert(1, OPTION_MODE_TESTS[0])
+    argv += [OPTION_SOURCE_DIR[0], source_dir]
 
     return molt.main(sys_argv=argv, from_source=True)
 

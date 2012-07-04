@@ -170,8 +170,10 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
     except UsageError as err:
         details = """\
 Command-line usage error: %s
+-->%s
 
-Pass %s for help documentation and available options.""" % (err, OPTION_HELP.display(' or '))
+Pass %s for help documentation and available options.""" % (
+            err, repr(sys.argv), OPTION_HELP.display(' or '))
         log_error(details, verbose)
         status = constants.EXIT_STATUS_USAGE_ERROR
     except Error, err:
