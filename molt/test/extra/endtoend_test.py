@@ -38,7 +38,6 @@ import sys
 from unittest import TestCase
 
 from molt.common.popen import call_script
-from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness import (
     config_load_tests,
     should_ignore_file,
@@ -82,6 +81,10 @@ class EndToEndMixin(SandBoxDirMixin, AssertDirMixin):
     Mixin class for TestCase classes in this module.
 
     """
+
+    @property
+    def _demo_template_dir(self):
+        return self.test_config.project.demo_template_dir
 
     def _call_molt(self, args):
         """
@@ -166,7 +169,7 @@ class ReadmeTestCase(TestCase, EndToEndMixin):
             # Test creating the demo.
             output_dir = demo_dir
             args = ['--create-demo', '--output', output_dir]
-            self.assert_molt(args, output_dir, expected_dir=DEMO_TEMPLATE_DIR,
+            self.assert_molt(args, output_dir, expected_dir=self._demo_template_dir,
                              expected_stdout=output_dir)
 
             # Test rendering the demo.
@@ -191,7 +194,7 @@ class CreateDemoTestCase(TestCase, EndToEndMixin):
             args = ['--create-demo', '--output', output_dir]
 
             actual_dir = output_dir
-            expected_dir = DEMO_TEMPLATE_DIR
+            expected_dir = self._demo_template_dir
 
             self.assert_molt(args, output_dir, expected_dir=expected_dir,
                              expected_stdout=output_dir)

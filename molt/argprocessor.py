@@ -47,6 +47,7 @@ from molt import constants
 from molt import defaults
 from molt.dirutil import make_available_dir, stage_template_dir, DirectoryChooser
 from molt.molter import Molter
+from molt.projectmap import Locator
 from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
@@ -122,10 +123,14 @@ def _make_output_directory(pargs, default_output_dir):
 
 
 def run_mode_create_demo(pargs):
+    # TODO: inject the locator instance instead of constructing it here.
+    locator = Locator()
+    demo_template_dir = locator.demo_template_dir
+
     output_dir = _make_output_directory(pargs, defaults.DEMO_OUTPUT_DIR)
 
     os.rmdir(output_dir)
-    stage_template_dir(constants.DEMO_TEMPLATE_DIR, output_dir)
+    stage_template_dir(demo_template_dir, output_dir)
 
     if pargs.with_visualize:
         visualize(output_dir)

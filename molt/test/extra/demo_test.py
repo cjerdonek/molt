@@ -35,7 +35,6 @@ Exposes tests that test the Groome template in the demo directory.
 import logging
 import unittest
 
-from molt.constants import DEMO_TEMPLATE_DIR
 from molt.test.harness import config_load_tests
 from molt.test.harness.templatetest import make_test_class_type_args
 
@@ -45,8 +44,10 @@ def load_tests(loader, tests, pattern):
     Return a unittest.TestSuite instance testing the demo template.
 
     """
+    demo_template_dir = loader.test_config.project.demo_template_dir
+
     type_args = make_test_class_type_args(group_name='Demo',
-                                          template_dir=DEMO_TEMPLATE_DIR,
+                                          template_dir=demo_template_dir,
                                           should_stage=True)
 
     # We define the class in this module so that the test harness reports

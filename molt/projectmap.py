@@ -47,6 +47,7 @@ _README_PATH = 'README.md'
 _SETUP_PACKAGE_DIR = 'molt_setup'
 
 # The below are relative to the main Molt package directory.
+_DEMO_TEMPLATE_DIR = 'demo'
 _TEST_DATA_DIR = 'test/data'
 
 
@@ -135,6 +136,11 @@ class Locator(object):
     @source_dirs
     def extra_package_dirs(self):
         return [_SETUP_PACKAGE_DIR]
+
+    @property
+    @package_dir
+    def demo_template_dir(self):
+        return _DEMO_TEMPLATE_DIR
 
     @property
     @package_dir

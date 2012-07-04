@@ -42,10 +42,3 @@ import molt.test
 EXIT_STATUS_SUCCESS = 0
 EXIT_STATUS_FAIL = 1
 EXIT_STATUS_USAGE_ERROR = 2
-
-# TODO: move logic below into projectmap.py.
-_SOURCE_DIR = os.path.dirname(molt.__file__)
-
-_DEMO_TEMPLATE_DIR = 'demo'  # relative to the source directory.
-
-DEMO_TEMPLATE_DIR = os.path.join(_SOURCE_DIR, _DEMO_TEMPLATE_DIR)
