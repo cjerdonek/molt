@@ -4,7 +4,7 @@ History
 0.1.2 (TBD)
 -----------
 
-- TODO
+- Switch from using optparse to argparse.
 
 0.1.1 (2012-07-01)
 ------------------
