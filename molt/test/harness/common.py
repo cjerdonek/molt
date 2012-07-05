@@ -175,11 +175,6 @@ class AssertFileMixin(AssertStringMixin):
         if format_msg is None:
             format_msg = lambda msg: msg
 
-        match_func = match_fuzzy if fuzzy else None
-
-        fcmp = FileComparer(actual_path, expected_path, match=match_func)
-        actual_match = fcmp.compare()
-
         def new_format_msg(details):
             new_details = dedent("""\
             File contents don't match (fuzzy=%s) at--
@@ -190,6 +185,11 @@ class AssertFileMixin(AssertStringMixin):
             %s""") % (fuzzy, expected_path, actual_path, indent(details, "  "))
 
             return format_msg(new_details)
+
+        match_func = match_fuzzy if fuzzy else None
+
+        fcmp = FileComparer(actual_path, expected_path, match=match_func)
+        actual_match = fcmp.compare()
 
         description = "Displaying file contents"
         msg = _make_message(fcmp.left, fcmp.right, format_msg=new_format_msg,
