@@ -32,6 +32,7 @@ This package provides infrastructure for running project unit tests.
 
 """
 
+# TODO: rename test_logger to tlog.
 from molt.test.harness.common import indent, test_logger
 from molt.test.harness.defaults import should_ignore_file
 from molt.test.harness.dirmixin import AssertDirMixin

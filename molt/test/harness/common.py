@@ -59,48 +59,93 @@ def indent(text, prefix):
     return "".join(lines)
 
 
+def _make_message(actual, expected, format_msg, description):
+    """
+    Return the text to pass as the msg argument to a self.assert*() method.
+
+    """
+    def new_format_msg(details):
+        new_details = dedent("""\
+        %s-->
+
+        %s""") % (description, indent(details, "  "))
+
+        return format_msg(new_details)
+
+    # Show both friendly and literal versions.
+    string_details_format = dedent("""\
+    Expected: \"""%s\"""
+    Actual:   \"""%s\"""
+
+    Expected: %s
+    Actual:   %s
+    """)
+
+    message_format = new_format_msg(string_details_format)
+
+    # TODO: escape message_format prior to doing the following string
+    #   interpolation.
+    #
+    # We do string interpolation at the very end to prevent the literal
+    # version of each string from being indented.  We want the second
+    # and subsequent lines to be left-justified to simplify cutting
+    # and pasting.
+    message = message_format % (expected, actual, repr(expected), repr(actual))
+
+    return message
+
+
 class AssertStringMixin(object):
 
     """A unittest.TestCase mixin to check string equality."""
 
-    # TODO: rename format to format_msg since it is a keyword.
-    def assertString(self, actual, expected, format=None, fuzzy=False):
+    def __assertStringMatch(self, actual, expected, format_msg):
         """
         Assert that the given strings are equal and have the same type.
 
-        Arguments:
+        """
+        def make_description(info):
+            return "Strings not equal: %s" % info
 
-          format: a function that accepts string-checking details and returns
-            the desired text for the assertion error message.
+        description = make_description("different characters")
+        msg = _make_message(actual, expected, format_msg, description=description)
+        self.assertEqual(actual, expected, msg=msg)
+
+        info = "types different: %s != %s (actual)" % (repr(type(expected)), repr(type(actual)))
+        description = make_description(info)
+        msg = _make_message(actual, expected, format_msg, description=description)
+        self.assertEqual(type(expected), type(actual), msg=msg)
+
+    def assertFuzzy(self, actual, expected, format_msg=None):
+        """
+        Assert that two unicode strings are fuzzily equal.
 
         """
-        if format is None:
-            format = lambda msg: msg
+        if format_msg is None:
+            format_msg = lambda msg: msg
 
-        details_format = dedent("""\
-        Expected: \"""%s\"""
-        Actual:   \"""%s\"""
+        description = "Strings do not match fuzzily"
+        msg = _make_message(actual, expected, format_msg, description=description)
 
-        Expected: %s
-        Actual:   %s""")
+        self.assertTrue(match_fuzzy(actual, expected), msg=msg)
 
-        def make_message(short_description):
-            # Show both friendly and literal versions.
-            string_details_format = "String mismatch: %s-->\n\n%s" % (short_description, indent(details_format, "  "))
-            message_format = format(string_details_format)
-            message = message_format % (expected, actual, repr(expected), repr(actual))
+    def assertString(self, actual, expected, format_msg=None, fuzzy=False):
+        """
+        Assert that the given strings match.
 
-            return message
+        Arguments:
 
-        try:
-            self.assertEqual(actual, expected, make_message("different characters"))
-        except AssertionError:
-            if not fuzzy or not match_fuzzy(actual, expected):
-                raise
-            # Otherwise, ignore the exception.
+          format_msg: a function that accepts a details string and returns
+            the text to pass as the msg argument to a unittest
+            self.assert*() method.
 
-        reason = "types different: %s != %s (actual)" % (repr(type(expected)), repr(type(actual)))
-        self.assertEqual(type(expected), type(actual), make_message(reason))
+        """
+        if format_msg is None:
+            format_msg = lambda msg: msg
+
+        assert_func = self.assertFuzzy if fuzzy else self.__assertStringMatch
+
+        assert_func(actual, expected, format_msg=format_msg)
 
 
 class AssertFileMixin(AssertStringMixin):
@@ -144,4 +189,4 @@ class AssertFileMixin(AssertStringMixin):
             file_details = file_details_format % indent(string_details, "  ")
             return format_msg(file_details)
 
-        self.assertString(actual, expected, format=format_string_details, fuzzy=fuzzy)
+        self.assertString(actual, expected, format_msg=format_string_details, fuzzy=fuzzy)
