@@ -1,8 +1,6 @@
 TODO
 ====
 
-* Refactor AssertFileMixin to use a new fuzzy file-matching function
-  that we can add to molt.diff.
 * Create file and directory comparing functions and switch the unit tests
   to using them.
 * Add the ability to "check" a template directory from the command-line.
