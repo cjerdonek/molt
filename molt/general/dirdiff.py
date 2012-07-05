@@ -45,6 +45,7 @@ class Differ(object):
     #   to terminate when that many differences are encountered.
     # TODO: add support for fuzzy matching and ignoring files matching
     #   a certain pattern, etc.
+    # TODO: add a match_file argument that defaults to using cmpfiles.
     def __init__(self):
         pass
 

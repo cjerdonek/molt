@@ -38,7 +38,7 @@ import logging
 import os
 from textwrap import dedent
 
-from molt.diff import are_fuzzy_equal
+from molt.diff import match_fuzzy
 from molt.general import io
 import molt.test
 
@@ -95,7 +95,7 @@ class AssertStringMixin(object):
         try:
             self.assertEqual(actual, expected, make_message("different characters"))
         except AssertionError:
-            if not fuzzy or not are_fuzzy_equal(actual, expected):
+            if not fuzzy or not match_fuzzy(actual, expected):
                 raise
             # Otherwise, ignore the exception.
 

@@ -38,20 +38,45 @@ import logging
 import os
 import sys
 
-from molt.defaults import FUZZY_MARKER
+from molt.defaults import FILE_ENCODING, FUZZY_MARKER
+from molt.general.io import read
 
+
+_ENCODING = FILE_ENCODING
 
 _log = logging.getLogger(__name__)
 
-# TODO: expose a wrapper function for comparing directories that accepts
-#   a fuzzy argument.  It should internally call dirdiff.Differ.diff().
 
-def are_fuzzy_equal(u1, u2, marker=None):
+
+# TODO: think about providing more than just the true/false information
+#   of whether two strings are equal in these methods.  For example, one
+#   could provide line and character number, and/or surrounding context.
+#   Study the difflib module more closely:
+#     http://docs.python.org/library/difflib.html#module-difflib)
+#   though it may be hard to leverage because of our need to support
+#   fuzzy matching.
+
+def match_fuzzy(u1, u2, marker=None):
     """
-    Return whether the two unicode strings are "fuzzily" equal.
+    Return whether the given unicode strings are "fuzzily" equal.
 
-    Fuzzily equal means they are equal except for ignoring ellipses final
-    segments in the second argument.
+    Fuzzily equal means equal except possibly for characters at or
+    beyond a fuzzy marker on a line of the string.  For example--
+
+    >>> match_fuzzy('abcdef', 'abcdef')
+    True
+    >>> match_fuzzy('abcdef', 'abcwxyz')
+    False
+    >>> match_fuzzy('abcdef', 'abc...wxyz', marker='...')
+    True
+    >>> match_fuzzy('abc...def', 'abcwxyz', marker='...')
+    False
+
+    Observe that the fuzzy marker is only respected when occurring
+    in the second string.  For this reason, the second string can often
+    be interpreted as the "expected" string in the pair (i.e. because in
+    most scenarios it is the expected string that provides leeway
+    for an actual value).
 
     """
     if marker is None:
@@ -73,3 +98,33 @@ def are_fuzzy_equal(u1, u2, marker=None):
             return False
 
     return True
+
+# TODO: expose a wrapper function for comparing directories that accepts
+#   a fuzzy argument.  It should internally call dirdiff.Differ.diff().
+#   The function can return the line number and character number at
+#   the first difference.
+
+class FileComparer(object):
+
+    def __init__(self, path1, path2, match=None):
+        """
+        Arguments:
+
+          match: a function that accepts two unicode strings, and returns
+            whether they should be considered equal.  Defaults to the
+            usual string equality operator.
+
+        """
+        if match is None:
+            match = unicode.__eq__
+
+        self.match_func = match
+        self.left_path = path1
+        self.right_path = path2
+
+    def compare(self):
+        _read = lambda path: read(path, encoding=_ENCODING, errors=_ENCODING)
+
+        self.left, self.right = map(_read, (self.left_path, self.right_path))
+
+        return self.match_func(self.left, self.right)
