@@ -38,7 +38,7 @@ import logging
 import os
 from textwrap import dedent
 
-from molt.diff import match_fuzzy
+from molt.diff import match_fuzzy, FileComparer
 from molt.general import io
 import molt.test
 
@@ -59,7 +59,7 @@ def indent(text, prefix):
     return "".join(lines)
 
 
-def _make_message(actual, expected, format_msg, description):
+def _make_message(actual, expected, format_msg, description=None):
     """
     Return the text to pass as the msg argument to a self.assert*() method.
 
@@ -74,11 +74,11 @@ def _make_message(actual, expected, format_msg, description):
 
     # Show both friendly and literal versions.
     string_details_format = dedent("""\
-    Expected: \"""%s\"""
-    Actual:   \"""%s\"""
+    EXPECTED: \"""%s\"""
+    ACTUAL:   \"""%s\"""
 
-    Expected: %s
-    Actual:   %s
+    EXPECTED: %s
+    ACTUAL:   %s
     """)
 
     message_format = new_format_msg(string_details_format)
@@ -160,33 +160,39 @@ class AssertFileMixin(AssertStringMixin):
         msg = format_msg("%s does not exist: %s" % (label, path))
         self.assertTrue(os.path.exists(path), msg=msg)
 
-    def assertFilesEqual(self, actual_path, expected_path, format_msg=None, fuzzy=False, file_encoding='utf-8', errors='strict'):
+    def assertFilesEqual(self, actual_path, expected_path, format_msg=None,
+                         fuzzy=False, file_encoding='utf-8', errors='strict'):
         """
         Assert that the contents of the files at the given paths are equal.
 
         Arguments:
 
-          format: a function that accepts a file details string and returns
-            the desired text for the assertion error message.
+          format_msg: a function that accepts a details string and returns
+            the text to pass as the msg argument to a unittest
+            self.assert*() method.
 
         """
         if format_msg is None:
             format_msg = lambda msg: msg
 
-        read = lambda path: io.read(path, encoding=file_encoding, errors=errors)
+        match_func = match_fuzzy if fuzzy else None
 
-        actual, expected = (read(path) for path in (actual_path, expected_path))
+        fcmp = FileComparer(actual_path, expected_path, match=match_func)
+        actual_match = fcmp.compare()
 
-        file_details_format = dedent("""\
-        File contents differ at--
+        def new_format_msg(details):
+            new_details = dedent("""\
+            File contents don't match (fuzzy=%s) at--
 
-          Expected:  %s
-          Actual:    %s
+              Expected:  %s
+              Actual:    %s
 
-        %%s""" % (expected_path, actual_path))
+            %s""") % (fuzzy, expected_path, actual_path, indent(details, "  "))
 
-        def format_string_details(string_details):
-            file_details = file_details_format % indent(string_details, "  ")
-            return format_msg(file_details)
+            return format_msg(new_details)
 
-        self.assertString(actual, expected, format_msg=format_string_details, fuzzy=fuzzy)
+        description = "Displaying file contents"
+        msg = _make_message(fcmp.left, fcmp.right, format_msg=new_format_msg,
+                            description=description)
+
+        self.assertTrue(actual_match, msg=msg)
