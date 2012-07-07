@@ -38,6 +38,7 @@ from filecmp import dircmp
 import os
 from textwrap import dedent
 
+from molt.defaults import DIRCMP_IGNORE
 from molt.test.harness import indent
 from molt.test.harness.common import AssertFileMixin
 
@@ -46,9 +47,6 @@ TEST_FILE_ENCODING = 'utf-8'
 DECODE_ERRORS = 'strict'
 
 DIRCMP_ATTRS = ['left_only', 'right_only', 'funny_files']
-
-# TODO: inject this value at run-time using load_tests().
-IGNORED_FILES = ['.DS_Store']
 
 
 class AssertDirMixin(AssertFileMixin):
@@ -184,8 +182,9 @@ class AssertDirMixin(AssertFileMixin):
         self.assertFileExists(actual_dir, label='actual directory', format_msg=format_msg)
         self.assertFileExists(expected_dir, label='expected directory', format_msg=format_msg)
 
-        # TODO: use dircmp's ignore and/or hide keyword arguments.
-        dcmp = dircmp(expected_dir, actual_dir, ignore=IGNORED_FILES)
+        # TODO: consider using dircmp's hide keyword argument.
+        # TODO: inject IGNORED_FILES at run-time using load_tests().
+        dcmp = dircmp(expected_dir, actual_dir, ignore=DIRCMP_IGNORE)
 
         subdir_format_msg = self._make_subdir_format_msg(actual_dir, expected_dir, format_msg=format_msg)
 

@@ -34,6 +34,7 @@ Provides test-related code that may need to be tweaked on occasion.
 
 from __future__ import absolute_import
 
+
 # For passing to AssertDirMixin.assertDirectoriesEqual() as the
 # should_ignore argument.
 # TODO: consider calling this from TestConfig to avoid having
@@ -46,7 +47,5 @@ def should_ignore_file(base_name):
 
     """
     if base_name.endswith('.pyc'):
-        return True
-    if base_name == '__pycache__':
         return True
     return False

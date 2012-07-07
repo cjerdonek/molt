@@ -34,20 +34,46 @@ Provides functionality to diff directories recursively.
 
 from __future__ import absolute_import
 
-from filecmp import cmpfiles, dircmp
+import filecmp
 import os
 import sys
 
 
 class Differ(object):
 
+    @staticmethod
+    def contents_match(path1, path2):
+        """
+        Return whether the file contents at the given paths are the same.
+
+        """
+        return filecmp.cmp(path1, path2, shallow=False)
+
     # TODO: add a "max differences" argument that causes the function
     #   to terminate when that many differences are encountered.
-    # TODO: add support for fuzzy matching and ignoring files matching
-    #   a certain pattern, etc.
-    # TODO: add a match_file argument that defaults to using cmpfiles.
-    def __init__(self):
-        pass
+    # TODO: add support for ignoring files matching a certain pattern, etc.
+    def __init__(self, match=None, ignore=None):
+        """
+        Arguments:
+
+          match: a function that accepts two paths and returns whether
+            the files at those paths should be considered the same.
+            Defaults to Differ.contents_match.
+
+        """
+        match_func = Differ.contents_match if match is None else match
+
+        self.ignore = ignore
+        self.match = match
+        self.match_func = match_func
+
+    def _is_same(self, dcmp, name):
+        """
+        Return whether the file name in dcmp is a "same file."
+
+        """
+        path1, path2 = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
+        return self.match_func(path1, path2)
 
     def _diff(self, dcmp, results, leading_path=''):
         """
@@ -65,26 +91,34 @@ class Differ(object):
             results container.
 
         """
+        is_different = lambda name: not self._is_same(dcmp, name)
         make_path = lambda name: os.path.join(leading_path, name)
 
-        attrs = ['left_only', 'right_only', 'diff_files']
-        for result_paths, attr in zip(results, attrs):
-            paths = [make_path(name) for name in getattr(dcmp, attr)]
-            result_paths.extend(paths)
+        diff_files = list(dcmp.diff_files)  # make a copy
+
+        if self.match is not None:
+            # Then we are using a custom file comparer, which may be more
+            # forgiving than the default.  Thus we need to check the
+            # different files again to see if any might be the same
+            # under the looser condition.
+            diff_files[:] = filter(is_different, diff_files)
 
         # Since dircmp only does "shallow" file comparisons (i.e. doesn't
-        # look at file contents), we need to check the same files manually.
+        # look at file contents), we need to check the files that look
+        # the same manually to see if they might in fact be different.
         # See also: http://bugs.python.org/issue15250
-        (match, mismatch, errors) = cmpfiles(dcmp.left, dcmp.right, dcmp.same_files, shallow=False)
-        new_diff_files = [make_path(name) for name in (mismatch + errors)]
-        results[2].extend(new_diff_files)
+        new_diff_files = filter(is_different, dcmp.same_files)
+        diff_files.extend(new_diff_files)
 
         for dir_name, sub_dcmp in dcmp.subdirs.iteritems():
             path = make_path(dir_name)
             self._diff(sub_dcmp, results, leading_path=path)
 
-    # TODO: add a diff_path function to customize file comparison.
-    #   This lets us keep file-reading code out of this module.
+        name_lists = [dcmp.left_only, dcmp.right_only, diff_files]
+        for result_paths, names in zip(results, name_lists):
+            paths = [make_path(name) for name in names]
+            result_paths.extend(paths)
+
     def diff(self, dir1, dir2):
         """
         Compare the directories at the given path.
@@ -95,7 +129,7 @@ class Differ(object):
         # The 3-tuple is (left_only, right_only, diff_files).
         results = tuple([] for i in range(3))
 
-        dcmp = dircmp(dir1, dir2)
+        dcmp = filecmp.dircmp(dir1, dir2, ignore=self.ignore)
 
         self._diff(dcmp, results)
 

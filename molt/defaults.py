@@ -57,6 +57,9 @@ CONFIG_FILE_NAME = 'sample'  # without extension
 CONFIG_FILE_EXTENSIONS = ['.json', '.yaml', '.yml']
 CONFIG_CONTEXT_KEY = 'context'
 
+# Names to pass to Python's filecmp.dircmp() for the `ignore` argument.
+DIRCMP_IGNORE = ['.DS_Store', '__pycache__']
+
 # For fuzzy equality testing in molt.diff.
 FUZZY_MARKER = "..."
 

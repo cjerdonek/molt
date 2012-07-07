@@ -245,6 +245,7 @@ def publish(sys_argv):
     temp_path = make_temp_path(description_path)
     make_description_file(temp_path)
 
+    # TODO: use filecmp.cmp(path1, path2, shallow=False).
     if read(temp_path) != read(description_path):
         print("""\
 Description file not up-to-date: %s

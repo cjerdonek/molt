@@ -37,6 +37,7 @@ from __future__ import absolute_import
 import os
 import unittest
 
+from molt.defaults import DIRCMP_IGNORE
 from molt.general.dirdiff import Differ
 from molt.test.harness import config_load_tests
 
@@ -61,14 +62,52 @@ class DifferTestCase(unittest.TestCase):
         Assert that two results containers are the same.
 
         """
+        # TODO: make this check OS-independent (with respect to paths).
         self.assertEquals(actual, expected)
 
-    def test_diff(self):
-        differ = Differ()
+    def _assert_diff(self, expected, match=None):
+        differ = Differ(match=match, ignore=DIRCMP_IGNORE)
         dir1, dir2 = (os.path.join(self._data_dir, name) for name in ('dir1', 'dir2'))
-        results = differ.diff(dir1, dir2)
+        actual = differ.diff(dir1, dir2)
 
-        self._assert_results(results, (['a.txt', 'b'], ['d'], ['a/diff.txt']))
+        self._assert_results(actual, expected)
+
+    def test_diff__basic(self):
+        expected = (['a.txt', 'b'], ['d'], ['a/diff.txt', 'a/diff2.txt'])
+        self._assert_diff(expected=expected)
+
+    def test_diff__match__default(self):
+        """
+        Check that passing Differ.default_match works as expected.
+
+        """
+        expected = (['a.txt', 'b'], ['d'], ['a/diff.txt', 'a/diff2.txt'])
+        self._assert_diff(expected=expected, match=Differ.contents_match)
+
+    def test_diff__match__fuzzy(self):
+        """
+        Check that the match argument works for a basic "fuzzy" example.
+
+        This test also checks that even same files are checked again
+        using the custom match function (since "same.txt" is included
+        in the list of differences).
+
+        """
+        expected = (['a.txt', 'b'], ['d'], ['a/same.txt'])
+        match = lambda path1, path2: os.path.basename(path1).startswith('diff')
+
+        self._assert_diff(expected=expected, match=match)
+
+    def test_diff__match__stricter(self):
+        """
+        Check that match works for something stricter than the default.
+
+        """
+        expected = (['a.txt', 'b'], ['d'], ['a/diff.txt', 'a/diff2.txt', 'a/same.txt'])
+        # The strictest possible match function returns False for every comparison.
+        match = lambda path1, path2: False
+
+        self._assert_diff(expected=expected, match=match)
 
     def test_diff__directory_not_existing(self):
         differ = Differ()
