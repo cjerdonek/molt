@@ -1,6 +1,8 @@
 TODO
 ====
 
+* Remove references to optparse (case-sensitive) and OptionParser.
+* Correct parser return value docstring.
 * Create file and directory comparing functions and switch the unit tests
   to using them.
 * Add the ability to "check" a template directory from the command-line.
