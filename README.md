@@ -8,6 +8,8 @@ Molt
 <!-- caption text shows up in the reST version converted by pandoc. -->
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
+![](https://secure.travis-ci.org/cjerdonek/molt.png?branch=master,development)
+
 [Molt](http://cjerdonek.github.com/molt/) is a script to stub out projects
 in any language instantly using [Mustache](http://mustache.github.com/)-based
 project templates.
