@@ -46,7 +46,7 @@ import sys
 import traceback
 
 from molt import argparsing
-from molt.argparsing import OPTION_HELP, OPTION_VERBOSE
+from molt.argparsing import OPTION_HELP
 from molt.general.error import Error
 from molt.general.optionparser import UsageError
 from molt import constants
@@ -85,16 +85,6 @@ class RememberingStream(object):
     # class to unittest.TextTestRunner's constructor.
     def flush(self):
         self._stream.flush()
-
-
-def log_error(details, verbose):
-    if verbose:
-        msg = traceback.format_exc()
-    else:
-        msg = """\
-%s
-Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
-    _log.error(msg)
 
 
 def _configure_logging(sys_argv, sys_stderr=None):
@@ -162,7 +152,8 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
         if process_args is None:
             # See this module's docstring for an explanation of why
             # we do this import inside a function body.
-            from molt.argprocessor import run_args
+            # TODO: we should not need to do this import here?
+            from molt.argprocessor import log_error, run_args
             process_args = run_args
         status = process_args(sys_argv, test_runner_stream=stderr_stream,
                               from_source=from_source)

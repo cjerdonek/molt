@@ -69,7 +69,8 @@ def log_error(details, verbose):
     else:
         msg = """\
 %s
-Pass %s for the stack trace.""" % (details, OPTION_VERBOSE.display(' or '))
+Pass %s for the stack trace.""" % (details,
+                                   argparsing.OPTION_VERBOSE.display(' or '))
     _log.error(msg)
 
 
@@ -141,6 +142,7 @@ def run_mode_create_demo(ns):
 
 
 def run_mode_render(ns, chooser):
+    """Returns the output directory."""
     template_dir = _get_input_dir(ns, 'template rendering')
 
     config_path = ns.config_path
@@ -189,6 +191,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         result = argparsing.get_license_string()
     else:
         result = run_mode_render(ns, chooser)
+
+    if ns.check_expected:
+        raise NotImplementedError("check-expected is not implemented yet")
 
     if result is not None:
         print result

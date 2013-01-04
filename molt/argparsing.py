@@ -28,7 +28,7 @@
 #
 
 """
-Contains command-line documentation and command-line parsing code.
+Contains argument-parsing code and command-line documentation.
 
 """
 
@@ -49,6 +49,7 @@ _log = logging.getLogger(__name__)
 
 METAVAR_INPUT_DIR = 'DIRECTORY'
 
+OPTION_CHECK_EXPECTED = Option(('--check-expected', ))
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
 OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
@@ -178,10 +179,8 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
     """
     if chooser is None:
         chooser = DirectoryChooser()
-
     if usage is None:
         usage = USAGE
-
     parser = ArgParser(usage=usage,
                        description=DESCRIPTION,
                        epilog=EPILOG,
@@ -196,7 +195,6 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                         help='the input directory if one is required.  '
                               'In most cases, this should be a path to a '
                               'Groome template directory.')
-
     # TODO: alignment.
     parser.add_argument(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest='output_directory',
                       action='store', default=None,
@@ -220,6 +218,12 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                            (OPTION_MODE_VISUALIZE.display(' or '),
                             OPTION_MODE_TESTS.display(' or '),
                             OPTION_OUTPUT_DIR.display(' or ')))
+    parser.add_argument(*OPTION_CHECK_EXPECTED, metavar='DIRECTORY',
+                        dest='check_expected', action='store', default=None,
+                        help='when rendering, checks whether the output '
+                             'directory matches the contents of DIRECTORY.  '
+                             'Writes the differences to stderr and reports '
+                             'the result via the exit status.')
     parser.add_argument(*OPTION_MODE_DEMO, dest='create_demo_mode',
                       action='store_true', default=False,
                       help='create a copy of the Molt demo template to play with, '

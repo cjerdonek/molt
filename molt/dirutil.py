@@ -198,12 +198,12 @@ class DirectoryChooser(object):
             return path
         if not is_required:
             return None
-        raise Error("%s not found in default location\n"
-                    "  in template directory: %s" % (display_name, path))
+        raise Error("%s not found at: %s" % (display_name, path))
 
     def get_project_dir(self, template_dir):
         return self._get_dir(template_dir, defaults.TEMPLATE_PROJECT_DIR_NAME,
-                             is_required=True, display_name="Project directory")
+                             is_required=True,
+                             display_name="Template structure directory")
 
     def get_partials_dir(self, template_dir):
         return self._get_dir(template_dir, defaults.TEMPLATE_PARTIALS_DIR_NAME)

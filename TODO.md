@@ -10,6 +10,7 @@ Milestones
 Steps
 -----
 
+* Finish implementing --check-expected (issue #3).
 * Remove references to optparse (case-sensitive) and OptionParser.
 * Correct parser return value docstring.
 * Add PEP 8 linter support to the setup package.
