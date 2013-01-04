@@ -49,7 +49,7 @@ _log = logging.getLogger(__name__)
 
 METAVAR_INPUT_DIR = 'DIRECTORY'
 
-OPTION_CHECK_EXPECTED = Option(('--check-expected', ))
+OPTION_CHECK_EXPECTED = Option(('--check-output', ))
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
 OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
@@ -219,11 +219,13 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                             OPTION_MODE_TESTS.display(' or '),
                             OPTION_OUTPUT_DIR.display(' or ')))
     parser.add_argument(*OPTION_CHECK_EXPECTED, metavar='DIRECTORY',
-                        dest='check_expected', action='store', default=None,
+                        dest='expected_dir', action='store', nargs='?',
+                        default=None,
                         help='when rendering, checks whether the output '
                              'directory matches the contents of DIRECTORY.  '
                              'Writes the differences to stderr and reports '
-                             'the result via the exit status.')
+                             'the result via the exit status.  DIRECTORY '
+                             "defaults to the template\'s expected directory.")
     parser.add_argument(*OPTION_MODE_DEMO, dest='create_demo_mode',
                       action='store_true', default=False,
                       help='create a copy of the Molt demo template to play with, '
@@ -286,9 +288,11 @@ class Namespace(argparse.Namespace):
 
     @property
     def run_test_mode(self):
-        """
-        Return whether to run unit tests.
-
-        """
+        """Return whether to run unit tests."""
         # In particular, an empty list of test names should return True.
         return not self.test_names is None
+
+    @property
+    def check_output(self):
+        """Return whether to check the output directory."""
+        return self.expected_dir is not None

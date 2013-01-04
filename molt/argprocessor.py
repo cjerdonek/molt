@@ -155,16 +155,21 @@ def run_mode_visualize(ns):
     return None  # no need to print anything more.
 
 
+def check_output(output_dir, expected_dir):
+    """Return whether the output directory matches the expected."""
+    print("output: %s\nexpected: %s" % (output_dir, expected_dir))
+    return True
+
+
+# TODO: rename this to process() or process_args().
 def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False):
+    exit_status = constants.EXIT_STATUS_SUCCESS  # return value
     if chooser is None:
         chooser = DirectoryChooser()
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
     ns = argparsing.parse_args(sys_argv, chooser)
-
-    if ns.check_expected:
-        raise NotImplementedError("--check-expected is not implemented yet")
 
     if ns.run_test_mode:
         # Run all tests if no test names provided.
@@ -184,7 +189,12 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     else:
         result = run_mode_render(ns, chooser)
 
+    # TODO: ensure that check_output raises an error if running in
+    # a mode that doesn't create an ouput directory.
+    if ns.check_output and not check_output(result, ns.expected_dir):
+        exit_status = constants.EXIT_STATUS_FAIL
+
     if result is not None:
         print result
 
-    return constants.EXIT_STATUS_SUCCESS
+    return exit_status
