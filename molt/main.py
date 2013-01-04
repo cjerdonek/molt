@@ -125,6 +125,17 @@ def _configure_logging(sys_argv, sys_stderr=None):
     return verbose, stderr_stream
 
 
+def log_error(details, verbose):
+    if verbose:
+        msg = traceback.format_exc()
+    else:
+        msg = """\
+%s
+Pass %s for the stack trace.""" % (details,
+                                   argparsing.OPTION_VERBOSE.display(' or '))
+    _log.error(msg)
+
+
 def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
              process_args=None, **kwargs):
     """
@@ -153,7 +164,7 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
             # See this module's docstring for an explanation of why
             # we do this import inside a function body.
             # TODO: we should not need to do this import here?
-            from molt.argprocessor import log_error, run_args
+            from molt.argprocessor import run_args
             process_args = run_args
         status = process_args(sys_argv, test_runner_stream=stderr_stream,
                               from_source=from_source)

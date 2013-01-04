@@ -63,17 +63,6 @@ def visualize(dir_path):
     visualizer.visualize(dir_path)
 
 
-def log_error(details, verbose):
-    if verbose:
-        msg = traceback.format_exc()
-    else:
-        msg = """\
-%s
-Pass %s for the stack trace.""" % (details,
-                                   argparsing.OPTION_VERBOSE.display(' or '))
-    _log.error(msg)
-
-
 # TODO: consider whether we can have argparse handle this logic.
 def _get_input_dir(ns, mode_description):
     input_dir = ns.input_directory
@@ -174,6 +163,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
 
     ns = argparsing.parse_args(sys_argv, chooser)
 
+    if ns.check_expected:
+        raise NotImplementedError("--check-expected is not implemented yet")
+
     if ns.run_test_mode:
         # Run all tests if no test names provided.
         test_names = ns.test_names or None
@@ -191,9 +183,6 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         result = argparsing.get_license_string()
     else:
         result = run_mode_render(ns, chooser)
-
-    if ns.check_expected:
-        raise NotImplementedError("check-expected is not implemented yet")
 
     if result is not None:
         print result
