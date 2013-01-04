@@ -117,14 +117,14 @@ def _configure_logging(sys_argv, sys_stderr=None):
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
     # Configure logging before parsing arguments for real.
-    pargs = commandline.preparse_args(sys_argv)
+    ns = commandline.preparse_args(sys_argv)
 
-    if pargs is not None:
+    if ns is not None:
         # Then args parsed without error.
-        verbose = pargs.verbose
+        verbose = ns.verbose
         if verbose:
             logging_level = logging.DEBUG
-        if pargs.run_test_mode:
+        if ns.run_test_mode:
             is_running_tests = True
 
     persistent_loggers = [_app_log, test_logger]

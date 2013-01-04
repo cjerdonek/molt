@@ -1,11 +1,13 @@
 Molt
 ====
 
-<!-- We strip out 1-line HTML comments prior to passing to pandoc because -->
-<!-- PyPI rejects reST long descriptions that contain HTML. -->
+<!-- For simplicity, all comments are one-line long because PyPI rejects -->
+<!-- reST long descriptions containing HTML. -->
+<!-- We strip out 1-line HTML comments prior to passing to pandoc. -->
 
 <!-- We leave the leading brackets empty here.  Otherwise, unwanted -->
 <!-- caption text shows up in the reST version converted by pandoc. -->
+<!-- TODO: use the pages feature to serve this image. -->
 ![](https://github.com/cjerdonek/molt/raw/master/images/molt.png "molting snake")
 
 ![](https://secure.travis-ci.org/cjerdonek/molt.png?branch=master,development)
@@ -199,7 +201,7 @@ is the current [Pystache](https://github.com/defunkt/pystache) maintainer.
 Copyright
 ---------
 
-Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+Copyright (C) 2011-2013 Chris Jerdonek. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

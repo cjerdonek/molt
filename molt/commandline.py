@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2013 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
 #
 
 """
-Contains the command-line documenation and command-line parsing code.
+Contains command-line documentation and command-line parsing code.
 
 """
 
@@ -40,9 +40,7 @@ import os
 import sys
 
 from molt import __version__
-# TODO: use argparse instead of optparse:
-#   http://docs.python.org/library/argparse.html#module-argparse
-from molt.general.optionparser import Option, OptionParser, UsageError
+from molt.general.optionparser import Option, ArgParser, UsageError
 from molt import defaults
 from molt.dirutil import get_default_config_files, DirectoryChooser
 
@@ -64,9 +62,9 @@ OPTION_VERBOSE = Option(('-v', '--verbose'))
 # We escape the leading "%" so that the leading "%" is not interpreted as a
 # Python string formatting conversion specifier.  The argparse.ArgumentParser
 # class will do its own substition for "%(prog)s", etc.
-OPTPARSE_USAGE = "%%(prog)s [options] [%s]" % METAVAR_INPUT_DIR
+USAGE = "%%(prog)s [options] [%s]" % METAVAR_INPUT_DIR
 
-OPTPARSE_DESCRIPTION = """\
+DESCRIPTION = """\
 Render the Groome template directory in %(input_dir_metavar)s.
 
 A Groome template is a Mustache-based template for a directory of files.
@@ -95,9 +93,9 @@ to is different from that given by the user.""" % {
     'input_dir_metavar': METAVAR_INPUT_DIR,
 }
 
-OPTPARSE_EPILOG = "This is version %s of Molt." % __version__
+EPILOG = "This is version %s of Molt." % __version__
 
-COPYRIGHT_LINE = "Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved."
+COPYRIGHT_LINE = "Copyright (C) 2011-2013 Chris Jerdonek. All rights reserved."
 
 LICENSE_STRING = """\
 Redistribution and use in source and binary forms, with or without
@@ -148,62 +146,48 @@ def preparse_args(sys_argv):
     This function allows one to have access to the command-line options
     before configuring logging (in particular before exception logging).
 
-    Returns: the pair (options, args).
+    Returns a Namespace object.
 
     """
     try:
         # Suppress the help option to prevent exiting.
-        args = parse_args(sys_argv, None, suppress_help_exit=True)
+        ns = parse_args(sys_argv, None, suppress_help_exit=True)
     except UsageError:
         # Any usage error will occur again during the real parse.
         return None
-
-    return args
+    return ns
 
 
 def parse_args(sys_argv, chooser=None, suppress_help_exit=False, usage=None):
     """
-    Parse arguments and return (options, args).
+    Parse arguments and return a Namespace object.
 
     Raises UsageError on command-line usage error.
 
     """
-    parser = _create_parser(chooser, suppress_help_exit=suppress_help_exit, usage=usage)
-
-    # The optparse module's parse_args() normally expects sys.argv[1:].
-    args = sys_argv[1:]
-
-    # Use our decorator.
-    namespace = Namespace()
-    pargs = parser.parse_args(args, namespace=namespace)
-
-    return pargs
+    parser = _create_parser(chooser, suppress_help_exit=suppress_help_exit,
+                            usage=usage)
+    namespace = Namespace()  # use our decorator.
+    return parser.parse_args(sys_argv[1:], namespace=namespace)
 
 
 def _create_parser(chooser, suppress_help_exit=False, usage=None):
     """
-    Return an OptionParser for the program.
+    Return an ArgParser for the program.
 
     """
     if chooser is None:
         chooser = DirectoryChooser()
 
     if usage is None:
-        usage = OPTPARSE_USAGE
+        usage = USAGE
 
-    help_action = "store_true" if suppress_help_exit else "help"
-
-    # TODO: try reenabling help now that we are using argparse.
-    #
-    # We prevent the help option from being added automatically so that
-    # we can add our own optional manually.  This lets us prevent exiting
-    # when a help option is passed (e.g. "-h" or "--help").
-    parser = OptionParser(usage=usage,
-                          description=OPTPARSE_DESCRIPTION,
-                          epilog=OPTPARSE_EPILOG,
-                          add_help=False,
-                          # Preserves formatting of the description and epilog.
-                          formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = ArgParser(usage=usage,
+                       description=DESCRIPTION,
+                       epilog=EPILOG,
+                       add_help=False,
+                       # Preserves formatting of the description and epilog.
+                       formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # TODO: incorporate the METAVAR names into the help messages, as appropriate.
     # TODO: fix the help message.
@@ -281,8 +265,10 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
     parser.add_argument(*OPTION_VERBOSE, dest='verbose',
                       action='store_true', default=False,
                       help='log verbosely.')
+    # We add help manually for more control.
+    help_action = "store_true" if suppress_help_exit else "help"
     parser.add_argument(*OPTION_HELP, action=help_action,
-                      help='show this help message and exit.')
+                        help='show this help message and exit.')
 
     return parser
 

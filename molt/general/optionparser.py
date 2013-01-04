@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Copyright (C) 2011-2012 Chris Jerdonek. All rights reserved.
+# Copyright (C) 2011-2013 Chris Jerdonek. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
 #
 
 """
-Exposes an option parser that is a subclass of optparse.OptionParser.
+Supports command-line parsing.
 
 """
 
@@ -60,18 +60,15 @@ class Option(tuple):
         return glue.join(self)
 
 
-# We subclass optparse.OptionParser to customize the behavior of error().
-# The base class's implementation of error() prints the help string
-# and exits with status code 2.
-class OptionParser(argparse.ArgumentParser):
+class ArgParser(argparse.ArgumentParser):
 
     def error(self, message):
         """
         Handle an error occurring while parsing command arguments.
 
-        This method overrides the OptionParser base class's error().  The
-        OptionParser class requires that this method either exit or raise
-        an exception.
+        This method overrides the base class's error(), which prints a
+        usage message to standard error and terminates the program with
+        a status code of 2.
 
         """
         raise UsageError(message)
