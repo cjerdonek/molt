@@ -21,7 +21,7 @@ logging configuration, option parsing, test harness, packaging information,
 
 A minimal sample usage looks like--
 
-    $ molt -c path_to_config.json path_to_template_dir/
+    $ molt -c path/to/config.json path/to/template/dir/
 
 Molt follows the [Groome](http://cjerdonek.github.com/groome/) rules for
 Mustache-based project templates.
