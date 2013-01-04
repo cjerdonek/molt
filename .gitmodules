@@ -3,4 +3,4 @@
 	url = git://github.com/cjerdonek/groome.git
 [submodule "sub/groome-python"]
 	path = sub/groome-python
-	url = git@github.com:cjerdonek/groome-python.git
+	url = git://github.com/cjerdonek/groome-python.git
