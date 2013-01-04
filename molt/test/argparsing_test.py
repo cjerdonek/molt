@@ -28,14 +28,14 @@
 #
 
 """
-Unit tests for commandline.py.
+Unit tests for argparsing.py.
 
 """
 
 import unittest
 
 from molt.general.optionparser import UsageError
-from molt.commandline import parse_args
+from molt.argparsing import parse_args
 
 
 class ParseArgsTestCase(unittest.TestCase):

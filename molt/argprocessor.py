@@ -40,7 +40,7 @@ from StringIO import StringIO
 import sys
 
 import molt
-from molt import commandline
+from molt import argparsing
 from molt.general.error import Error
 from molt.general.optionparser import UsageError
 from molt import constants
@@ -52,7 +52,7 @@ from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
 
-METAVAR_INPUT_DIR = commandline.METAVAR_INPUT_DIR
+METAVAR_INPUT_DIR = argparsing.METAVAR_INPUT_DIR
 
 _log = logging.getLogger(__name__)
 
@@ -158,7 +158,7 @@ def run_mode_render(ns, chooser):
 
 
 def run_mode_visualize(ns):
-    target_dir = _get_input_dir(ns, '%s option' % commandline.OPTION_MODE_VISUALIZE)
+    target_dir = _get_input_dir(ns, '%s option' % argparsing.OPTION_MODE_VISUALIZE)
     visualize(target_dir)
 
     return None  # no need to print anything more.
@@ -170,7 +170,7 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
 
-    ns = commandline.parse_args(sys_argv, chooser)
+    ns = argparsing.parse_args(sys_argv, chooser)
 
     if ns.run_test_mode:
         # Run all tests if no test names provided.
@@ -184,9 +184,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     elif ns.visualize_mode:
         result = run_mode_visualize(ns)
     elif ns.version_mode:
-        result = commandline.get_version_string()
+        result = argparsing.get_version_string()
     elif ns.license_mode:
-        result = commandline.get_license_string()
+        result = argparsing.get_license_string()
     else:
         result = run_mode_render(ns, chooser)
 

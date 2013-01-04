@@ -45,8 +45,8 @@ import logging
 import sys
 import traceback
 
-from molt import commandline
-from molt.commandline import OPTION_HELP, OPTION_VERBOSE
+from molt import argparsing
+from molt.argparsing import OPTION_HELP, OPTION_VERBOSE
 from molt.general.error import Error
 from molt.general.optionparser import UsageError
 from molt import constants
@@ -117,7 +117,7 @@ def _configure_logging(sys_argv, sys_stderr=None):
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
     # Configure logging before parsing arguments for real.
-    ns = commandline.preparse_args(sys_argv)
+    ns = argparsing.preparse_args(sys_argv)
 
     if ns is not None:
         # Then args parsed without error.

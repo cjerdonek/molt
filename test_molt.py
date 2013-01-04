@@ -12,7 +12,7 @@ This script is a convenience wrapper for running--
 import os
 import sys
 
-from molt.commandline import OPTION_MODE_TESTS, OPTION_SOURCE_DIR
+from molt.argparsing import OPTION_MODE_TESTS, OPTION_SOURCE_DIR
 from molt.commands import molt
 
 
