@@ -99,12 +99,7 @@ class AreFuzzyEqualTestCase(unittest.TestCase):
         self._assert_not_match(u"", u"a...b")
 
 
-class MatchFilesTestCase(unittest.TestCase):
-
-    """
-    Tests the match_files() function.
-
-    """
+class FileComparerTestCase(unittest.TestCase):
 
     @property
     def _data_dir(self):
@@ -118,8 +113,8 @@ class MatchFilesTestCase(unittest.TestCase):
         """
         path1, path2 = (os.path.join(self._data_dir, name) for name in (file_name1, file_name2))
 
-        fcmp = FileComparer(path1, path2, match=match_func)
-        actual = fcmp.compare()
+        fcmp = FileComparer(match=match_func)
+        actual = fcmp.compare(path1, path2)
 
         # TODO: share code with AssertStringMixin's formatting code.
         msg = """\

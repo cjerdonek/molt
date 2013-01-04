@@ -28,7 +28,7 @@
 #
 
 """
-Provides functionality to diff directories recursively.
+Provides support for recursive directory comparisons.
 
 """
 
@@ -39,33 +39,33 @@ import os
 import sys
 
 
-class Differ(object):
+def compare_files(path1, path2):
+    """
+    Return whether the file contents at the given paths are the same.
 
-    @staticmethod
-    def contents_match(path1, path2):
-        """
-        Return whether the file contents at the given paths are the same.
+    """
+    return filecmp.cmp(path1, path2, shallow=False)
 
-        """
-        return filecmp.cmp(path1, path2, shallow=False)
+
+class DirDiffer(object):
 
     # TODO: add a "max differences" argument that causes the function
     #   to terminate when that many differences are encountered.
     # TODO: add support for ignoring files matching a certain pattern, etc.
-    def __init__(self, match=None, ignore=None):
+    def __init__(self, compare=None, ignore=None):
         """
         Arguments:
 
           match: a function that accepts two paths and returns whether
             the files at those paths should be considered the same.
-            Defaults to Differ.contents_match.
+            Defaults to compare_files.
 
         """
-        match_func = Differ.contents_match if match is None else match
+        compare_func = compare_files if compare is None else compare
 
         self.ignore = ignore
-        self.match = match
-        self.match_func = match_func
+        self.match = compare
+        self.compare_func = compare_func
 
     def _is_same(self, dcmp, name):
         """
@@ -73,7 +73,7 @@ class Differ(object):
 
         """
         path1, path2 = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
-        return self.match_func(path1, path2)
+        return self.compare_func(path1, path2)
 
     def _diff(self, dcmp, results, leading_path=''):
         """
@@ -121,12 +121,16 @@ class Differ(object):
 
     def diff(self, dir1, dir2):
         """
-        Compare the directories at the given path.
+        Compare the directories at the given paths.
 
         This method raises an OSError if either directory does not exist.
 
+        Returns:
+
+          a three-tuple of paths (left_only, right_only, diff_files).
+            The paths are relative to the directory roots.
+
         """
-        # The 3-tuple is (left_only, right_only, diff_files).
         results = tuple([] for i in range(3))
 
         dcmp = filecmp.dircmp(dir1, dir2, ignore=self.ignore)

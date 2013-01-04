@@ -188,8 +188,8 @@ class AssertFileMixin(AssertStringMixin):
 
         match_func = match_fuzzy if fuzzy else None
 
-        fcmp = FileComparer(actual_path, expected_path, match=match_func)
-        actual_match = fcmp.compare()
+        fcmp = FileComparer(match=match_func)
+        actual_match = fcmp.compare(actual_path, expected_path)
 
         description = "Displaying file contents"
         msg = _make_message(fcmp.left, fcmp.right, format_msg=new_format_msg,

@@ -38,7 +38,7 @@ import os
 import unittest
 
 from molt.defaults import DIRCMP_IGNORE
-from molt.general.dirdiff import Differ
+from molt.general.dirdiff import compare_files, DirDiffer
 from molt.test.harness import config_load_tests
 
 
@@ -50,7 +50,7 @@ load_tests = config_load_tests
 _DATA_SUB_DIR = 'dirdiff'
 
 
-class DifferTestCase(unittest.TestCase):
+class DirDifferTestCase(unittest.TestCase):
 
     @property
     def _data_dir(self):
@@ -65,8 +65,8 @@ class DifferTestCase(unittest.TestCase):
         # TODO: make this check OS-independent (with respect to paths).
         self.assertEquals(actual, expected)
 
-    def _assert_diff(self, expected, match=None):
-        differ = Differ(match=match, ignore=DIRCMP_IGNORE)
+    def _assert_diff(self, expected, compare=None):
+        differ = DirDiffer(compare=compare, ignore=DIRCMP_IGNORE)
         dir1, dir2 = (os.path.join(self._data_dir, name) for name in ('dir1', 'dir2'))
         actual = differ.diff(dir1, dir2)
 
@@ -76,40 +76,40 @@ class DifferTestCase(unittest.TestCase):
         expected = (['a.txt', 'b'], ['d'], ['a/diff.txt', 'a/diff2.txt'])
         self._assert_diff(expected=expected)
 
-    def test_diff__match__default(self):
+    def test_diff__compare__default(self):
         """
-        Check that passing Differ.default_match works as expected.
+        Check that passing dirdiff.compare_files works as expected.
 
         """
         expected = (['a.txt', 'b'], ['d'], ['a/diff.txt', 'a/diff2.txt'])
-        self._assert_diff(expected=expected, match=Differ.contents_match)
+        self._assert_diff(expected=expected, compare=compare_files)
 
-    def test_diff__match__fuzzy(self):
+    def test_diff__compare__fuzzy(self):
         """
-        Check that the match argument works for a basic "fuzzy" example.
+        Check that the compare argument works for a basic "fuzzy" example.
 
         This test also checks that even same files are checked again
-        using the custom match function (since "same.txt" is included
+        using the custom compare function (since "same.txt" is included
         in the list of differences).
 
         """
         expected = (['a.txt', 'b'], ['d'], ['a/same.txt'])
-        match = lambda path1, path2: os.path.basename(path1).startswith('diff')
+        compare = lambda path1, path2: os.path.basename(path1).startswith('diff')
 
-        self._assert_diff(expected=expected, match=match)
+        self._assert_diff(expected=expected, compare=compare)
 
-    def test_diff__match__stricter(self):
+    def test_diff__compare__stricter(self):
         """
-        Check that match works for something stricter than the default.
+        Check that compare works for something stricter than the default.
 
         """
         expected = (['a.txt', 'b'], ['d'], ['a/diff.txt', 'a/diff2.txt', 'a/same.txt'])
-        # The strictest possible match function returns False for every comparison.
-        match = lambda path1, path2: False
+        # The strictest possible compare function returns False for every comparison.
+        compare = lambda path1, path2: False
 
-        self._assert_diff(expected=expected, match=match)
+        self._assert_diff(expected=expected, compare=compare)
 
     def test_diff__directory_not_existing(self):
-        differ = Differ()
+        differ = DirDiffer()
         dir1, dir2 = (os.path.join(self._data_dir, name) for name in ('dir1', 'not_exist'))
         self.assertRaises(OSError, differ.diff, dir1, dir2)

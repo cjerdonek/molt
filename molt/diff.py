@@ -39,6 +39,7 @@ import os
 import sys
 
 from molt.defaults import FILE_ENCODING, FUZZY_MARKER
+from molt.general.dirdiff import compare_files, DirDiffer
 from molt.general.io import read
 
 
@@ -99,14 +100,20 @@ def match_fuzzy(u1, u2, marker=None):
 
     return True
 
-# TODO: expose a wrapper function for comparing directories that accepts
-#   a fuzzy argument.  It should internally call dirdiff.Differ.diff().
+# TODO: Finish this class.  It should internally call dirdiff.Differ.diff().
 #   The function can return the line number and character number at
 #   the first difference.
+class DirComparer(object):
+
+    def __init__(self, fuzzy=False):
+        self.fuzzy = fuzzy
+
+    def compare(self, path1, path2):
+        pass
 
 class FileComparer(object):
 
-    def __init__(self, path1, path2, match=None):
+    def __init__(self, match=None):
         """
         Arguments:
 
@@ -119,12 +126,10 @@ class FileComparer(object):
             match = unicode.__eq__
 
         self.match_func = match
-        self.left_path = path1
-        self.right_path = path2
 
-    def compare(self):
+    def compare(self, path1, path2):
         _read = lambda path: read(path, encoding=_ENCODING, errors=_ENCODING)
 
-        self.left, self.right = map(_read, (self.left_path, self.right_path))
+        self.left, self.right = map(_read, (path1, path2))
 
         return self.match_func(self.left, self.right)
