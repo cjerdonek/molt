@@ -218,9 +218,10 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                            (OPTION_MODE_VISUALIZE.display(' or '),
                             OPTION_MODE_TESTS.display(' or '),
                             OPTION_OUTPUT_DIR.display(' or ')))
+    # Option present without DIRECTORY yields True; option absent yields None.
     parser.add_argument(*OPTION_CHECK_EXPECTED, metavar='DIRECTORY',
                         dest='expected_dir', action='store', nargs='?',
-                        default=None,
+                        const=True,
                         help='when rendering, checks whether the output '
                              'directory matches the contents of DIRECTORY.  '
                              'Writes the differences to stderr and reports '
