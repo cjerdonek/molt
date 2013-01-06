@@ -5,7 +5,7 @@ Runs project tests.
 
 This script is a convenience wrapper for running--
 
-    python -m molt.commands.molt --run-tests [plus more options]
+    python -m molt.scripts.molt --run-tests [plus more options]
 
 """
 
@@ -13,10 +13,10 @@ import os
 import sys
 
 from molt.argparsing import OPTION_MODE_TESTS, OPTION_SOURCE_DIR
-from molt.commands.molt import main as main_module
+from molt.scripts.molt import main as main_module
 
 
-# TODO: change this script from running tests to calling molt.commands.molt
+# TODO: change this script from running tests to calling molt.scripts.molt
 # with the right from-source options.  That way this convenience script
 # can be used for more than just running tests.
 def main(argv=None):

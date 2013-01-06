@@ -40,7 +40,7 @@ import sys
 from tempfile import mkdtemp
 
 import molt
-import molt.commands.molt
+import molt.scripts.molt
 from molt.projectmap import Locator
 from molt.test.harness.alltest import run_tests
 
@@ -86,7 +86,7 @@ def run_molt_tests(from_source, source_dir=None, verbose=False, test_names=None,
     Arguments:
 
       from_source: whether or not the script was initiated from a source
-        checkout (e.g. by calling `python -m molt.commands.molt` as
+        checkout (e.g. by calling `python -m molt.scripts.molt` as
         opposed to via an installed setup entry point).
 
       source_dir: the path to a source distribution or source checkout, or
@@ -167,7 +167,7 @@ class TestConfig(object):
           locator: a Locator instance.
 
           from_source: whether or not the script was initiated from a source
-            checkout (e.g. by calling `python -m molt.commands.molt` as
+            checkout (e.g. by calling `python -m molt.scripts.molt` as
             opposed to via an installed setup entry point).
 
         """
@@ -175,7 +175,7 @@ class TestConfig(object):
         # Call molt the "same" way that the current script execution
         # was initiated.
         call_molt_args = ([molt.__name__] if not from_source else
-                          [python_path, '-m', molt.commands.molt.__name__])
+                          [python_path, '-m', molt.scripts.molt.__name__])
 
         self.call_molt_args = call_molt_args
         self.project = locator

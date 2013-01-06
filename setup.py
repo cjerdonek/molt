@@ -74,7 +74,7 @@ as described here, for example:
 
     http://docs.python.org/release/2.5.2/dist/pypirc.html
 
-(4) Tag the release on GitHub.  Here are some commands for tagging.
+(4) Tag the release on GitHub.  Here are some scripts for tagging.
 
 List current tags:
 
@@ -159,8 +159,8 @@ INSTALL_REQUIRES = [
 # TODO: use ".".join(parts).
 PACKAGES = [
     'molt',
-    'molt.commands',
-    'molt.commands.molt',
+    'molt.scripts',
+    'molt.scripts.molt',
     'molt.general',
     # The following packages are only for testing.
     'molt.test',
@@ -387,7 +387,7 @@ def run_setup(sys_argv):
           package_data=package_data,
           entry_points = {
             'console_scripts': [
-                'molt=molt.commands.molt.main:main',
+                'molt=molt.scripts.molt.main:main',
             ],
           },
           classifiers = CLASSIFIERS,

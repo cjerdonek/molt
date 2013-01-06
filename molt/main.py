@@ -144,7 +144,7 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
     Args:
 
       from_source: whether or not the script was initiated from a source
-        checkout (e.g. by calling `python -m molt.commands.molt` as
+        checkout (e.g. by calling `python -m molt.scripts.molt` as
         opposed to via an installed setup entry point).
 
       process_args: the function called within this method's try-except

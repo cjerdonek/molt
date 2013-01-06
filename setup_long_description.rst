@@ -165,7 +165,7 @@ simply type--
 
 ::
 
-    $ python -m molt.commands.molt [options] [DIRECTORY]
+    $ python -m molt.scripts.molt [options] [DIRECTORY]
 
 To include the `Groome
 tests <https://github.com/cjerdonek/groome/tree/master/tests>`_ in your
