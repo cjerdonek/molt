@@ -164,7 +164,7 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
             # See this module's docstring for an explanation of why
             # we do this import inside a function body.
             # TODO: we should not need to do this import here?
-            from molt.argprocessor import run_args
+            from molt.scripts.molt.argprocessor import run_args
             process_args = run_args
         status = process_args(sys_argv, test_runner_stream=stderr_stream,
                               from_source=from_source)
