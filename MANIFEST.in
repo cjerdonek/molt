@@ -10,7 +10,7 @@ include .travis.yml
 include HISTORY.md
 include README.md
 include setup_long_description.rst
-include test_molt.py
+include runmolt.py
 include TODO.md
 include tox.ini
 recursive-include images *.png

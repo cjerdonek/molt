@@ -138,7 +138,7 @@ To run unit tests--
 
 ::
 
-    $ python test_molt.py
+    $ python runmolt.py
 
 To test Molt with multiple versions of Python (with a single command!),
 you can use `tox <http://tox.testrun.org/>`_:
@@ -181,7 +181,7 @@ more prefixes. For example--
 
 ::
 
-    $ python test_molt.py molt.test.general molt.test.dir
+    $ python runmolt.py molt.test.general molt.test.dir
 
 Molt is also `set
 up <https://github.com/cjerdonek/molt/blob/master/.travis.yml>`_ on

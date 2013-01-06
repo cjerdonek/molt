@@ -44,7 +44,7 @@ def main(sys_argv=None, from_source=False, **kwargs):
     Arguments:
 
       from_source: whether this function is being called from a source
-        checkout (e.g. by running `python test_molt.py` or
+        checkout (e.g. by running `python runmolt.py` or
         `python -m molt.scripts.molt`).
 
     """

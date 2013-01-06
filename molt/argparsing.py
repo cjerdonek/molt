@@ -248,6 +248,7 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                               # Escape the %.
                               'If %%(metavar)s arguments are provided, then only tests '
                               'whose names begin with one of the strings are run.  '
+                              'Test module names should be fully qualified.  '
                               'If the %s option is provided, '
                               'then test failure data is retained for inspection '
                               'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))

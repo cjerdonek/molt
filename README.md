@@ -125,7 +125,7 @@ If using GitHub, after forking--
 
 To run unit tests--
 
-    $ python test_molt.py
+    $ python runmolt.py --run-tests
 
 To test Molt with multiple versions of Python (with a single command!),
 you can use [tox](http://tox.testrun.org/):
@@ -154,7 +154,7 @@ in your test runs, initialize and update the Groome project submodule--
 To run a subset of the tests, you can filter your test runs using one or
 more prefixes.  For example--
 
-    $ python test_molt.py molt.test.general molt.test.dir
+    $ python runmolt.py --run-tests molt.test.general molt.test.dir
 
 Molt is also [set up](https://github.com/cjerdonek/molt/blob/master/.travis.yml)
 on GitHub to work with [Travis CI](http://travis-ci.org/).
