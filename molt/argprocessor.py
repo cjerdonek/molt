@@ -177,6 +177,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         return run_mode_tests(ns, test_names=test_names, test_runner_stream=test_runner_stream,
                              from_source=from_source)
 
+    # TODO: consider using add_mutually_exclusive_group() for these.
+    # TODO: file an issue in Python's tracker to add to
+    # add_mutually_exclusive_group support for title, etc.
     # TODO: rename the functions for running each mode to run_mode_*().
     if ns.create_demo_mode:
         result = run_mode_create_demo(ns)

@@ -190,18 +190,20 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
 
     # TODO: incorporate the METAVAR names into the help messages, as appropriate.
     # TODO: fix the help message.
-    parser.add_argument('input_directory', metavar='DIRECTORY',
+    parser.add_argument('input_directory', metavar=METAVAR_INPUT_DIR,
                         nargs='?', default=None,
                         help='the input directory if one is required.  '
                               'In most cases, this should be a path to a '
                               'Groome template directory.')
+    parser.add_argument(*OPTION_OUTPUT_DIR, metavar='OUTPUT_DIR',
+                        dest='output_directory', action='store', default=None,
+                        help='the directory to use when an output directory '
+                             'is required.  Defaults to %s.  If the output '
+                             'directory already exists, then the directory '
+                             'name is incremented until the resulting '
+                             'directory would be new.' %
+                             repr(defaults.OUTPUT_DIR))
     # TODO: alignment.
-    parser.add_argument(*OPTION_OUTPUT_DIR, metavar='DIRECTORY', dest='output_directory',
-                      action='store', default=None,
-                      help='the directory to use when an output directory is '
-                           'required.  Defaults to %s.  If the output directory '
-                           'already exists, then the directory name is incremented '
-                           'until the resulting directory would be new.' % repr(defaults.OUTPUT_DIR))
     config_paths = get_default_config_files()
     parser.add_argument('-c', '--config-file', metavar='FILE', dest='config_path',
                       action='store', default=None,
@@ -219,13 +221,13 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                             OPTION_MODE_TESTS.display(' or '),
                             OPTION_OUTPUT_DIR.display(' or ')))
     # Option present without DIRECTORY yields True; option absent yields None.
-    parser.add_argument(*OPTION_CHECK_EXPECTED, metavar='DIRECTORY',
+    parser.add_argument(*OPTION_CHECK_EXPECTED, metavar='EXPECTED_DIR',
                         dest='expected_dir', action='store', nargs='?',
                         const=True,
                         help='when rendering, checks whether the output '
-                             'directory matches the contents of DIRECTORY.  '
+                             'directory matches the contents of EXPECTED_DIR.  '
                              'Writes the differences to stderr and reports '
-                             'the result via the exit status.  DIRECTORY '
+                             'the result via the exit status.  EXPECTED_DIR '
                              "defaults to the template\'s expected directory.")
     parser.add_argument(*OPTION_MODE_DEMO, dest='create_demo_mode',
                       action='store_true', default=False,
