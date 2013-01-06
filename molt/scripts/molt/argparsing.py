@@ -42,7 +42,8 @@ import sys
 from molt import __version__
 from molt import defaults
 from molt.dirutil import get_default_config_files, DirectoryChooser
-from molt.scripts.molt.general.optionparser import Option, ArgParser, UsageError
+from molt.scripts.molt.general.optionparser import (
+    Option, ArgParser, UsageError)
 
 
 _log = logging.getLogger(__name__)
@@ -127,11 +128,39 @@ POSSIBILITY OF SUCH DAMAGE.
 # This dictionary lets us group the help strings together to simplify
 # maintenance.
 HELP = {
-'input_directory': """\
+    'input_directory': """\
 the input directory if one is required.  In most cases, this should be
 a path to a Groome template directory.""",
-# Escape the %.
-OPTION_MODE_TESTS : """\
+    OPTION_OUTPUT_DIR: """\
+the directory to use when an output directory is required.  Defaults to %s.
+If the output directory already exists, then the directory name is
+incremented until the resulting directory would be new.""" %
+repr(defaults.OUTPUT_DIR),
+    ('-c', '--config-file'): """\
+the path to the configuration file containing the rendering context to use.
+Defaults to looking in the template directory in order for one of: %s""" %
+', '.join(get_default_config_files()),
+    OPTION_WITH_VISUALIZE: """\
+run the %s option on the output directory prior to printing the usual output
+to stdout.  Useful for quickly visualizing script output.  Also works with
+%s combined with %s.""" % (
+OPTION_MODE_VISUALIZE.display(' or '),
+OPTION_MODE_TESTS.display(' or '),
+OPTION_OUTPUT_DIR.display(' or ')),
+    OPTION_CHECK_EXPECTED: """\
+when rendering, checks whether the output directory matches the contents of
+EXPECTED_DIR.  Writes the differences to stderr and reports the result via
+the exit status.  EXPECTED_DIR defaults to the template's expected directory.
+""",
+    OPTION_MODE_DEMO: """\
+create a copy of the Molt demo template to play with, instead of rendering
+a template directory.  The demo illustrates most major features of Groome.
+The command writes the demo template to the directory provided by the %s
+option or, if that option is not provided, to %s.""" % (
+OPTION_OUTPUT_DIR.display(' or '),
+repr(defaults.DEMO_OUTPUT_DIR)),
+    # Escape the %.
+    OPTION_MODE_TESTS: """\
 run project tests, instead of rendering a template directory.  Tests include
 unit tests, doctests, and, if present, Groome project test cases.
 If %%(metavar)s arguments are provided, then only tests whose names begin
@@ -197,7 +226,7 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
         chooser = DirectoryChooser()
     if usage is None:
         usage = USAGE
-    parser = ArgParser(usage=usage,
+    parser = ArgParser(usage=None,
                        description=DESCRIPTION,
                        epilog=EPILOG,
                        add_help=False,
@@ -214,52 +243,19 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
     # TODO: finish refactoring to use add_arg().
     # TODO: incorporate the METAVAR names into the help messages, as appropriate.
     # TODO: fix the help message.
-    add_arg('input_directory', metavar=METAVAR_INPUT_DIR, nargs='?', default=None)
-    parser.add_argument(*OPTION_OUTPUT_DIR, metavar='OUTPUT_DIR',
-                        dest='output_directory', action='store', default=None,
-                        help='the directory to use when an output directory '
-                             'is required.  Defaults to %s.  If the output '
-                             'directory already exists, then the directory '
-                             'name is incremented until the resulting '
-                             'directory would be new.' %
-                             repr(defaults.OUTPUT_DIR))
-    # TODO: alignment.
-    config_paths = get_default_config_files()
-    parser.add_argument('-c', '--config-file', metavar='FILE', dest='config_path',
-                      action='store', default=None,
-                      help='the path to the configuration file containing '
-                           'the rendering context to use.  '
-                           'Defaults to looking in the template directory '
-                           'in order for one of: %s' % ', '.join(config_paths))
-    parser.add_argument(*OPTION_WITH_VISUALIZE, dest='with_visualize',
-                      action='store_true', default=False,
-                      help='run the %s option on the output directory '
-                           'prior to printing the usual output to stdout.  '
-                           'Useful for quickly visualizing script output.  '
-                           'Also works with %s combined with %s.' %
-                           (OPTION_MODE_VISUALIZE.display(' or '),
-                            OPTION_MODE_TESTS.display(' or '),
-                            OPTION_OUTPUT_DIR.display(' or ')))
+    add_arg('input_directory', metavar=METAVAR_INPUT_DIR, nargs='?')
+    add_arg(OPTION_OUTPUT_DIR, metavar='OUTPUT_DIR', dest='output_directory',
+            action='store')
+    add_arg(('-c', '--config-file'), metavar='FILE', dest='config_path',
+            action='store')
+    add_arg(OPTION_WITH_VISUALIZE, dest='with_visualize', action='store_true')
     # Option present without DIRECTORY yields True; option absent yields None.
-    parser.add_argument(*OPTION_CHECK_EXPECTED, metavar='EXPECTED_DIR',
-                        dest='expected_dir', action='store', nargs='?',
-                        const=True,
-                        help='when rendering, checks whether the output '
-                             'directory matches the contents of EXPECTED_DIR.  '
-                             'Writes the differences to stderr and reports '
-                             'the result via the exit status.  EXPECTED_DIR '
-                             "defaults to the template\'s expected directory.")
-    parser.add_argument(*OPTION_MODE_DEMO, dest='create_demo_mode',
-                      action='store_true', default=False,
-                      help='create a copy of the Molt demo template to play with, '
-                           'instead of rendering a template directory.  '
-                           'The demo illustrates most major features of Groome.  '
-                           'The command writes the demo template to the directory '
-                           'provided by the %s option or, if that option is not '
-                           'provided, to %s.' %
-                           (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
+    add_arg(OPTION_CHECK_EXPECTED, metavar='EXPECTED_DIR',
+            dest='expected_dir', action='store', nargs='?', const=True)
+    add_arg(OPTION_MODE_DEMO, dest='create_demo_mode', action='store_true')
     # Defaults to the empty list if provided with no names, or else None.
     add_arg(OPTION_MODE_TESTS, metavar='NAME', dest='test_names', nargs='*')
+    # TODO: alignment.
     parser.add_argument(*OPTION_MODE_VISUALIZE, dest='visualize_mode',
                       action='store_true', default=False,
                       help='print to stdout in a human-readable format '
