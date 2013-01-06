@@ -35,7 +35,7 @@ Unit tests for the main module.
 import logging
 import unittest
 
-from molt.main import Error, run_molt
+from molt.scripts.molt.main import Error, run_molt
 from molt.test.harness import config_load_tests, SandBoxDirMixin
 
 

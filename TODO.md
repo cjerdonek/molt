@@ -23,6 +23,8 @@ Tasks
 * Add the ability to "check" a template directory from the command-line.
 * Rename project to structure inside molter.py and dirutil.
 
+* Add the ability to "update" the expected directory of a template..
+  This will require adding one or two more options to molt.
 * Review all appearances of `__file__` (using projectmap as necessary).
 * Review all appearances of 'utf-8'.
 * Add some test cases with non-latin1 filename encodings.
