@@ -40,9 +40,9 @@ import os
 import sys
 
 from molt import __version__
-from molt.general.optionparser import Option, ArgParser, UsageError
 from molt import defaults
 from molt.dirutil import get_default_config_files, DirectoryChooser
+from molt.scripts.molt.general.optionparser import Option, ArgParser, UsageError
 
 
 _log = logging.getLogger(__name__)

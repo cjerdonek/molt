@@ -161,6 +161,7 @@ PACKAGES = [
     'molt',
     'molt.scripts',
     'molt.scripts.molt',
+    'molt.scripts.molt.general',
     'molt.general',
     # The following packages are only for testing.
     'molt.test',

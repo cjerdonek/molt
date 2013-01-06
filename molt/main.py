@@ -46,11 +46,11 @@ import sys
 import traceback
 
 from molt.general.error import Error
-from molt.general.optionparser import UsageError
 from molt import constants
 from molt import logconfig
 from molt.scripts.molt import argparsing
 from molt.scripts.molt.argparsing import OPTION_HELP
+from molt.scripts.molt.general.optionparser import UsageError
 from molt.test.harness import test_logger
 
 

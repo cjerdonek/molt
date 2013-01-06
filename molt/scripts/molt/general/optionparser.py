@@ -34,16 +34,10 @@ Supports command-line parsing.
 
 from __future__ import absolute_import
 
-import logging
 import argparse
-import sys
-
-from molt.general.error import Error
-
-_log = logging.getLogger(__name__)
 
 
-class UsageError(Error):
+class UsageError(Exception):
     """
     Exception class for command-line syntax errors.
 
