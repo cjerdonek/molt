@@ -124,6 +124,22 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
+# This dictionary lets us group the help strings together to simplify
+# maintenance.
+HELP = {
+'input_directory': """\
+the input directory if one is required.  In most cases, this should be
+a path to a Groome template directory.""",
+# Escape the %.
+OPTION_MODE_TESTS : """\
+run project tests, instead of rendering a template directory.  Tests include
+unit tests, doctests, and, if present, Groome project test cases.
+If %%(metavar)s arguments are provided, then only tests whose names begin
+with one of the strings are run.  Test names begin with the fully qualified
+module name.  If the %s option is provided, then test failure data is
+retained for inspection in a subset of that directory.
+""" % OPTION_OUTPUT_DIR.display(' or ')
+}
 
 def _get_version_header():
     return "Molt %s" % __version__
@@ -188,13 +204,17 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                        # Preserves formatting of the description and epilog.
                        formatter_class=argparse.RawDescriptionHelpFormatter)
 
+    def add_arg(option, **kwargs):
+        """option: an option string or tuple of one or more option strings."""
+        help = HELP[option]
+        if isinstance(option, basestring):
+            option = (option, )
+        parser.add_argument(*option, help=help, **kwargs)
+
+    # TODO: finish refactoring to use add_arg().
     # TODO: incorporate the METAVAR names into the help messages, as appropriate.
     # TODO: fix the help message.
-    parser.add_argument('input_directory', metavar=METAVAR_INPUT_DIR,
-                        nargs='?', default=None,
-                        help='the input directory if one is required.  '
-                              'In most cases, this should be a path to a '
-                              'Groome template directory.')
+    add_arg('input_directory', metavar=METAVAR_INPUT_DIR, nargs='?', default=None)
     parser.add_argument(*OPTION_OUTPUT_DIR, metavar='OUTPUT_DIR',
                         dest='output_directory', action='store', default=None,
                         help='the directory to use when an output directory '
@@ -238,20 +258,8 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                            'provided by the %s option or, if that option is not '
                            'provided, to %s.' %
                            (OPTION_OUTPUT_DIR.display(' or '), repr(defaults.DEMO_OUTPUT_DIR)))
-    # The default is used here only if the option is not present.
-    parser.add_argument(*OPTION_MODE_TESTS, metavar='NAME', dest='test_names',
-                        nargs='*', default=None,
-                         help='run project tests, instead of instead of rendering '
-                              'a template directory.  '
-                              'Tests include unit tests, doctests, and, if present, '
-                              'Groome project test cases.  '
-                              # Escape the %.
-                              'If %%(metavar)s arguments are provided, then only tests '
-                              'whose names begin with one of the strings are run.  '
-                              'Test module names should be fully qualified.  '
-                              'If the %s option is provided, '
-                              'then test failure data is retained for inspection '
-                              'in a subset of that directory.' % OPTION_OUTPUT_DIR.display(' or '))
+    # Defaults to the empty list if provided with no names, or else None.
+    add_arg(OPTION_MODE_TESTS, metavar='NAME', dest='test_names', nargs='*')
     parser.add_argument(*OPTION_MODE_VISUALIZE, dest='visualize_mode',
                       action='store_true', default=False,
                       help='print to stdout in a human-readable format '
