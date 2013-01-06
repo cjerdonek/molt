@@ -160,6 +160,7 @@ INSTALL_REQUIRES = [
 PACKAGES = [
     'molt',
     'molt.commands',
+    'molt.commands.molt',
     'molt.general',
     # The following packages are only for testing.
     'molt.test',
@@ -386,7 +387,7 @@ def run_setup(sys_argv):
           package_data=package_data,
           entry_points = {
             'console_scripts': [
-                'molt=molt.commands.molt:main',
+                'molt=molt.commands.molt.main:main',
             ],
           },
           classifiers = CLASSIFIERS,

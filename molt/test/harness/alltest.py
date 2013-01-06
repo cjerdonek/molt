@@ -118,7 +118,12 @@ def find_tests(package_dirs, is_unittest_module, doctest_paths, extra_tests):
     module_names_list = [find_modules(package_dir) for package_dir in package_dirs]
     module_names = reduce(lambda names1, names2: names1 + names2, module_names_list)
 
-    doctests = make_doctests(module_names, doctest_paths)
+    # Skip __main__.py files to avoid triggering a script to be run twice.
+    # We need to do this because calling doctest.DocTestSuite() on a module
+    # imports the module as a side effect.
+    doctest_module_names = filter(lambda name: not name.endswith(".__main__"),
+                                  module_names)
+    doctests = make_doctests(doctest_module_names, doctest_paths)
 
     tests = extra_tests + doctests
 

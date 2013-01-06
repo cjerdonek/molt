@@ -39,7 +39,7 @@ import sys
 from molt.main import run_molt
 
 
-def main(sys_argv=sys.argv, from_source=False, **kwargs):
+def main(sys_argv=None, from_source=False, **kwargs):
     """
     Arguments:
 
@@ -48,9 +48,7 @@ def main(sys_argv=sys.argv, from_source=False, **kwargs):
         `python -m molt.commands.molt`).
 
     """
-    return run_molt(sys_argv=sys_argv, from_source=from_source, **kwargs)
-
-
-if __name__ == "__main__":
-    result = main(from_source=True)
+    if sys_argv is None:
+        sys_argv = sys.argv
+    result = run_molt(sys_argv=sys_argv, from_source=from_source, **kwargs)
     sys.exit(result)

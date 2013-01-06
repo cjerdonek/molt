@@ -7,9 +7,10 @@ Milestones
 1. Get to where I can improve a Groome template using an efficient workflow.
 2. Have Molt be based on a Groome template, and vice versa.
 
-Steps
+Tasks
 -----
 
+* Separate the command-line code from the general API.
 * Finish implementing --check-expected (issue #3).
 * Remove references to optparse (case-sensitive) and OptionParser.
 * Correct parser return value docstring.

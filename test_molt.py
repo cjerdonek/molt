@@ -13,9 +13,12 @@ import os
 import sys
 
 from molt.argparsing import OPTION_MODE_TESTS, OPTION_SOURCE_DIR
-from molt.commands import molt
+from molt.commands.molt import main as main_module
 
 
+# TODO: change this script from running tests to calling molt.commands.molt
+# with the right from-source options.  That way this convenience script
+# can be used for more than just running tests.
 def main(argv=None):
     if argv is None:
         argv = sys.argv
@@ -36,9 +39,8 @@ def main(argv=None):
     # Pass the source information along to indicate this..
     argv += [OPTION_SOURCE_DIR[0], source_dir]
 
-    return molt.main(sys_argv=argv, from_source=True)
+    main_module.main(sys_argv=argv, from_source=True)
 
 
 if __name__ == "__main__":
-    result = main()
-    sys.exit(result)
+    main()
