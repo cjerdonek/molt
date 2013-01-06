@@ -28,6 +28,9 @@
 #
 
 """
-TODO: add a docstring.
+Contains code specific to calling molt from the command-line.
+
+This package also contains the console_script entries for the entry_points
+argument to the setup() function in setup.py.
 
 """

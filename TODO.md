@@ -10,6 +10,7 @@ Milestones
 Tasks
 -----
 
+* Rename test_molt.py to runmolt.py and change it not to run tests by default.
 * Separate the command-line code from the general API.
 * Finish implementing --check-expected (issue #3).
 * Remove references to optparse (case-sensitive) and OptionParser.
