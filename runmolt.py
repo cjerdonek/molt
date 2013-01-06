@@ -13,7 +13,7 @@ developing:
 import os
 import sys
 
-from molt.argparsing import OPTION_SOURCE_DIR
+from molt.scripts.molt import argparsing
 from molt.scripts.molt import main as main_module
 
 
@@ -28,7 +28,7 @@ def main(argv=None):
     # Since this script exists in the source folder but not in the
     # package folder, it can only be run in the presence of source.
     # Pass the source information along to indicate this..
-    argv += [OPTION_SOURCE_DIR[0], source_dir]
+    argv += [argparsing.OPTION_SOURCE_DIR[0], source_dir]
 
     main_module.main(sys_argv=argv, from_source=True)
 

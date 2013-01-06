@@ -40,7 +40,6 @@ from StringIO import StringIO
 import sys
 
 import molt
-from molt import argparsing
 from molt.general.error import Error
 from molt.general.optionparser import UsageError
 from molt import constants
@@ -48,6 +47,7 @@ from molt import defaults
 from molt.dirutil import make_available_dir, stage_template_dir, DirectoryChooser
 from molt.molter import Molter
 from molt.projectmap import Locator
+from molt.scripts.molt import argparsing
 from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
