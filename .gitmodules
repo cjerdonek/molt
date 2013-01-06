@@ -1,6 +1,3 @@
 [submodule "sub/groom"]
 	path = sub/groome
 	url = git://github.com/cjerdonek/groome.git
-[submodule "sub/groome-python"]
-	path = sub/groome-python
-	url = git://github.com/cjerdonek/groome-python.git
