@@ -49,7 +49,7 @@ from molt.general.error import Error
 from molt import constants
 from molt.scripts.molt import argparsing
 from molt.scripts.molt.argparsing import OPTION_HELP
-from molt.scripts.molt.general import logconfig
+import molt.scripts.molt.general.logconfig as logconfig
 from molt.scripts.molt.general.optionparser import UsageError
 from molt.test.harness import test_logger
 
@@ -58,33 +58,6 @@ LOGGING_LEVEL_DEFAULT = logging.INFO
 
 _app_log = logging.getLogger("molt.app")
 _log = logging.getLogger(__name__)
-
-
-class RememberingStream(object):
-
-    """
-    A stream that "remembers" the last text sent to write().
-
-    """
-
-    def __init__(self, stream, last_text=''):
-        self._stream = stream
-        self._last_text = last_text
-
-    def last_char(self):
-        if self._last_text:
-            return self._last_text[-1]
-
-    def write(self, text):
-        if not text:
-            return
-        self._stream.write(text)
-        self._last_text = text
-
-    # A flush() method is needed to be able to pass instances of this
-    # class to unittest.TextTestRunner's constructor.
-    def flush(self):
-        self._stream.flush()
 
 
 def _configure_logging(sys_argv, sys_stderr=None):
@@ -101,7 +74,7 @@ def _configure_logging(sys_argv, sys_stderr=None):
 
     # We pass a newline as last_text to prevent a newline from being added
     # before the first log message.
-    stderr_stream = RememberingStream(sys_stderr, last_text='\n')
+    stderr_stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
 
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829

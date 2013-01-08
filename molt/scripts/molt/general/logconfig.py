@@ -38,13 +38,36 @@ import logging
 import os
 import sys
 
-
-StreamHandler = logging.StreamHandler
-
 _log = logging.getLogger(__name__)
 
 
-class NewlineStreamHandler(StreamHandler):
+class RememberingStream(object):
+
+    """
+    A stream that "remembers" the last text sent to write().
+
+    """
+
+    def __init__(self, stream, last_text=''):
+        self._stream = stream
+        self._last_text = last_text
+
+    def last_char(self):
+        if self._last_text:
+            return self._last_text[-1]
+
+    def write(self, text):
+        if not text:
+            return
+        self._stream.write(text)
+        self._last_text = text
+
+    # A flush() method is needed to be able to pass instances of this
+    # class to unittest.TextTestRunner's constructor.
+    def flush(self):
+        self._stream.flush()
+
+class NewlineStreamHandler(logging.StreamHandler):
 
     """
     A logging handler that begins log messages with a newline if needed.
@@ -92,11 +115,9 @@ def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None
     root_logger.setLevel(logging_level)
 
     if test_config:
-        # TODO: change this to the NullHandler.
         # Then configure log messages to be swallowed by default.
         # TODO: is this necessary?
-        null_stream = open(os.devnull, "w")
-        handler = StreamHandler(null_stream)
+        handler = logging.NullHandler()
         root_logger.addHandler(handler)
 
         # Set the loggers to display during test runs.
