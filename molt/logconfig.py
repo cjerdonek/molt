@@ -92,6 +92,7 @@ def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None
     root_logger.setLevel(logging_level)
 
     if test_config:
+        # TODO: change this to the NullHandler.
         # Then configure log messages to be swallowed by default.
         # TODO: is this necessary?
         null_stream = open(os.devnull, "w")

@@ -50,6 +50,7 @@ _log = logging.getLogger(__name__)
 
 METAVAR_INPUT_DIR = 'DIRECTORY'
 
+# TODO: rename OPTION_* to FLAGS_*.
 OPTION_CHECK_EXPECTED = Option(('--check-output', ))
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
@@ -167,7 +168,11 @@ If %%(metavar)s arguments are provided, then only tests whose names begin
 with one of the strings are run.  Test names begin with the fully qualified
 module name.  If the %s option is provided, then test failure data is
 retained for inspection in a subset of that directory.
-""" % OPTION_OUTPUT_DIR.display(' or ')
+""" % OPTION_OUTPUT_DIR.display(' or '),
+    OPTION_MODE_VISUALIZE: """\
+print to stdout in a human-readable format the contents of all files in
+input directory %s, instead of rendering a template directory.  Uses `diff`
+under the hood.""" % METAVAR_INPUT_DIR,
 }
 
 def _get_version_header():
@@ -233,14 +238,14 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
                        # Preserves formatting of the description and epilog.
                        formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    def add_arg(option, **kwargs):
+    def add_arg(option, help=None, **kwargs):
         """option: an option string or tuple of one or more option strings."""
-        help = HELP[option]
+        if help is None:
+            help = HELP[option]
         if isinstance(option, basestring):
             option = (option, )
         parser.add_argument(*option, help=help, **kwargs)
 
-    # TODO: finish refactoring to use add_arg().
     # TODO: incorporate the METAVAR names into the help messages, as appropriate.
     # TODO: fix the help message.
     add_arg('input_directory', metavar=METAVAR_INPUT_DIR, nargs='?')
@@ -255,34 +260,23 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
     add_arg(OPTION_MODE_DEMO, dest='create_demo_mode', action='store_true')
     # Defaults to the empty list if provided with no names, or else None.
     add_arg(OPTION_MODE_TESTS, metavar='NAME', dest='test_names', nargs='*')
-    # TODO: alignment.
-    parser.add_argument(*OPTION_MODE_VISUALIZE, dest='visualize_mode',
-                      action='store_true', default=False,
-                      help='print to stdout in a human-readable format '
-                           'the contents of all files in input directory %s, '
-                           'instead of rendering a template directory.  '
-                           'Uses `diff` under the hood.' %
-                           METAVAR_INPUT_DIR)
+    add_arg(OPTION_MODE_VISUALIZE, dest='visualize_mode', action='store_true')
     # This argument is the path to a source checkout or source distribution.
     # This lets one specify project resources not available in a package
     # build or install, when doing development testing.  Defaults to no
     # source directory.
-    parser.add_argument(*OPTION_SOURCE_DIR, metavar='DIRECTORY', dest='source_dir',
-                      action='store', default=None,
-                      help=argparse.SUPPRESS)
-    parser.add_argument(*OPTION_LICENSE, dest='license_mode',
-                      action='store_true', default=False,
-                      help='print license info to stdout.')
-    parser.add_argument('-V', '--version', dest='version_mode',
-                      action='store_true', default=False,
-                      help='print version info to stdout.')
-    parser.add_argument(*OPTION_VERBOSE, dest='verbose',
-                      action='store_true', default=False,
-                      help='log verbosely.')
+    add_arg(OPTION_SOURCE_DIR, metavar='DIRECTORY', dest='source_dir',
+            action='store', help=argparse.SUPPRESS)
+    add_arg(OPTION_LICENSE, dest='license_mode', action='store_true',
+            help='print license info to stdout.')
+    add_arg(('-V', '--version'), dest='version_mode', action='store_true',
+            help='print version info to stdout.')
+    add_arg(OPTION_VERBOSE, dest='verbose', action='store_true',
+            help='log verbosely.')
     # We add help manually for more control.
     help_action = "store_true" if suppress_help_exit else "help"
-    parser.add_argument(*OPTION_HELP, action=help_action,
-                        help='show this help message and exit.')
+    add_arg(OPTION_HELP, action=help_action,
+            help='show this help message and exit.')
 
     return parser
 
