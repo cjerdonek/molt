@@ -10,7 +10,7 @@ Milestones
 Tasks
 -----
 
-* Move logconfig.py into the scripts package and review the module.
+* Review logconfig.py.
 * Separate the command-line code from the general API.
 * Finish implementing --check-expected (issue #3).
 * Remove references to optparse (case-sensitive) and OptionParser.
