@@ -36,13 +36,8 @@ import os
 import unittest
 
 import molt.diff as diff
-from molt.diff import match_fuzzy, FileComparer
+from molt.diff import match_fuzzy
 from molt.test.harness import config_load_tests
-
-
-# The subdirectory of the test data directory containing the test data for
-# MatchFilesTestCase.  The path is relative to the test data directory.
-_MATCH_FILES_DIR = 'diff__FileComparer'
 
 
 # Trigger the load_tests protocol.
@@ -98,47 +93,6 @@ class AreFuzzyEqualTestCase(unittest.TestCase):
 
         """
         self._assert_not_match(u"", u"a...b")
-
-
-class FileComparerTestCase(unittest.TestCase):
-
-    @property
-    def _data_dir(self):
-        data_dir = self.test_config.project.test_data_dir
-        return os.path.join(data_dir, _MATCH_FILES_DIR)
-
-    def _assert(self, file_name1, file_name2, expected, match_func=None):
-        """
-        Assert whether the contents of the two files match.
-
-        """
-        path1, path2 = (os.path.join(self._data_dir, name) for name in (file_name1, file_name2))
-
-        fcmp = FileComparer(match=match_func)
-        actual = fcmp.compare(path1, path2)
-
-        # TODO: share code with AssertStringMixin's formatting code.
-        msg = """\
-File contents %smatch:
-
-  left:  %s
-  right: %s""" % ('' if actual else 'do not ', repr(fcmp.left), repr(fcmp.right))
-
-        self.assertIs(expected, actual, msg=msg)
-
-    def _assert_fuzzy(self,  file_name1, file_name2, expected):
-        self._assert(file_name1, file_name2, expected, match_func=match_fuzzy)
-
-    def test_match(self):
-        self._assert('abc.txt', 'abc.txt', True)
-
-    def test_not_match(self):
-        self._assert('abc.txt', 'def.txt', False)
-        self._assert('def.txt', 'abc.txt', False)
-
-    def test_match_func(self):
-        self._assert_fuzzy('abc.txt', 'has_marker.txt', True)
-        self._assert_fuzzy('has_marker.txt', 'abc.txt', False)
 
 
 class DifferTestCase(unittest.TestCase):

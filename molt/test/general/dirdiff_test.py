@@ -37,8 +37,11 @@ from __future__ import absolute_import
 import os
 import unittest
 
+# TODO: remove the molt.defaults and molt.diff import dependencies.
 from molt.defaults import DIRCMP_IGNORE
+from molt.diff import match_fuzzy
 from molt.general.dirdiff import compare_files, DirDiffer
+import molt.general.dirdiff as dirdiff
 from molt.test.harness import config_load_tests
 
 
@@ -48,6 +51,51 @@ load_tests = config_load_tests
 # The subdirectory of the test data directory containing the test data for
 # the current module.  The path should be relative to the test data directory.
 _DATA_SUB_DIR = 'dirdiff'
+
+# The subdirectory of the test data directory containing the test data for
+# MatchFilesTestCase.  The path is relative to the test data directory.
+_MATCH_FILES_DIR = 'diff__FileComparer'
+
+
+class FileComparerTestCase(unittest.TestCase):
+
+    @property
+    def _data_dir(self):
+        data_dir = self.test_config.project.test_data_dir
+        return os.path.join(data_dir, _MATCH_FILES_DIR)
+
+    def _assert(self, file_name1, file_name2, expected, match_func=None):
+        """
+        Assert whether the contents of the two files match.
+
+        """
+        path1, path2 = (os.path.join(self._data_dir, name) for name in (file_name1, file_name2))
+
+        fcmp = dirdiff.FileComparer(match=match_func)
+        actual = fcmp.compare(path1, path2)
+
+        # TODO: share code with AssertStringMixin's formatting code.
+        msg = """\
+File contents %smatch:
+
+  left:  %s
+  right: %s""" % ('' if actual else 'do not ', repr(fcmp.left), repr(fcmp.right))
+
+        self.assertIs(expected, actual, msg=msg)
+
+    def _assert_fuzzy(self,  file_name1, file_name2, expected):
+        self._assert(file_name1, file_name2, expected, match_func=match_fuzzy)
+
+    def test_match(self):
+        self._assert('abc.txt', 'abc.txt', True)
+
+    def test_not_match(self):
+        self._assert('abc.txt', 'def.txt', False)
+        self._assert('def.txt', 'abc.txt', False)
+
+    def test_match_func(self):
+        self._assert_fuzzy('abc.txt', 'has_marker.txt', True)
+        self._assert_fuzzy('has_marker.txt', 'abc.txt', False)
 
 
 class DirDifferTestCase(unittest.TestCase):

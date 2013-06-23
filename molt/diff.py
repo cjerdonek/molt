@@ -43,12 +43,9 @@ import os
 import re
 import sys
 
-from molt.defaults import FILE_ENCODING, FUZZY_MARKER
+from molt.defaults import FUZZY_MARKER
 from molt.general.dirdiff import compare_files, DirDiffer
-from molt.general.io import read
 
-
-_ENCODING = FILE_ENCODING
 
 _log = logging.getLogger(__name__)
 
@@ -107,35 +104,6 @@ class DirComparer(object):
 
     def compare(self, path1, path2):
         pass
-
-
-# TODO: move this class to molt/general/dirdiff.py (and rename that module)
-# since this class does not have Molt-specific business logic.
-class FileComparer(object):
-
-    # TODO: this class should instead accept a function that returns None
-    # if the strings are equal, otherwise a DiffInfo instance that
-    # describes the difference.
-    def __init__(self, match=None):
-        """
-        Arguments:
-
-          match: a function that accepts two unicode strings, and returns
-            whether they should be considered equal.  Defaults to the
-            usual string equality operator.
-
-        """
-        if match is None:
-            match = unicode.__eq__
-
-        self.match_func = match
-
-    def compare(self, path1, path2):
-        _read = lambda path: read(path, encoding=_ENCODING, errors=_ENCODING)
-
-        self.left, self.right = map(_read, (path1, path2))
-
-        return self.match_func(self.left, self.right)
 
 
 class DiffInfo(object):

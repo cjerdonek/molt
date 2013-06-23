@@ -27,6 +27,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+# TODO: rename this module to something like diffing.
+
 """
 Provides support for recursive directory comparisons.
 
@@ -38,6 +40,12 @@ import filecmp
 import os
 import sys
 
+import molt.defaults as molt_defaults
+import molt.general.io as molt_io
+
+
+_ENCODING = molt_defaults.FILE_ENCODING
+
 
 def compare_files(path1, path2):
     """
@@ -45,6 +53,33 @@ def compare_files(path1, path2):
 
     """
     return filecmp.cmp(path1, path2, shallow=False)
+
+
+class FileComparer(object):
+
+    # TODO: this class should instead accept a function that returns None
+    # if the strings are equal, otherwise a DiffInfo instance that
+    # describes the difference.
+    def __init__(self, match=None):
+        """
+        Arguments:
+
+          match: a function that accepts two unicode strings, and returns
+            whether they should be considered equal.  Defaults to the
+            usual string equality operator.
+
+        """
+        if match is None:
+            match = unicode.__eq__
+
+        self.match_func = match
+
+    def compare(self, path1, path2):
+        _read = lambda path: molt_io.read(path, encoding=_ENCODING, errors=_ENCODING)
+
+        self.left, self.right = map(_read, (path1, path2))
+
+        return self.match_func(self.left, self.right)
 
 
 class DirDiffer(object):

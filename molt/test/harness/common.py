@@ -38,8 +38,9 @@ import logging
 import os
 from textwrap import dedent
 
-from molt.diff import match_fuzzy, FileComparer
+from molt.diff import match_fuzzy
 from molt.general import io
+import molt.general.dirdiff as dirdiff
 import molt.test
 
 
@@ -188,7 +189,7 @@ class AssertFileMixin(AssertStringMixin):
 
         match_func = match_fuzzy if fuzzy else None
 
-        fcmp = FileComparer(match=match_func)
+        fcmp = dirdiff.FileComparer(match=match_func)
         actual_match = fcmp.compare(actual_path, expected_path)
 
         description = "Displaying file contents"
