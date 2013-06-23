@@ -1,6 +1,8 @@
 TODO
 ====
 
+Some random tasks and milestones, in no particular order.
+
 Milestones
 ----------
 
