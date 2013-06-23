@@ -13,6 +13,7 @@ Milestones
 Tasks
 -----
 
+* Add an interactive mode for rendering a template as described in issue #7.
 * Review logconfig.py.
 * Separate the command-line code from the general API.
 * Finish implementing --check-expected (issue #3).
