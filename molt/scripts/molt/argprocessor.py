@@ -158,6 +158,7 @@ def run_mode_visualize(ns):
 def check_output(output_dir, expected_dir):
     """Return whether the output directory matches the expected."""
     print("output: %s\nexpected: %s" % (output_dir, expected_dir))
+    # TODO: implement this.
     return True
 
 

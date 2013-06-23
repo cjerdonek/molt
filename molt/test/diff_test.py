@@ -35,6 +35,7 @@ Unit tests for diff.py.
 import os
 import unittest
 
+import molt.diff as diff
 from molt.diff import match_fuzzy, FileComparer
 from molt.test.harness import config_load_tests
 
@@ -138,3 +139,71 @@ File contents %smatch:
     def test_match_func(self):
         self._assert_fuzzy('abc.txt', 'has_marker.txt', True)
         self._assert_fuzzy('has_marker.txt', 'abc.txt', False)
+
+
+class DifferTestCase(unittest.TestCase):
+
+    def _differ(self, fuzz="..."):
+        return diff.Differ(fuzz=fuzz)
+
+    def _message(self, actual, expected, fuzz):
+        return """Parameters:
+actual:   %r
+expected: %r
+fuzz:     %r
+""" % (actual, expected, fuzz)
+
+    def _assert(self, assert_func, actual, expected, fuzz):
+        result = self._diff_line(actual, expected, fuzz)
+        assert_func(result, msg=self._message(actual, expected, fuzz))
+
+    def _diff_line(self, actual, expected, fuzz=None):
+        differ = diff.Differ(fuzz=fuzz)
+        return differ.check_lines(actual, expected)
+
+    def _assert_lines_equal(self, actual, expected, fuzz=None):
+        self._assert(self.assertTrue, actual, expected, fuzz)
+
+    def _assert_lines_unequal(self, actual, expected, fuzz=None):
+        self._assert(self.assertFalse, actual, expected, fuzz)
+
+    def test_re_pattern(self):
+        differ = diff.Differ(fuzz="...")
+        self.assertEqual(differ.re_pattern(r"ab"), r"^ab$")
+        self.assertEqual(differ.re_pattern(r"a.b"), r"^a\.b$")
+        self.assertEqual(differ.re_pattern(r"a...b"), r"^a.*b$")
+        self.assertEqual(differ.re_pattern(r"a....b"), r"^a.*\.b$")
+        self.assertEqual(differ.re_pattern(r"a...b...c"), r"^a.*b.*c$")
+
+    def test_diff_line(self):
+        self._assert_lines_equal("abc", "abc")
+        self._assert_lines_unequal(" abc ", "abc")
+        self._assert_lines_unequal("axxxc", "abc")
+        self._assert_lines_equal("axxxc", "a...c", "...")
+        self._assert_lines_equal("axxxcyyd", "a...c...d", "...")
+
+    def _diff_lines(self, actual, expected, fuzz=None):
+        differ = diff.Differ(fuzz=fuzz)
+        return differ.diff_lines(actual, expected)
+
+    def _assert_diff_lines(self, actual, expected, actual_index,
+                           expected_index=None, fuzz=None):
+        if expected_index is None:
+            expected_index = actual_index
+        info = self._diff_lines(actual, expected, fuzz)
+        self.assertEqual((info.actual_index, info.expected_index),
+                         (actual_index, expected_index))
+
+    def test_diff_index_equal_strings(self):
+        with self.assertRaises(Exception) as cm:
+            self._diff_lines("abc", "abc")
+        ex = cm.exception
+        self.assertEqual(str(ex), "strings not different")
+
+    def test_diff_lines(self):
+        self._assert_diff_lines("a", "", 0)
+        self._assert_diff_lines("", "a", 0)
+        self._assert_diff_lines("a", "b", 0)
+        self._assert_diff_lines("a", "ab", 1)
+        self._assert_diff_lines("", "a...", 0, 0, fuzz="...")
+        self._assert_diff_lines("ablahcefgdefg", "a...c...d", 10, 9, fuzz="...")

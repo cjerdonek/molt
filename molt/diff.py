@@ -28,7 +28,11 @@
 #
 
 """
-Supports Molt-specific file and directory diff functionality.
+Molt-specific support for diffing files and directories.
+
+Molt requires its own diff functions partly because of its fuzzy-match
+requirements.  For example, Python's standard library difflib module
+does not support fuzzy matching in the way that Molt requires.
 
 """
 
@@ -36,6 +40,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+import re
 import sys
 
 from molt.defaults import FILE_ENCODING, FUZZY_MARKER
@@ -48,15 +53,7 @@ _ENCODING = FILE_ENCODING
 _log = logging.getLogger(__name__)
 
 
-
-# TODO: think about providing more than just the true/false information
-#   of whether two strings are equal in these methods.  For example, one
-#   could provide line and character number, and/or surrounding context.
-#   Study the difflib module more closely:
-#     http://docs.python.org/library/difflib.html#module-difflib)
-#   though it may be hard to leverage because of our need to support
-#   fuzzy matching.
-
+# TODO: switch from using this to the Differ class below.
 def match_fuzzy(u1, u2, marker=None):
     """
     Return whether the given unicode strings are "fuzzily" equal.
@@ -111,8 +108,14 @@ class DirComparer(object):
     def compare(self, path1, path2):
         pass
 
+
+# TODO: move this class to molt/general/dirdiff.py (and rename that module)
+# since this class does not have Molt-specific business logic.
 class FileComparer(object):
 
+    # TODO: this class should instead accept a function that returns None
+    # if the strings are equal, otherwise a DiffInfo instance that
+    # describes the difference.
     def __init__(self, match=None):
         """
         Arguments:
@@ -133,3 +136,92 @@ class FileComparer(object):
         self.left, self.right = map(_read, (path1, path2))
 
         return self.match_func(self.left, self.right)
+
+
+class DiffInfo(object):
+
+    def __init__(self, actual_index, expected_index):
+        self.actual_index = actual_index
+        self.expected_index = expected_index
+
+
+# TODO: finish this class
+class DiffPrinter(object):
+    # abcde
+    #   ^ index=2
+    # abcef
+    #   ^ index=2
+    pass
+
+
+# TODO: finish this class
+class Differ(object):
+
+    def __init__(self, fuzz=None):
+        self.fuzz = fuzz
+
+    def use_fuzz(self, expected):
+        return self.fuzz is not None and self.fuzz in expected
+
+    def _expected_parts(self, expected):
+        return expected.split(self.fuzz)
+
+    def _re_pattern(self, parts):
+        return "^%s" % ".*".join([re.escape(part) for part in parts])
+
+    def re_pattern(self, expected):
+        """
+        Converted an expected string into a regular expression pattern.
+
+        For example,
+        """
+        parts = self._expected_parts(expected)
+        return "%s$" % self._re_pattern(parts)
+
+    def check_lines(self, actual, expected):
+        """
+        Return whether the given lines are equal.
+
+        Neither string should contain a newline.
+
+        """
+        if not self.use_fuzz(expected):
+            return actual == expected
+        # Otherwise, use fuzzy matching.
+        return re.match(self.re_pattern(expected), actual) is not None
+
+    def _diff_index_without_fuzz(self, actual, expected):
+        for i in range(max(len(actual), len(expected))):
+            try:
+                if actual[i] == expected[i]:
+                    continue
+            except IndexError:
+                # Then one string is longer than the other.
+                pass
+            # Then there is a difference at index i.
+            return DiffInfo(i, i)
+        raise Exception("strings not different")
+
+    def _diff_index_with_fuzz(self, actual, expected):
+        parts = self._expected_parts(expected)
+        while True:
+            match = re.match(self._re_pattern(parts), actual)
+            if match is not None:
+                # Then the initial segment matches.
+                break
+            if not parts[-1]:
+                parts.pop()
+            # Remove the last character from the last string.
+            parts[-1] = parts[-1][:-1]
+        actual_index = len(match.group(0))
+        expected_index = len(self.fuzz.join(parts))
+        return DiffInfo(actual_index, expected_index)
+
+    def diff_lines(self, actual, expected):
+        """
+        Return the index at which the two strings diverge.
+
+        """
+        if self.use_fuzz(expected):
+            return self._diff_index_with_fuzz(actual, expected)
+        return self._diff_index_without_fuzz(actual, expected)
