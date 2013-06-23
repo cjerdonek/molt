@@ -5,7 +5,10 @@ Milestones
 ----------
 
 1. Get to where I can improve a Groome template using an efficient workflow.
-2. Have Molt be based on a Groome template, and vice versa.
+2. Ensure `molt` is based on a Groome template, and vice versa.
+   This involves in part reviewing `molt`'s project structure and code and
+   ensuring that it follows the best practices used in
+   [groome-python-expected](https://github.com/cjerdonek/groome-python-expected).
 
 Tasks
 -----
