@@ -50,7 +50,7 @@ from molt.general.dirdiff import compare_files, DirDiffer
 _log = logging.getLogger(__name__)
 
 
-# TODO: switch from using this to the Differ class below.
+# TODO: switch from using this to the _LineDiffer class below.
 def match_fuzzy(u1, u2, marker=None):
     """
     Return whether the given unicode strings are "fuzzily" equal.
@@ -94,6 +94,36 @@ def match_fuzzy(u1, u2, marker=None):
 
     return True
 
+
+class MoltComparer(object):
+
+    def __init__(self, fuzz):
+        self.fuzz = fuzz
+
+    def check_string(self, actual, expected):
+        """
+        Return whether a given unicode string matches an expected one.
+
+        """
+        lines1, lines2 = (u.splitlines(True) for u in (actual, expected))
+
+        if len(lines1) != len(lines2):
+            return False
+
+        for line1, line2 in zip(lines1, lines2):
+            if line1 == line2:
+                continue
+            # Otherwise, check for ellipses in the second line.
+            i = line2.find(marker)
+            # Note that an expression like `'abc'[:5]`, for example, will not
+            # raise an exception.
+            if i < 0 or line1[:i] != line2[:i]:
+                return False
+
+        return True
+
+
+
 # TODO: Finish this class.  It should internally call dirdiff.Differ.diff().
 #   The function can return the line number and character number at
 #   the first difference.
@@ -107,28 +137,29 @@ class DirComparer(object):
 
 
 class DiffInfo(object):
-
-    def __init__(self, actual_index, expected_index):
-        self.actual_index = actual_index
-        self.expected_index = expected_index
-
-
-# TODO: finish this class
-class DiffPrinter(object):
-    # abcde
-    #   ^ index=2
-    # abcef
-    #   ^ index=2
     pass
 
 
 # TODO: finish this class
-class Differ(object):
+class DiffPrinter(object):
+    # i=2 : 'abc' 'de'
+    # i=2 : 'abc' 'ef'
+
+    def _format_line(self, line, index):
+        return "i=%d %r" % (index, (line[:index], line[index:]))
+
+    def format_line(self, info, actual, expected):
+        return [self._format_line(actual, info.indices[0]),
+                self._format_line(expected, info.indices[1])]
+
+
+# TODO: finish this class
+class _LineDiffer(object):
 
     def __init__(self, fuzz=None):
         self.fuzz = fuzz
 
-    def use_fuzz(self, expected):
+    def has_fuzz(self, expected):
         return self.fuzz is not None and self.fuzz in expected
 
     def _expected_parts(self, expected):
@@ -144,52 +175,126 @@ class Differ(object):
         For example,
         """
         parts = self._expected_parts(expected)
+        # TODO: switch from $ to \Z and add a test case for this difference.
         return "%s$" % self._re_pattern(parts)
 
-    def check_lines(self, actual, expected):
+    def _lines_equal(self, line1, line2):
         """
         Return whether the given lines are equal.
 
         Neither string should contain a newline.
 
         """
-        if not self.use_fuzz(expected):
-            return actual == expected
+        if not self.has_fuzz(line2):
+            return line1 == line2
         # Otherwise, use fuzzy matching.
-        return re.match(self.re_pattern(expected), actual) is not None
+        return re.match(self.re_pattern(line2), line1) is not None
 
-    def _diff_index_without_fuzz(self, actual, expected):
-        for i in range(max(len(actual), len(expected))):
-            try:
-                if actual[i] == expected[i]:
-                    continue
-            except IndexError:
-                # Then one string is longer than the other.
-                pass
-            # Then there is a difference at index i.
-            return DiffInfo(i, i)
-        raise Exception("strings not different")
+    def _compare_lines_exact(self, line1, line2):
+        """
+        Return the string indices at which the two lines differ.
 
-    def _diff_index_with_fuzz(self, actual, expected):
-        parts = self._expected_parts(expected)
+        Arguments:
+          line1: a unicode string.
+          line2: a unicode string that compares differently from line1.
+
+        """
+        for i, chars in enumerate(zip(line1, line1)):
+            if chars[0] == chars[1]:
+                continue
+            # Otherwise, the characters differ.
+            return [i, i]
+        # Otherwise, one line is longer than the other.
+        indices = [i + 1, None]
+        if len(line1) < len(line2):
+            indices.reverse()
+        return indices
+
+    def _compare_lines_fuzzy(self, line1, line2):
+        """
+        Return the string indices at which the two lines differ.
+
+        Arguments:
+          line1: a unicode string.
+          line2: a unicode string that compares differently from line1.
+
+        """
+        line2_parts = self._expected_parts(line2)
         while True:
-            match = re.match(self._re_pattern(parts), actual)
-            if match is not None:
+            m = re.match(self._re_pattern(line2_parts), line1)
+            if m is not None:
                 # Then the initial segment matches.
                 break
-            if not parts[-1]:
-                parts.pop()
+            if not line2_parts[-1]:
+                line2_parts.pop()
             # Remove the last character from the last string.
-            parts[-1] = parts[-1][:-1]
-        actual_index = len(match.group(0))
-        expected_index = len(self.fuzz.join(parts))
-        return DiffInfo(actual_index, expected_index)
+            line2_parts[-1] = line2_parts[-1][:-1]
+        indices = [len(s) for s in (m.group(0), self.fuzz.join(line2_parts))]
+        for i, (char_index, line) in enumerate(zip(indices, (line1, line2))):
+            try:
+                line[char_index]
+            except IndexError:
+                indices[i] = None
+        return indices
 
-    def diff_lines(self, actual, expected):
+    def _compare_lines(self, line1, line2):
         """
-        Return the index at which the two strings diverge.
+        Return the string indices at which the two lines differ.
+
+        Arguments:
+          line1: a unicode string.
+          line2: a unicode string that compares differently from line1.
 
         """
-        if self.use_fuzz(expected):
-            return self._diff_index_with_fuzz(actual, expected)
-        return self._diff_index_without_fuzz(actual, expected)
+        if self.has_fuzz(line2):
+            return self._compare_lines_fuzzy(line1, line2)
+        return self._compare_lines_exact(line1, line2)
+
+    def compare_sequences(self, seq1, seq2):
+        """
+        Compare two sequences of unicode lines.
+
+        Returns a DiffInfo instance if the sequences differ.  Otherwise,
+        returns None.
+
+        """
+        for i, lines in enumerate(zip(seq1, seq2)):
+            if self._lines_equal(*lines):
+                continue
+            # Otherwise, the lines are different.
+            info = DiffInfo()
+            info.char_indices = self._compare_lines(*lines)
+            line_indices = [i, i]
+            break
+        else:
+            # Check whether there are additional lines.
+            c = cmp(len(seq1), len(seq2))
+            if c == 0:
+                return None
+            info = DiffInfo()
+            line_indices = [i + 1, None]
+            if c < 0:
+                # Then seq2 has more lines.
+                line_indices.reverse()
+        info.line_indices = line_indices
+        return info
+
+
+if __name__ == "__main__":
+    printer = DiffPrinter()
+    differ = _LineDiffer(fuzz=".")
+    # abckxy
+    # abc.xyz
+    #
+    line1 = "abkvvx"
+    line2 = "ab.xkkk"
+    print line1
+    print line2
+    char_indices = differ._compare_lines(line1, line2)
+    info = differ.compare_sequences([line1], [line2])
+    print info.__dict__
+
+    print char_indices
+    exit()
+    formatted = printer.format_line(info, actual, expected)
+    print("\n".join(formatted))

@@ -40,6 +40,7 @@ import filecmp
 import os
 import sys
 
+# TODO: remove the dependency on molt.defaults.
 import molt.defaults as molt_defaults
 import molt.general.io as molt_io
 
