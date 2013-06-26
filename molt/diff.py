@@ -44,7 +44,7 @@ import os
 import re
 import sys
 
-from molt.defaults import FUZZY_MARKER
+import molt.defaults as defaults
 from molt.general.dirdiff import compare_files, DirDiffer
 
 
@@ -145,6 +145,30 @@ class _DiffDescriber(object):
 
 # TODO: switch from using this to the _LineDiffer class below.
 def match_fuzzy(u1, u2, marker=None):
+    if marker is None:
+        marker = defaults.FUZZ
+
+    lines1, lines2 = (u.splitlines(True) for u in (u1, u2))
+
+    if len(lines1) != len(lines2):
+        return False
+
+    for line1, line2 in zip(lines1, lines2):
+        if line1 == line2:
+            continue
+        # Otherwise, check for ellipses in the second line.
+        i = line2.find(marker)
+        # Note that an expression like `'abc'[:5]`, for example, will not
+        # raise an exception.
+        if i < 0 or line1[:i] != line2[:i]:
+            return False
+
+    return True
+
+
+class Comparer(object):
+
+    # TODO: update this docstring.
     """
     Return whether the given unicode strings are "fuzzily" equal.
 
@@ -167,53 +191,43 @@ def match_fuzzy(u1, u2, marker=None):
     for an actual value).
 
     """
-    if marker is None:
-        marker = FUZZY_MARKER
 
-    lines1, lines2 = (u.splitlines(True) for u in (u1, u2))
-
-    if len(lines1) != len(lines2):
-        return False
-
-    for line1, line2 in zip(lines1, lines2):
-        if line1 == line2:
-            continue
-        # Otherwise, check for ellipses in the second line.
-        i = line2.find(marker)
-        # Note that an expression like `'abc'[:5]`, for example, will not
-        # raise an exception.
-        if i < 0 or line1[:i] != line2[:i]:
-            return False
-
-    return True
-
-
-class MoltComparer(object):
-
-    def __init__(self, fuzz):
+    def __init__(self, fuzz=None, context=None):
+        if context is None:
+            context = defaults.DIFF_CONTEXT
+        if fuzz is None:
+            fuzz = defaults.DIFF_FUZZ
+        self.context = context
         self.fuzz = fuzz
 
-    def check_string(self, s1, s2):
+    def _describer(self):
+        return _DiffDescriber(context=self.context)
+
+    def _line_comparer(self):
+        return _LineComparer(fuzz=self.fuzz)
+
+    def _describe(self, info, seqs):
+        describer = self._describer()
+        return describer.describe(info, seqs)
+
+    def compare_strings(self, strs):
         """
-        Return whether a given unicode string matches an expected one.
+        Compare whether two unicode strings match.
+
+        Returns a list of strings describing the difference between
+        the two strings, or an empty string if the strings match.
+
+        Parameters:
+
+          strs: a pair of unicode strings.
 
         """
-        lines1, lines2 = (u.splitlines(True) for u in (actual, expected))
-
-        if len(lines1) != len(lines2):
-            return False
-
-        for line1, line2 in zip(lines1, lines2):
-            if line1 == line2:
-                continue
-            # Otherwise, check for ellipses in the second line.
-            i = line2.find(marker)
-            # Note that an expression like `'abc'[:5]`, for example, will not
-            # raise an exception.
-            if i < 0 or line1[:i] != line2[:i]:
-                return False
-
-        return True
+        seqs = tuple(u.splitlines(True) for u in strs)
+        comparer = self._line_comparer()
+        info = comparer.compare_seqs(seqs)
+        if info is None:
+            return info
+        return self._describe(info, seqs)
 
 
 # TODO: Finish this class.  It should internally call dirdiff.Differ.diff().
@@ -342,7 +356,7 @@ class _LineComparer(object):
             return self._compare_lines_fuzzy(lines)
         return self._compare_lines_exact(lines)
 
-    def compare_seqs(self, seq1, seq2):
+    def compare_seqs(self, seqs):
         """
         Compare two sequences of unicode lines.
 
@@ -350,16 +364,18 @@ class _LineComparer(object):
         returns None.
 
         """
-        for line_index, lines in enumerate(zip(seq1, seq2)):
+        for line_index, lines in enumerate(zip(*seqs)):
             if self._lines_equal(lines):
                 continue
             # Otherwise, the lines are different.
             char_indices = self._compare_lines(lines)
             break
         else:
-            if len(seq1) == len(seq2):
+            # Then all of the initial lines were equal.
+            if len(seqs[0]) == len(seqs[1]):
                 return None
-            # Otherwise, one sequence is longer than the other.
+            # Otherwise, one sequence has more lines, in which case
+            # character indices do not apply.
             line_index += 1
             char_indices = None
         return _DiffInfo(line_index=line_index, char_indices=char_indices)
@@ -369,6 +385,14 @@ if __name__ == "__main__":
     seq1 = ["abc", "x", "abc", "x", "bcd", "c", "d", "e"]
     #seq2 = ["abc", "x", "abc", "x",  "b...e", "e", "g"]
     seq2 = ["abc", "x", "abc", "x"]
+    seqs = (seq1, seq2)
+    strs = tuple("\n".join(seq) for seq in seqs)
+
+    c = Comparer()
+    lines = c.compare_strings(strs)
+    print "\n".join(lines)
+    exit()
+
 
     differ = _LineComparer(fuzz=".")
     info = differ.compare_seqs(seq1, seq2)
