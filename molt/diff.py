@@ -38,6 +38,7 @@ does not support fuzzy matching in the way that Molt requires.
 
 from __future__ import absolute_import
 
+import itertools
 import logging
 import os
 import re
@@ -100,7 +101,7 @@ class MoltComparer(object):
     def __init__(self, fuzz):
         self.fuzz = fuzz
 
-    def check_string(self, actual, expected):
+    def check_string(self, s1, s2):
         """
         Return whether a given unicode string matches an expected one.
 
@@ -123,7 +124,6 @@ class MoltComparer(object):
         return True
 
 
-
 # TODO: Finish this class.  It should internally call dirdiff.Differ.diff().
 #   The function can return the line number and character number at
 #   the first difference.
@@ -136,21 +136,63 @@ class DirComparer(object):
         pass
 
 
-class DiffInfo(object):
+class _DiffInfo(object):
     pass
 
 
-# TODO: finish this class
-class DiffPrinter(object):
-    # i=2 : 'abc' 'de'
-    # i=2 : 'abc' 'ef'
+class DiffFormatter(object):
 
-    def _format_line(self, line, index):
-        return "i=%d %r" % (index, (line[:index], line[index:]))
+    def __init__(self, context=2):
+        """
 
-    def format_line(self, info, actual, expected):
-        return [self._format_line(actual, info.indices[0]),
-                self._format_line(expected, info.indices[1])]
+        context: the number of lines of context to include.
+
+        """
+        self.context = context
+
+    def _format_line_raw(self, line_index, contents):
+        return "%d:%s" % (line_index + 1, contents)
+
+    def _format_line(self, line, line_index):
+        contents = " %r" % line
+        return self._format_line_raw(line_index, contents)
+
+    def _format_line_with_char(self, line, line_index, char_index):
+        contents = "%d %r" % (char_index + 1, (line[:char_index], line[char_index:]))
+        return self._format_line_raw(line_index, contents)
+
+    def _format_seq(self, lines, report, min_index, max_index, char_index):
+        ilines = itertools.islice(lines, min_index, max_index)
+        for i, line in enumerate(ilines, start=min_index):
+            line = self._format_line(line, i)
+            report.append(" %s" % line)
+        # Then add the line with the difference.
+        i += 1
+        try:
+            line = lines[i]
+        except IndexError:
+            line = None
+        if char_index is None:
+            line = self._format_line(line, i)
+        else:
+            line = self._format_line_with_char(line, i, char_index)
+        report.append("*%s" % line)
+
+    def format(self, info, seqs):
+        max_index = info.line_index
+        min_index = max(0, max_index - self.context)
+        chars = info.char_indices
+        char_desc = ("" if chars[0] is None else
+                     ", characters %d and %d, resp" %
+                     tuple(i + 1 for i in chars))
+        header = ("first difference found at line %d%s;\n"
+                  "showing actual then expected:" % (max_index + 1, char_desc))
+        report = [header]
+        for char_index, lines in zip(info.char_indices, seqs):
+            self._format_seq(lines, report, min_index, max_index, char_index)
+            report.append(3 * "-")
+        report.pop()
+        return report
 
 
 # TODO: finish this class
@@ -199,7 +241,8 @@ class _LineDiffer(object):
           line2: a unicode string that compares differently from line1.
 
         """
-        for i, chars in enumerate(zip(line1, line1)):
+        for i, chars in enumerate(zip(line1, line2)):
+            print i, chars
             if chars[0] == chars[1]:
                 continue
             # Otherwise, the characters differ.
@@ -281,6 +324,17 @@ class _LineDiffer(object):
 
 
 if __name__ == "__main__":
+    seq1 = ["a", "b", "c", "d", "e"]
+    seq2 = ["a", "d", "e", "g"]
+    formatter = DiffFormatter()
+    info = _DiffInfo()
+    info.line_index = 3
+    info.char_indices = (0, 1)
+    report = formatter.format(info, [seq1, seq2])
+    print "\n".join(report)
+    exit()
+
+
     printer = DiffPrinter()
     differ = _LineDiffer(fuzz=".")
     # abckxy
@@ -291,7 +345,8 @@ if __name__ == "__main__":
     print line1
     print line2
     char_indices = differ._compare_lines(line1, line2)
-    info = differ.compare_sequences([line1], [line2])
+    info = differ.compare_sequences(["a"], ["b"])
+    #info = differ.compare_sequences(["a", line1], ["b", line2])
     print info.__dict__
 
     print char_indices
