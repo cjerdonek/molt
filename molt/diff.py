@@ -140,7 +140,8 @@ class _DiffInfo(object):
     pass
 
 
-class DiffFormatter(object):
+# The implementation of this class depends only on _DiffInfo.
+class DiffDescriber(object):
 
     def __init__(self, context=2):
         """
@@ -178,7 +179,13 @@ class DiffFormatter(object):
             line = self._format_line_with_char(line, i, char_index)
         report.append("*%s" % line)
 
-    def format(self, info, seqs):
+    def describe(self, info, seqs):
+        """
+        Describe the difference between the two sequences of lines.
+
+        Returns a sequence of strings.
+
+        """
         max_index = info.line_index
         min_index = max(0, max_index - self.context)
         chars = info.char_indices
@@ -326,11 +333,11 @@ class _LineDiffer(object):
 if __name__ == "__main__":
     seq1 = ["a", "b", "c", "d", "e"]
     seq2 = ["a", "d", "e", "g"]
-    formatter = DiffFormatter()
+    formatter = DiffDescriber()
     info = _DiffInfo()
     info.line_index = 3
     info.char_indices = (0, 1)
-    report = formatter.format(info, [seq1, seq2])
+    report = formatter.describe(info, [seq1, seq2])
     print "\n".join(report)
     exit()
 
