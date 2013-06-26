@@ -51,6 +51,77 @@ from molt.general.dirdiff import compare_files, DirDiffer
 _log = logging.getLogger(__name__)
 
 
+class _DiffInfo(object):
+    pass
+
+
+# The implementation of this class depends only on _DiffInfo.
+class _DiffDescriber(object):
+
+    """
+    Describes the difference between two strings in human-readable form.
+
+    """
+
+    def __init__(self, context=2):
+        """
+
+        context: the number of lines of context to include.
+
+        """
+        self.context = context
+
+    def _format_line_raw(self, line_index, contents):
+        return "%d:%s" % (line_index + 1, contents)
+
+    def _format_line(self, line, line_index):
+        contents = " %r" % line
+        return self._format_line_raw(line_index, contents)
+
+    def _format_line_with_char(self, line, line_index, char_index):
+        contents = "%d %r" % (char_index + 1, (line[:char_index], line[char_index:]))
+        return self._format_line_raw(line_index, contents)
+
+    def _format_seq(self, lines, report, min_index, max_index, char_index):
+        ilines = itertools.islice(lines, min_index, max_index)
+        for i, line in enumerate(ilines, start=min_index):
+            line = self._format_line(line, i)
+            report.append(" %s" % line)
+        # Then add the line with the difference.
+        i += 1
+        try:
+            line = lines[i]
+        except IndexError:
+            line = None
+        if char_index is None:
+            line = self._format_line(line, i)
+        else:
+            line = self._format_line_with_char(line, i, char_index)
+        report.append("*%s" % line)
+
+    def describe(self, info, seqs):
+        """
+        Describe the difference between the two sequences of lines.
+
+        Returns a sequence of strings.
+
+        """
+        max_index = info.line_index
+        min_index = max(0, max_index - self.context)
+        chars = info.char_indices
+        char_desc = ("" if chars[0] is None else
+                     ", characters %d and %d, resp" %
+                     tuple(i + 1 for i in chars))
+        header = ("first difference found at line %d%s;\n"
+                  "showing actual then expected:" % (max_index + 1, char_desc))
+        report = [header]
+        for char_index, lines in zip(info.char_indices, seqs):
+            self._format_seq(lines, report, min_index, max_index, char_index)
+            report.append(3 * "-")
+        report.pop()
+        return report
+
+
 # TODO: switch from using this to the _LineDiffer class below.
 def match_fuzzy(u1, u2, marker=None):
     """
@@ -134,72 +205,6 @@ class DirComparer(object):
 
     def compare(self, path1, path2):
         pass
-
-
-class _DiffInfo(object):
-    pass
-
-
-# The implementation of this class depends only on _DiffInfo.
-class DiffDescriber(object):
-
-    def __init__(self, context=2):
-        """
-
-        context: the number of lines of context to include.
-
-        """
-        self.context = context
-
-    def _format_line_raw(self, line_index, contents):
-        return "%d:%s" % (line_index + 1, contents)
-
-    def _format_line(self, line, line_index):
-        contents = " %r" % line
-        return self._format_line_raw(line_index, contents)
-
-    def _format_line_with_char(self, line, line_index, char_index):
-        contents = "%d %r" % (char_index + 1, (line[:char_index], line[char_index:]))
-        return self._format_line_raw(line_index, contents)
-
-    def _format_seq(self, lines, report, min_index, max_index, char_index):
-        ilines = itertools.islice(lines, min_index, max_index)
-        for i, line in enumerate(ilines, start=min_index):
-            line = self._format_line(line, i)
-            report.append(" %s" % line)
-        # Then add the line with the difference.
-        i += 1
-        try:
-            line = lines[i]
-        except IndexError:
-            line = None
-        if char_index is None:
-            line = self._format_line(line, i)
-        else:
-            line = self._format_line_with_char(line, i, char_index)
-        report.append("*%s" % line)
-
-    def describe(self, info, seqs):
-        """
-        Describe the difference between the two sequences of lines.
-
-        Returns a sequence of strings.
-
-        """
-        max_index = info.line_index
-        min_index = max(0, max_index - self.context)
-        chars = info.char_indices
-        char_desc = ("" if chars[0] is None else
-                     ", characters %d and %d, resp" %
-                     tuple(i + 1 for i in chars))
-        header = ("first difference found at line %d%s;\n"
-                  "showing actual then expected:" % (max_index + 1, char_desc))
-        report = [header]
-        for char_index, lines in zip(info.char_indices, seqs):
-            self._format_seq(lines, report, min_index, max_index, char_index)
-            report.append(3 * "-")
-        report.pop()
-        return report
 
 
 # TODO: finish this class
@@ -333,7 +338,7 @@ class _LineDiffer(object):
 if __name__ == "__main__":
     seq1 = ["a", "b", "c", "d", "e"]
     seq2 = ["a", "d", "e", "g"]
-    formatter = DiffDescriber()
+    formatter = _DiffDescriber()
     info = _DiffInfo()
     info.line_index = 3
     info.char_indices = (0, 1)
