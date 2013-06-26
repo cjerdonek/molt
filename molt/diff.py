@@ -52,10 +52,15 @@ _log = logging.getLogger(__name__)
 
 
 class _DiffInfo(object):
-    pass
+
+    def __init__(self, line_index=None, char_indices=None):
+        if char_indices is None:
+            char_indices = (None, None)
+        self.line_index = line_index
+        self.char_indices = char_indices
 
 
-# The implementation of this class depends only on _DiffInfo.
+# The implementation of this class depends only on _DiffInfo's interface.
 class _DiffDescriber(object):
 
     """
@@ -75,10 +80,26 @@ class _DiffDescriber(object):
         return "%d:%s" % (line_index + 1, contents)
 
     def _format_line(self, line, line_index):
+        """
+        Example:
+
+        >>> d = _DiffDescriber()
+        >>> d._format_line("abcdef", 9)
+        "10: 'abcdef'"
+
+        """
         contents = " %r" % line
         return self._format_line_raw(line_index, contents)
 
     def _format_line_with_char(self, line, line_index, char_index):
+        """
+        Example:
+
+        >>> d = _DiffDescriber()
+        >>> d._format_line_with_char("abcdef", 9, 3)
+        "10:4 ('abc', 'def')"
+
+        """
         contents = "%d %r" % (char_index + 1, (line[:char_index], line[char_index:]))
         return self._format_line_raw(line_index, contents)
 
@@ -208,7 +229,7 @@ class DirComparer(object):
 
 
 # TODO: finish this class
-class _LineDiffer(object):
+class _LineComparer(object):
 
     def __init__(self, fuzz=None):
         self.fuzz = fuzz
@@ -232,48 +253,70 @@ class _LineDiffer(object):
         # TODO: switch from $ to \Z and add a test case for this difference.
         return "%s$" % self._re_pattern(parts)
 
-    def _lines_equal(self, line1, line2):
+    def _lines_equal(self, lines):
         """
         Return whether the given lines are equal.
 
-        Neither string should contain a newline.
+        Neither line should contain a newline before the last character.
 
         """
+        line1, line2 = lines
         if not self.has_fuzz(line2):
             return line1 == line2
         # Otherwise, use fuzzy matching.
         return re.match(self.re_pattern(line2), line1) is not None
 
-    def _compare_lines_exact(self, line1, line2):
+    def _compare_lines_exact(self, lines):
         """
-        Return the string indices at which the two lines differ.
+        Return the pair of indices at which the two lines differ.
 
-        Arguments:
-          line1: a unicode string.
-          line2: a unicode string that compares differently from line1.
+        Parameters:
+
+          lines: a pair of unicode strings that compare differently.
+
+        Example:
+
+        >>> c = _LineComparer()
+        >>> c._compare_lines_exact(("abc", "abx"))
+        (2, 2)
+        >>> c._compare_lines_exact(("abc", "a"))
+        (1, 1)
 
         """
-        for i, chars in enumerate(zip(line1, line2)):
-            print i, chars
+        for i, chars in enumerate(zip(*lines)):
             if chars[0] == chars[1]:
                 continue
             # Otherwise, the characters differ.
-            return [i, i]
-        # Otherwise, one line is longer than the other.
-        indices = [i + 1, None]
-        if len(line1) < len(line2):
-            indices.reverse()
-        return indices
+            break
+        else:
+            # Otherwise, one line is longer than the other.
+            i += 1
+        return (i, i)
 
-    def _compare_lines_fuzzy(self, line1, line2):
+    def _compare_lines_fuzzy(self, lines):
         """
-        Return the string indices at which the two lines differ.
+        Return the pair of indices at which the two lines differ.
 
-        Arguments:
-          line1: a unicode string.
-          line2: a unicode string that compares differently from line1.
+        Parameters:
+
+          lines: a pair of unicode strings that compare differently.
+
+        Examples:
+
+        >>> c = _LineComparer(fuzz="...")
+        >>> c._compare_lines_fuzzy(("abc", "abx"))
+        (2, 2)
+        >>> c._compare_lines_fuzzy(("abc", "a"))
+        (1, 1)
+        >>> c._compare_lines_fuzzy(("a", "abc"))
+        (1, 1)
+        >>> c._compare_lines_fuzzy(("abc", "a...b"))
+        (2, 5)
+        >>> c._compare_lines_fuzzy(("abc", "a...x"))
+        (3, 4)
 
         """
+        line1, line2 = lines
         line2_parts = self._expected_parts(line2)
         while True:
             m = re.match(self._re_pattern(line2_parts), line1)
@@ -284,28 +327,22 @@ class _LineDiffer(object):
                 line2_parts.pop()
             # Remove the last character from the last string.
             line2_parts[-1] = line2_parts[-1][:-1]
-        indices = [len(s) for s in (m.group(0), self.fuzz.join(line2_parts))]
-        for i, (char_index, line) in enumerate(zip(indices, (line1, line2))):
-            try:
-                line[char_index]
-            except IndexError:
-                indices[i] = None
-        return indices
+        return tuple(len(s) for s in (m.group(0), self.fuzz.join(line2_parts)))
 
-    def _compare_lines(self, line1, line2):
+    def _compare_lines(self, lines):
         """
         Return the string indices at which the two lines differ.
 
-        Arguments:
+        Parameters:
           line1: a unicode string.
           line2: a unicode string that compares differently from line1.
 
         """
-        if self.has_fuzz(line2):
-            return self._compare_lines_fuzzy(line1, line2)
-        return self._compare_lines_exact(line1, line2)
+        if self.has_fuzz(lines[1]):
+            return self._compare_lines_fuzzy(lines)
+        return self._compare_lines_exact(lines)
 
-    def compare_sequences(self, seq1, seq2):
+    def compare_seqs(self, seq1, seq2):
         """
         Compare two sequences of unicode lines.
 
@@ -313,42 +350,32 @@ class _LineDiffer(object):
         returns None.
 
         """
-        for i, lines in enumerate(zip(seq1, seq2)):
-            if self._lines_equal(*lines):
+        for line_index, lines in enumerate(zip(seq1, seq2)):
+            if self._lines_equal(lines):
                 continue
             # Otherwise, the lines are different.
-            info = DiffInfo()
-            info.char_indices = self._compare_lines(*lines)
-            line_indices = [i, i]
+            char_indices = self._compare_lines(lines)
             break
         else:
-            # Check whether there are additional lines.
-            c = cmp(len(seq1), len(seq2))
-            if c == 0:
+            if len(seq1) == len(seq2):
                 return None
-            info = DiffInfo()
-            line_indices = [i + 1, None]
-            if c < 0:
-                # Then seq2 has more lines.
-                line_indices.reverse()
-        info.line_indices = line_indices
-        return info
+            # Otherwise, one sequence is longer than the other.
+            line_index += 1
+            char_indices = None
+        return _DiffInfo(line_index=line_index, char_indices=char_indices)
 
 
 if __name__ == "__main__":
-    seq1 = ["a", "b", "c", "d", "e"]
-    seq2 = ["a", "d", "e", "g"]
-    formatter = _DiffDescriber()
-    info = _DiffInfo()
-    info.line_index = 3
-    info.char_indices = (0, 1)
-    report = formatter.describe(info, [seq1, seq2])
-    print "\n".join(report)
+    seq1 = ["abc", "x", "abc", "x", "bcd", "c", "d", "e"]
+    #seq2 = ["abc", "x", "abc", "x",  "b...e", "e", "g"]
+    seq2 = ["abc", "x", "abc", "x"]
+
+    differ = _LineComparer(fuzz=".")
+    info = differ.compare_seqs(seq1, seq2)
+    #info = differ._compare_lines_exact(("abc", "abcde"))
+    print info.__dict__
     exit()
 
-
-    printer = DiffPrinter()
-    differ = _LineDiffer(fuzz=".")
     # abckxy
     # abc.xyz
     #
@@ -360,6 +387,16 @@ if __name__ == "__main__":
     info = differ.compare_sequences(["a"], ["b"])
     #info = differ.compare_sequences(["a", line1], ["b", line2])
     print info.__dict__
+
+    formatter = _DiffDescriber()
+    info = _DiffInfo()
+    info.line_index = 3
+    info.char_indices = (0, 1)
+    report = formatter.describe(info, [seq1, seq2])
+    print "\n".join(report)
+    exit()
+
+
 
     print char_indices
     exit()
