@@ -77,7 +77,7 @@ class _DiffDescriber(object):
         self.context = context
 
     def _format_line_raw(self, line_index, contents):
-        return "%d:%s" % (line_index + 1, contents)
+        return "%d:%s\n" % (line_index + 1, contents)
 
     def _format_line(self, line, line_index):
         """
@@ -103,21 +103,24 @@ class _DiffDescriber(object):
         contents = "%d %r" % (char_index + 1, (line[:char_index], line[char_index:]))
         return self._format_line_raw(line_index, contents)
 
-    def _format_seq(self, lines, report, min_index, max_index, char_index):
-        ilines = itertools.islice(lines, min_index, max_index)
-        for i, line in enumerate(ilines, start=min_index):
+    def _format_seq(self, seq, report, min_index, max_index, char_index):
+        for line in seq[min_index:max_index + 1]:
+            report.append("+%s" % line)
+        # Make sure the last line ends in a newline.
+        if report[-1][-1] != "\n":
+            report[-1] += "\n"
+        for i, line in enumerate(seq[min_index:max_index], start=min_index):
             line = self._format_line(line, i)
             report.append(" %s" % line)
         # Then add the line with the difference.
-        i += 1
         try:
-            line = lines[i]
+            line = seq[max_index]
         except IndexError:
             line = None
         if char_index is None:
-            line = self._format_line(line, i)
+            line = self._format_line(line, max_index)
         else:
-            line = self._format_line_with_char(line, i, char_index)
+            line = self._format_line_with_char(line, max_index, char_index)
         report.append("*%s" % line)
 
     def describe(self, info, seqs):
@@ -133,13 +136,13 @@ class _DiffDescriber(object):
         char_desc = ("" if chars[0] is None else
                      ", characters %d and %d, resp" %
                      tuple(i + 1 for i in chars))
-        header = ("first difference found at line %d%s;\n"
-                  "showing actual then expected:" % (max_index + 1, char_desc))
+        header = ("first difference found at line %d%s.\n" %
+                  (max_index + 1, char_desc))
         report = [header]
-        for char_index, lines in zip(info.char_indices, seqs):
-            self._format_seq(lines, report, min_index, max_index, char_index)
-            report.append(3 * "-")
-        report.pop()
+        labels = ('actual', 'expected')
+        for label, char_index, seq in zip(labels, chars, seqs):
+            report.append("--- %s:\n" % label)
+            self._format_seq(seq, report, min_index, max_index, char_index)
         return report
 
 
@@ -390,7 +393,7 @@ if __name__ == "__main__":
 
     c = Comparer()
     lines = c.compare_strings(strs)
-    print "\n".join(lines)
+    print repr("".join(lines))
     exit()
 
 
