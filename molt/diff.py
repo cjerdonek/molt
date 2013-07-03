@@ -77,7 +77,7 @@ class _DiffDescriber(object):
         self.context = context
 
     def _format_line_raw(self, line_index, contents):
-        return "%d:%s\n" % (line_index + 1, contents)
+        return "%d:%s" % (line_index + 1, contents)
 
     def _format_line(self, line, line_index):
         """
@@ -111,7 +111,7 @@ class _DiffDescriber(object):
             report[-1] += "\n"
         for i, line in enumerate(seq[min_index:max_index], start=min_index):
             line = self._format_line(line, i)
-            report.append(" %s" % line)
+            report.append(" %s\n" % line)
         # Then add the line with the difference.
         try:
             line = seq[max_index]
@@ -121,7 +121,7 @@ class _DiffDescriber(object):
             line = self._format_line(line, max_index)
         else:
             line = self._format_line_with_char(line, max_index, char_index)
-        report.append("*%s" % line)
+        report.append("*%s\n" % line)
 
     def describe(self, info, seqs):
         """
@@ -149,7 +149,7 @@ class _DiffDescriber(object):
 # TODO: switch from using this to the _LineDiffer class below.
 def match_fuzzy(u1, u2, marker=None):
     if marker is None:
-        marker = defaults.FUZZ
+        marker = defaults.DIFF_FUZZ
 
     lines1, lines2 = (u.splitlines(True) for u in (u1, u2))
 
