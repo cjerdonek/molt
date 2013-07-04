@@ -174,6 +174,7 @@ def check_output(output_dir, expected_dir):
 
 
 # TODO: rename this to process() or process_args().
+# TODO: incorporate this method into the ArgProcessor class.
 def run_args(sys_argv, chooser=None, test_runner_stream=None,
              from_source=False, stdout=None):
     exit_status = constants.EXIT_STATUS_SUCCESS  # return value
@@ -275,14 +276,7 @@ class TemplateChecker(object):
     # not yet been implemented.
     def _compare(self, actual_dir, expected_dir):
         comparer = diff.Comparer()
-        # TODO: this should return some kind of Info object with a
-        # does_match() method and various display methods, etc.
-        result = comparer.compare_dirs((actual_dir, expected_dir))
-        for seq in result:
-            if len(seq) > 0:
-                return False
-        return True
-
+        return comparer.compare_dirs((actual_dir, expected_dir))
 
     def _check(self, output_dir):
         """Render and return whether the directories match."""

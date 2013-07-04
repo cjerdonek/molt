@@ -329,6 +329,7 @@ class _LineComparer(object):
         return _DiffInfo(line_index=line_index, char_indices=char_indices)
 
 
+# TODO: this class should accept a stream for displaying difference info.
 class Comparer(object):
 
     # TODO: update this docstring.
@@ -415,16 +416,24 @@ class Comparer(object):
         comparer = self._file_comparer()
         return comparer.compare(paths)
 
+    # TODO: this method should display detailed compare info.
     def compare_dirs(self, dirs):
         """
-        Compare whether two directories match.
-
-        TODO: document what this returns.
+        Return whether two directories match.
 
         """
         dir_comparer = self._dir_comparer()
+        # diff() should return some sort of Info instance with a
+        # did_match() method and various display functions.
         result = dir_comparer.diff(*dirs)
-        return result
+        for seq in result:
+            if len(seq) > 0:
+                # Then there was a difference.
+                break
+        else:
+            return True
+        print(repr(result))
+        return False
 
 
 if __name__ == "__main__":
