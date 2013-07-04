@@ -306,9 +306,9 @@ class TemplateChecker(object):
                 # Then directory creation failed.
                 pass
             elif _given_output_dir is None or does_match:
-                _log.info("deleting output dir: %s" % output_dir)
+                _log.debug("deleting output dir: %s" % output_dir)
                 shutil.rmtree(output_dir)
                 output_dir = None
             else:
-                _log.info("leaving output dir: %s" % output_dir)
+                _log.debug("leaving output dir: %s" % output_dir)
         return does_match, output_dir
