@@ -198,15 +198,21 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     # returns a runner corresponding to the mode?  Or at least create
     # a helper function that converts a Namespace to a "runner" and validates
     # the Namespace in the process.
+    # TODO: the runner should have a run() method that returns an exit
+    # status and output pair.  In this way we can avoid having a sequence
+    # of if-else statements like below.
     if ns.create_demo_mode:
         result = run_mode_create_demo(ns)
     # TODO: add a check-dirs mode.
     elif ns.mode_check_template:
         template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
         output_dir = ns.output_directory
-        runner = TemplateChecker(chooser=chooser, template_dir=template_dir,
-                                 output_dir=output_dir)
-        result = runner.run()
+        checker = TemplateChecker(chooser=chooser, template_dir=template_dir,
+                                  output_dir=output_dir)
+        does_check, output_dir = checker.check()
+        if not does_check:
+            exit_status = constants.EXIT_STATUS_FAIL
+        result = output_dir
     elif ns.visualize_mode:
         result = run_mode_visualize(ns)
     elif ns.version_mode:
@@ -221,7 +227,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     if ns.check_output and not check_output(result, ns.expected_dir):
         exit_status = constants.EXIT_STATUS_FAIL
 
+    # TODO: rename result to output.
     if result is not None:
+        # TODO: use an injected sys.stdout instead of print.
         print result
 
     return exit_status
@@ -251,20 +259,38 @@ class TemplateChecker(object):
         self.output_dir = output_dir
         self.template_dir = template_dir
 
-    def _render(self, output_dir):
+    # TODO: extract this into a separate helper function or class?
+    # A helper would be useful for the --compare-dirs option that has
+    # not yet been implemented.
+    def _compare(self, actual_dir, expected_dir):
+        comparer = diff.Comparer()
+        # TODO: this should return some kind of Info object with a
+        # does_match() method and various display methods, etc.
+        result = comparer.compare_dirs((actual_dir, expected_dir))
+        for seq in result:
+            if len(seq) > 0:
+                return False
+        return True
+
+
+    def _check(self, output_dir):
         """Render and return whether the directories match."""
         chooser = self.chooser
         template_dir = self.template_dir
-        expected_dir = chooser.get_expected_dir(template_dir)
         renderer = TemplateRenderer(chooser=chooser, template_dir=template_dir,
                                     output_dir=output_dir)
         renderer.render()
-        comparer = diff.Comparer()
-        result = comparer.compare_dirs((output_dir, expected_dir))
-        return True
+        expected_dir = chooser.get_expected_dir(template_dir)
+        does_match = self._compare(output_dir, expected_dir)
+        return does_match
 
-    def run(self):
+    def check(self):
+        """
+        Returns a (does_check, output_dir) pair.
+
+        """
         output_dir = None
+        does_match = True
         _given_output_dir = self.output_dir
         try:
             if _given_output_dir is None:
@@ -273,13 +299,16 @@ class TemplateChecker(object):
                 # Increment the output directory if necessary.
                 output_dir = dirutil.make_available_dir(_given_output_dir)
             _log.debug("created output dir: %s" % output_dir)
-            dirs_same = self._render(output_dir)
+            does_match = self._check(output_dir)
+            _log.info("template checks out: %s" % does_match)
         finally:
             if output_dir is None:
                 # Then directory creation failed.
                 pass
-            elif _given_output_dir is None or dirs_same:
+            elif _given_output_dir is None or does_match:
                 _log.info("deleting output dir: %s" % output_dir)
                 shutil.rmtree(output_dir)
+                output_dir = None
             else:
                 _log.info("leaving output dir: %s" % output_dir)
+        return does_match, output_dir

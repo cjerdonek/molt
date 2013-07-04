@@ -377,7 +377,7 @@ class Comparer(object):
         return dirdiff.FileComparer2(compare=self.compare_strings)
 
     def _dir_comparer(self):
-        return dirdiff.FileComparer2(compare=self.compare_strings)
+        return dirdiff.DirDiffer()
 
     def _describe(self, info, seqs):
         describer = self._describer()
@@ -422,8 +422,9 @@ class Comparer(object):
         TODO: document what this returns.
 
         """
-        comparer = self._dir_comparer()
-        return comparer.compare(dirs)
+        dir_comparer = self._dir_comparer()
+        result = dir_comparer.diff(*dirs)
+        return result
 
 
 if __name__ == "__main__":
