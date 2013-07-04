@@ -426,14 +426,10 @@ class Comparer(object):
         # diff() should return some sort of Info instance with a
         # did_match() method and various display functions.
         result = dir_comparer.diff(*dirs)
-        for seq in result:
-            if len(seq) > 0:
-                # Then there was a difference.
-                break
-        else:
-            return True
-        print(repr(result))
-        return False
+        does_match = result.does_match()
+        if not does_match:
+            print(repr(result))
+        return does_match
 
 
 if __name__ == "__main__":

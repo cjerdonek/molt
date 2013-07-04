@@ -106,6 +106,21 @@ class FileComparer2(object):
         return self._compare(strs)
 
 
+class DirDiffInfo(tuple):
+
+    """
+    Encapsulates a command option (e.g. "-h" and "--help", or "--run-tests").
+
+    """
+
+    def does_match(self):
+        for seq in self:
+            if len(seq) > 0:
+                # Then there was a difference.
+                return False
+        return True
+
+
 # TODO: change this in the same way that FileComparer2 differs from FileComparer.
 class DirDiffer(object):
 
@@ -191,13 +206,9 @@ class DirDiffer(object):
             The paths are relative to the directory roots.
 
         """
-        results = tuple([] for i in range(3))
-
+        info = DirDiffInfo([] for i in range(3))
         dcmp = filecmp.dircmp(dir1, dir2, ignore=self.ignore)
-
-        self._diff(dcmp, results)
-
-        # Normalize the results sequences for testing and display purposes.
-        map(lambda seq: seq.sort(), results)
-
-        return results
+        self._diff(dcmp, info)
+        # Normalize the result sequences for testing and display purposes.
+        map(lambda seq: seq.sort(), info)
+        return info
