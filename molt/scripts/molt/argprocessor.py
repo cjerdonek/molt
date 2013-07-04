@@ -141,14 +141,12 @@ def run_mode_create_demo(ns):
 def run_mode_render(ns, chooser):
     """Returns the output directory."""
     template_dir = _get_input_dir(ns, 'when rendering a template')
-
     config_path = ns.config_path
     output_dir = _make_output_directory(ns, defaults.OUTPUT_DIR)
 
-    molter = Molter(chooser=chooser)
-    molter.molt(template_dir=template_dir,
-                output_dir=output_dir,
-                config_path=config_path)
+    renderer = TemplateRenderer(chooser=chooser, template_dir=template_dir,
+                                output_dir=output_dir, config_path=config_path)
+    renderer.render()
 
     if ns.with_visualize:
         visualize(output_dir)
@@ -196,14 +194,17 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     # TODO: rename the functions for running each mode to run_mode_*().
     # TODO: change the mode attribute names to "mode_*".
     # TODO: subclass Namespace and create a parameterless method that
-    # returns a runner corresponding to the mode.
+    # returns a runner corresponding to the mode?  Or at least create
+    # a helper function that converts a Namespace to a "runner" and validates
+    # the Namespace in the process.
     if ns.create_demo_mode:
         result = run_mode_create_demo(ns)
     # TODO: add a check-dirs mode.
     elif ns.mode_check_template:
         template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
         output_dir = ns.output_directory
-        runner = TemplateChecker(template_dir, output_dir=output_dir)
+        runner = TemplateChecker(chooser=chooser, template_dir=template_dir,
+                                 output_dir=output_dir)
         result = runner.run()
     elif ns.visualize_mode:
         result = run_mode_visualize(ns)
@@ -226,26 +227,54 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
 
 
 # This class should not depend on the Namespace returned by parse_args().
+class TemplateRenderer(object):
+
+    def __init__(self, chooser, template_dir, output_dir, config_path=None):
+        self.chooser = chooser
+        self.config_path = config_path
+        self.output_dir = output_dir
+        self.template_dir = template_dir
+
+    def render(self):
+        molter = Molter(chooser=self.chooser)
+        molter.molt(template_dir=self.template_dir,
+                    output_dir=self.output_dir,
+                    config_path=self.config_path)
+
+
+# This class should not depend on the Namespace returned by parse_args().
 class TemplateChecker(object):
 
-    def __init__(self, template_dir, output_dir=None):
-        self.template_dir = template_dir
+    def __init__(self, chooser, template_dir, output_dir):
+        self.chooser = chooser
         self.output_dir = output_dir
+        self.template_dir = template_dir
+
+    def _render(self, output_dir):
+        """Render and return whether the directories match."""
+        renderer = TemplateRenderer(chooser=self.chooser,
+                                    template_dir=self.template_dir,
+                                    output_dir=output_dir)
+        renderer.render()
+        return True
 
     def run(self):
-        output_dir = self.output_dir
+        output_dir = None
+        _given_output_dir = self.output_dir
         try:
-            if output_dir is None:
+            if _given_output_dir is None:
                 output_dir = tempfile.mkdtemp()
             else:
                 # Increment the output directory if necessary.
-                output_dir = dirutil.make_available_dir(output_dir)
-            # TODO: finish implementing.
-            _log.debug("created output directory: %s" % output_dir)
-            dirs_same = True
+                output_dir = dirutil.make_available_dir(_given_output_dir)
+            _log.debug("created output dir: %s" % output_dir)
+            dirs_same = self._render(output_dir)
         finally:
-            if self.output_dir is None or dirs_same:
-                _log.info("deleting output directory: %s" % output_dir)
+            if output_dir is None:
+                # Then directory creation failed.
+                pass
+            elif _given_output_dir is None or dirs_same:
+                _log.info("deleting output dir: %s" % output_dir)
                 shutil.rmtree(output_dir)
             else:
-                _log.info("leaving output directory: %s" % output_dir)
+                _log.info("leaving output dir: %s" % output_dir)
