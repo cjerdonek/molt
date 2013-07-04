@@ -174,12 +174,15 @@ def check_output(output_dir, expected_dir):
 
 
 # TODO: rename this to process() or process_args().
-def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False):
+def run_args(sys_argv, chooser=None, test_runner_stream=None,
+             from_source=False, stdout=None):
     exit_status = constants.EXIT_STATUS_SUCCESS  # return value
     if chooser is None:
         chooser = DirectoryChooser()
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
+    if stdout is None:
+        stdout = sys.stdout
 
     ns = argparsing.parse_args(sys_argv, chooser)
 
@@ -189,30 +192,22 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         return run_mode_tests(ns, test_names=test_names, test_runner_stream=test_runner_stream,
                              from_source=from_source)
 
+    processor = ArgProcessor(chooser=chooser)
+    run = processor.make_runner(ns)
+
     # TODO: consider using add_mutually_exclusive_group() for these.
     # TODO: file an issue in Python's tracker to add to
     # add_mutually_exclusive_group support for title, etc.
     # TODO: rename the functions for running each mode to run_mode_*().
     # TODO: change the mode attribute names to "mode_*".
-    # TODO: subclass Namespace and create a parameterless method that
-    # returns a runner corresponding to the mode?  Or at least create
-    # a helper function that converts a Namespace to a "runner" and validates
-    # the Namespace in the process.
-    # TODO: the runner should have a run() method that returns an exit
-    # status and output pair.  In this way we can avoid having a sequence
-    # of if-else statements like below.
-    if ns.create_demo_mode:
+    # TODO: use "run" for all modes to avoid any if logic below.
+    if run is not None:
+        did_succeed, output = run()
+        if not did_succeed:
+            exit_status = constants.EXIT_STATUS_FAIL
+    elif ns.create_demo_mode:
         output = run_mode_create_demo(ns)
     # TODO: add a check-dirs mode.
-    elif ns.mode_check_template:
-        template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
-        output_dir = ns.output_directory
-        checker = TemplateChecker(chooser=chooser, template_dir=template_dir,
-                                  output_dir=output_dir)
-        does_check, output_dir = checker.check()
-        if not does_check:
-            exit_status = constants.EXIT_STATUS_FAIL
-        output = output_dir
     elif ns.visualize_mode:
         output = run_mode_visualize(ns)
     elif ns.version_mode:
@@ -228,10 +223,27 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         exit_status = constants.EXIT_STATUS_FAIL
 
     if output is not None:
-        # TODO: use an injected sys.stdout instead of print.
-        print output
+        stdout.write(output)
+        if not output.endswith("\n"):
+            stdout.write("\n")
 
     return exit_status
+
+
+class ArgProcessor(object):
+
+    def __init__(self, chooser):
+        self.chooser = chooser
+
+    def make_runner(self, ns):
+        if ns.mode_check_template:
+            template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
+            output_dir = ns.output_directory
+            checker = TemplateChecker(chooser=self.chooser,
+                                      template_dir=template_dir,
+                                      output_dir=output_dir)
+            return checker.check
+        return None
 
 
 # This class should not depend on the Namespace returned by parse_args().
