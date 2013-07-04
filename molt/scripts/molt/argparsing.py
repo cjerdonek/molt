@@ -163,13 +163,13 @@ EXPECTED_DIR.  Writes the differences to stderr and reports the result via
 the exit status.  EXPECTED_DIR defaults to the template's expected directory.
 """,
     OPTION_CHECK_TEMPLATE: """\
-check that a template directory rendered with its default configuration
+check that the input template %s rendered with its default configuration
 file matches the template's expected directory.  Writes the differences
 to stderr and reports the result via the exit status.  By default, the
 template is rendered to a temporary output directory and deleted afterwards.
 However, if %s is provided and a difference is found, the output directory
 is not deleted to allow for inspection.
-""" % OPTION_OUTPUT_DIR.display("/"),
+""" % (METAVAR_INPUT_DIR, OPTION_OUTPUT_DIR.display("/")),
     OPTION_MODE_DEMO: """\
 create a copy of the Molt demo template to play with, instead of rendering
 a template directory.  The demo illustrates most major features of Groome.

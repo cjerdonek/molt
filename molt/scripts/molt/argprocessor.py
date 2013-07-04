@@ -36,18 +36,22 @@ import codecs
 from datetime import datetime
 import logging
 import os
+import shutil
 from StringIO import StringIO
 import sys
+import tempfile
 
 import molt
 from molt.general.error import Error
 from molt import constants
 from molt import defaults
-from molt.dirutil import make_available_dir, stage_template_dir, DirectoryChooser
+import molt.dirutil as dirutil
+# TODO: eliminate these from ... imports.
+from molt.dirutil import stage_template_dir, DirectoryChooser
 from molt.molter import Molter
 from molt.projectmap import Locator
 from molt.scripts.molt import argparsing
-from molt.scripts.molt.general.optionparser import UsageError
+import molt.scripts.molt.general.optionparser as optionparser
 from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
@@ -64,13 +68,16 @@ def visualize(dir_path):
 
 
 # TODO: consider whether we can have argparse handle this logic.
-def _get_input_dir(ns, mode_description):
+def _get_input_dir(ns, desc):
     input_dir = ns.input_directory
 
     if input_dir is None:
-        raise UsageError("Argument %s not provided.\n"
-                         "  Input directory needed for %s." %
-                         (METAVAR_INPUT_DIR, mode_description))
+        if isinstance(desc, optionparser.Option):
+            desc = "when using %s" % desc.display("/")
+        msg = ("Argument %s not provided.\n"
+               " You must specify an input directory %s." %
+               (METAVAR_INPUT_DIR, desc))
+        raise optionparser.UsageError(msg)
 
     if not os.path.exists(input_dir):
         raise Error("Input directory not found: %s" % input_dir)
@@ -109,7 +116,7 @@ def _make_output_directory(ns, default_output_dir):
     if output_dir is None:
         output_dir = default_output_dir
 
-    return make_available_dir(output_dir)
+    return dirutil.make_available_dir(output_dir)
 
 
 def run_mode_create_demo(ns):
@@ -119,6 +126,7 @@ def run_mode_create_demo(ns):
 
     output_dir = _make_output_directory(ns, defaults.DEMO_OUTPUT_DIR)
 
+    # TODO: add a comment explaining why we call os.rmdir().
     os.rmdir(output_dir)
     stage_template_dir(demo_template_dir, output_dir)
 
@@ -132,7 +140,7 @@ def run_mode_create_demo(ns):
 
 def run_mode_render(ns, chooser):
     """Returns the output directory."""
-    template_dir = _get_input_dir(ns, 'template rendering')
+    template_dir = _get_input_dir(ns, 'when rendering a template')
 
     config_path = ns.config_path
     output_dir = _make_output_directory(ns, defaults.OUTPUT_DIR)
@@ -149,7 +157,7 @@ def run_mode_render(ns, chooser):
 
 
 def run_mode_visualize(ns):
-    target_dir = _get_input_dir(ns, '%s option' % argparsing.OPTION_MODE_VISUALIZE)
+    target_dir = _get_input_dir(ns, argparsing.OPTION_MODE_VISUALIZE)
     visualize(target_dir)
 
     return None  # no need to print anything more.
@@ -186,12 +194,17 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     # TODO: file an issue in Python's tracker to add to
     # add_mutually_exclusive_group support for title, etc.
     # TODO: rename the functions for running each mode to run_mode_*().
+    # TODO: change the mode attribute names to "mode_*".
+    # TODO: subclass Namespace and create a parameterless method that
+    # returns a runner corresponding to the mode.
     if ns.create_demo_mode:
         result = run_mode_create_demo(ns)
     # TODO: add a check-dirs mode.
-    elif ns.check_dir:
-        print(repr(ns.check_dir))
-        exit("foo")
+    elif ns.mode_check_template:
+        template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
+        output_dir = ns.output_directory
+        runner = TemplateChecker(template_dir, output_dir=output_dir)
+        result = runner.run()
     elif ns.visualize_mode:
         result = run_mode_visualize(ns)
     elif ns.version_mode:
@@ -210,3 +223,29 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         print result
 
     return exit_status
+
+
+# This class should not depend on the Namespace returned by parse_args().
+class TemplateChecker(object):
+
+    def __init__(self, template_dir, output_dir=None):
+        self.template_dir = template_dir
+        self.output_dir = output_dir
+
+    def run(self):
+        output_dir = self.output_dir
+        try:
+            if output_dir is None:
+                output_dir = tempfile.mkdtemp()
+            else:
+                # Increment the output directory if necessary.
+                output_dir = dirutil.make_available_dir(output_dir)
+            # TODO: finish implementing.
+            _log.debug("created output directory: %s" % output_dir)
+            dirs_same = True
+        finally:
+            if self.output_dir is None or dirs_same:
+                _log.info("deleting output directory: %s" % output_dir)
+                shutil.rmtree(output_dir)
+            else:
+                _log.info("leaving output directory: %s" % output_dir)
