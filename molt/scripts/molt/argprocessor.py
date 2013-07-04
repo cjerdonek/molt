@@ -202,7 +202,7 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     # status and output pair.  In this way we can avoid having a sequence
     # of if-else statements like below.
     if ns.create_demo_mode:
-        result = run_mode_create_demo(ns)
+        output = run_mode_create_demo(ns)
     # TODO: add a check-dirs mode.
     elif ns.mode_check_template:
         template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
@@ -212,25 +212,24 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         does_check, output_dir = checker.check()
         if not does_check:
             exit_status = constants.EXIT_STATUS_FAIL
-        result = output_dir
+        output = output_dir
     elif ns.visualize_mode:
-        result = run_mode_visualize(ns)
+        output = run_mode_visualize(ns)
     elif ns.version_mode:
-        result = argparsing.get_version_string()
+        output = argparsing.get_version_string()
     elif ns.license_mode:
-        result = argparsing.get_license_string()
+        output = argparsing.get_license_string()
     else:
-        result = run_mode_render(ns, chooser)
+        output = run_mode_render(ns, chooser)
 
     # TODO: ensure that check_output raises an error if running in
     # a mode that doesn't create an ouput directory.
-    if ns.check_output and not check_output(result, ns.expected_dir):
+    if ns.check_output and not check_output(output, ns.expected_dir):
         exit_status = constants.EXIT_STATUS_FAIL
 
-    # TODO: rename result to output.
-    if result is not None:
+    if output is not None:
         # TODO: use an injected sys.stdout instead of print.
-        print result
+        print output
 
     return exit_status
 
