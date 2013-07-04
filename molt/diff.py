@@ -45,6 +45,8 @@ import re
 import sys
 
 import molt.defaults as defaults
+import molt.general.dirdiff as dirdiff
+# TODO: remove these from ... imports.
 from molt.general.dirdiff import compare_files, DirDiffer
 
 
@@ -183,6 +185,13 @@ class DirComparer(object):
 
 # TODO: finish this class
 class _LineComparer(object):
+
+    """
+    In the comparison methods of this class that accept a pair of strings,
+    the second string should be the expected string.  Only in the second
+    string can substrings be interpreted as fuzz.
+
+    """
 
     def __init__(self, fuzz=None):
         self.fuzz = fuzz
@@ -344,6 +353,10 @@ class Comparer(object):
     most scenarios it is the expected string that provides leeway
     for an actual value).
 
+    In the comparison methods of this class that accept a pair of strings,
+    the second string should be the expected string.  Only in the second
+    string can substrings be interpreted as fuzz.
+
     """
 
     def __init__(self, fuzz=None, context=None):
@@ -360,6 +373,12 @@ class Comparer(object):
     def _line_comparer(self):
         return _LineComparer(fuzz=self.fuzz)
 
+    def _file_comparer(self):
+        return dirdiff.FileComparer2(compare=self.compare_strings)
+
+    def _dir_comparer(self):
+        return dirdiff.FileComparer2(compare=self.compare_strings)
+
     def _describe(self, info, seqs):
         describer = self._describer()
         return describer.describe(info, seqs)
@@ -369,7 +388,7 @@ class Comparer(object):
         Compare whether two unicode strings match.
 
         Returns a list of strings describing the difference between
-        the two strings, or an empty string if the strings match.
+        the two strings, or an empty string if they match.
 
         Parameters:
 
@@ -382,6 +401,29 @@ class Comparer(object):
         if info is None:
             return info
         return self._describe(info, seqs)
+
+    # TODO: handle binary files differently.
+    # TODO: handle alternate encodings.
+    def compare_files(self, paths):
+        """
+        Compare whether two files match.
+
+        Returns a list of strings describing the difference between
+        the two files, or an empty string if they match.
+
+        """
+        comparer = self._file_comparer()
+        return comparer.compare(paths)
+
+    def compare_dirs(self, dirs):
+        """
+        Compare whether two directories match.
+
+        TODO: document what this returns.
+
+        """
+        comparer = self._dir_comparer()
+        return comparer.compare(dirs)
 
 
 if __name__ == "__main__":

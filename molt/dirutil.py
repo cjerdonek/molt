@@ -67,8 +67,10 @@ def _try_make_dir(dir_path):
     return True
 
 
+# TODO: eliminate this function.
 def make_expected_dir(template_dir):
-    return os.path.join(template_dir, defaults.TEMPLATE_EXPECTED_DIR_NAME)
+    chooser = DirectoryChooser()
+    return chooser.get_expected_dir(template_dir)
 
 
 # TODO: share code with DirectoryChooser.get_project_dir().
@@ -182,6 +184,7 @@ class DirectoryChooser(object):
 
     """
 
+    # TODO: eliminate this method?
     def _make_path(self, template_dir, base_path):
         return os.path.join(template_dir, base_path)
 
@@ -210,6 +213,9 @@ class DirectoryChooser(object):
 
     def get_lambdas_dir(self, template_dir):
         return self._get_dir(template_dir, defaults.TEMPLATE_LAMBDAS_DIR_NAME)
+
+    def get_expected_dir(self, template_dir):
+        return self._get_dir(template_dir, defaults.TEMPLATE_EXPECTED_DIR_NAME)
 
     def get_config_path(self, path, template_dir):
         """

@@ -56,6 +56,7 @@ def compare_files(path1, path2):
     return filecmp.cmp(path1, path2, shallow=False)
 
 
+# TODO: replace uses of this class with FileComparer2.
 class FileComparer(object):
 
     # TODO: this class should instead accept a function that returns None
@@ -63,7 +64,7 @@ class FileComparer(object):
     # describes the difference.
     def __init__(self, match=None):
         """
-        Arguments:
+        Params:
 
           match: a function that accepts two unicode strings, and returns
             whether they should be considered equal.  Defaults to the
@@ -83,6 +84,29 @@ class FileComparer(object):
         return self.match_func(self.left, self.right)
 
 
+# TODO: rename this class to FileComparer.
+class FileComparer2(object):
+
+    # TODO: provide a default argument value based on simple string equality.
+    def __init__(self, compare):
+        """
+        Params:
+
+          compare: a function that accepts a pair of unicode strings and
+            returns an empty list if they match and a list of strings
+            describing the difference otherwise.
+
+        """
+        self._compare = compare
+
+    def compare(self, paths):
+        """Compare two text files."""
+        strs = (molt_io.read(path, encoding=_ENCODING, errors=_ENCODING) for
+                path in paths)
+        return self._compare(strs)
+
+
+# TODO: change this in the same way that FileComparer2 differs from FileComparer.
 class DirDiffer(object):
 
     # TODO: add a "max differences" argument that causes the function
@@ -90,9 +114,9 @@ class DirDiffer(object):
     # TODO: add support for ignoring files matching a certain pattern, etc.
     def __init__(self, compare=None, ignore=None):
         """
-        Arguments:
+        Params:
 
-          match: a function that accepts two paths and returns whether
+          compare: a function that accepts two paths and returns whether
             the files at those paths should be considered the same.
             Defaults to compare_files.
 
@@ -117,7 +141,7 @@ class DirDiffer(object):
 
         This method modifies the results container in place.
 
-        Arguments:
+        Params:
 
           dcmp: a filecmp.dircmp instance.
 

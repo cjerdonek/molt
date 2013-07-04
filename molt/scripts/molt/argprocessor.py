@@ -45,6 +45,7 @@ import molt
 from molt.general.error import Error
 from molt import constants
 from molt import defaults
+import molt.diff as diff
 import molt.dirutil as dirutil
 # TODO: eliminate these from ... imports.
 from molt.dirutil import stage_template_dir, DirectoryChooser
@@ -252,10 +253,14 @@ class TemplateChecker(object):
 
     def _render(self, output_dir):
         """Render and return whether the directories match."""
-        renderer = TemplateRenderer(chooser=self.chooser,
-                                    template_dir=self.template_dir,
+        chooser = self.chooser
+        template_dir = self.template_dir
+        expected_dir = chooser.get_expected_dir(template_dir)
+        renderer = TemplateRenderer(chooser=chooser, template_dir=template_dir,
                                     output_dir=output_dir)
         renderer.render()
+        comparer = diff.Comparer()
+        result = comparer.compare_dirs((output_dir, expected_dir))
         return True
 
     def run(self):
