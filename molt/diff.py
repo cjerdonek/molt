@@ -169,70 +169,6 @@ def match_fuzzy(u1, u2, marker=None):
     return True
 
 
-class Comparer(object):
-
-    # TODO: update this docstring.
-    """
-    Return whether the given unicode strings are "fuzzily" equal.
-
-    Fuzzily equal means equal except possibly for characters at or
-    beyond a fuzzy marker on a line of the string.  For example--
-
-    >>> match_fuzzy('abcdef', 'abcdef')
-    True
-    >>> match_fuzzy('abcdef', 'abcwxyz')
-    False
-    >>> match_fuzzy('abcdef', 'abc...wxyz', marker='...')
-    True
-    >>> match_fuzzy('abc...def', 'abcwxyz', marker='...')
-    False
-
-    Observe that the fuzzy marker is only respected when occurring
-    in the second string.  For this reason, the second string can often
-    be interpreted as the "expected" string in the pair (i.e. because in
-    most scenarios it is the expected string that provides leeway
-    for an actual value).
-
-    """
-
-    def __init__(self, fuzz=None, context=None):
-        if context is None:
-            context = defaults.DIFF_CONTEXT
-        if fuzz is None:
-            fuzz = defaults.DIFF_FUZZ
-        self.context = context
-        self.fuzz = fuzz
-
-    def _describer(self):
-        return _DiffDescriber(context=self.context)
-
-    def _line_comparer(self):
-        return _LineComparer(fuzz=self.fuzz)
-
-    def _describe(self, info, seqs):
-        describer = self._describer()
-        return describer.describe(info, seqs)
-
-    def compare_strings(self, strs):
-        """
-        Compare whether two unicode strings match.
-
-        Returns a list of strings describing the difference between
-        the two strings, or an empty string if the strings match.
-
-        Parameters:
-
-          strs: a pair of unicode strings.
-
-        """
-        seqs = tuple(u.splitlines(True) for u in strs)
-        comparer = self._line_comparer()
-        info = comparer.compare_seqs(seqs)
-        if info is None:
-            return info
-        return self._describe(info, seqs)
-
-
 # TODO: Finish this class.  It should internally call dirdiff.Differ.diff().
 #   The function can return the line number and character number at
 #   the first difference.
@@ -382,6 +318,70 @@ class _LineComparer(object):
             line_index += 1
             char_indices = None
         return _DiffInfo(line_index=line_index, char_indices=char_indices)
+
+
+class Comparer(object):
+
+    # TODO: update this docstring.
+    """
+    Return whether the given unicode strings are "fuzzily" equal.
+
+    Fuzzily equal means equal except possibly for characters at or
+    beyond a fuzzy marker on a line of the string.  For example--
+
+    >>> match_fuzzy('abcdef', 'abcdef')
+    True
+    >>> match_fuzzy('abcdef', 'abcwxyz')
+    False
+    >>> match_fuzzy('abcdef', 'abc...wxyz', marker='...')
+    True
+    >>> match_fuzzy('abc...def', 'abcwxyz', marker='...')
+    False
+
+    Observe that the fuzzy marker is only respected when occurring
+    in the second string.  For this reason, the second string can often
+    be interpreted as the "expected" string in the pair (i.e. because in
+    most scenarios it is the expected string that provides leeway
+    for an actual value).
+
+    """
+
+    def __init__(self, fuzz=None, context=None):
+        if context is None:
+            context = defaults.DIFF_CONTEXT
+        if fuzz is None:
+            fuzz = defaults.DIFF_FUZZ
+        self.context = context
+        self.fuzz = fuzz
+
+    def _describer(self):
+        return _DiffDescriber(context=self.context)
+
+    def _line_comparer(self):
+        return _LineComparer(fuzz=self.fuzz)
+
+    def _describe(self, info, seqs):
+        describer = self._describer()
+        return describer.describe(info, seqs)
+
+    def compare_strings(self, strs):
+        """
+        Compare whether two unicode strings match.
+
+        Returns a list of strings describing the difference between
+        the two strings, or an empty string if the strings match.
+
+        Parameters:
+
+          strs: a pair of unicode strings.
+
+        """
+        seqs = tuple(u.splitlines(True) for u in strs)
+        comparer = self._line_comparer()
+        info = comparer.compare_seqs(seqs)
+        if info is None:
+            return info
+        return self._describe(info, seqs)
 
 
 if __name__ == "__main__":
