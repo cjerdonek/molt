@@ -155,6 +155,10 @@ def run_mode_visualize(ns):
     return None  # no need to print anything more.
 
 
+# TODO: check-output should support checking a rendered directory.
+# In other words, to check an output directory, it shouldn't be
+# necessary to have to render each time.  As a side benefit, this
+# resolves the stdout/stderr question for this case.
 def check_output(output_dir, expected_dir):
     """Return whether the output directory matches the expected."""
     print("output: %s\nexpected: %s" % (output_dir, expected_dir))
@@ -184,6 +188,10 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
     # TODO: rename the functions for running each mode to run_mode_*().
     if ns.create_demo_mode:
         result = run_mode_create_demo(ns)
+    # TODO: add a check-dirs mode.
+    elif ns.check_dir:
+        print(repr(ns.check_dir))
+        exit("foo")
     elif ns.visualize_mode:
         result = run_mode_visualize(ns)
     elif ns.version_mode:

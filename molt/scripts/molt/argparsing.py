@@ -51,7 +51,9 @@ _log = logging.getLogger(__name__)
 METAVAR_INPUT_DIR = 'DIRECTORY'
 
 # TODO: rename OPTION_* to FLAGS_*.
+OPTION_CHECK_DIRS = Option(('--check-dirs', ))
 OPTION_CHECK_EXPECTED = Option(('--check-output', ))
+OPTION_CHECK_TEMPLATE = Option(('--check-template', ))
 OPTION_HELP = Option(('-h', '--help'))
 OPTION_LICENSE = Option(('--license', ))
 OPTION_OUTPUT_DIR = Option(('-o', '--output-dir'))
@@ -148,11 +150,26 @@ to stdout.  Useful for quickly visualizing script output.  Also works with
 OPTION_MODE_VISUALIZE.display(' or '),
 OPTION_MODE_TESTS.display(' or '),
 OPTION_OUTPUT_DIR.display(' or ')),
+    OPTION_CHECK_DIRS: """\
+TODO: replace this documentation with real docs.  Also include that
+it writes to stdout rather than stderr.
+when rendering, checks whether the output directory matches the contents of
+EXPECTED_DIR.  Writes the differences to stderr and reports the result via
+the exit status.  EXPECTED_DIR defaults to the template's expected directory.
+""",
     OPTION_CHECK_EXPECTED: """\
 when rendering, checks whether the output directory matches the contents of
 EXPECTED_DIR.  Writes the differences to stderr and reports the result via
 the exit status.  EXPECTED_DIR defaults to the template's expected directory.
 """,
+    OPTION_CHECK_TEMPLATE: """\
+check that a template directory rendered with its default configuration
+file matches the template's expected directory.  Writes the differences
+to stderr and reports the result via the exit status.  By default, the
+template is rendered to a temporary output directory and deleted afterwards.
+However, if %s is provided and a difference is found, the output directory
+is not deleted to allow for inspection.
+""" % OPTION_OUTPUT_DIR.display("/"),
     OPTION_MODE_DEMO: """\
 create a copy of the Molt demo template to play with, instead of rendering
 a template directory.  The demo illustrates most major features of Groome.
@@ -254,9 +271,15 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
     add_arg(('-c', '--config-file'), metavar='FILE', dest='config_path',
             action='store')
     add_arg(OPTION_WITH_VISUALIZE, dest='with_visualize', action='store_true')
+    add_arg(OPTION_CHECK_TEMPLATE, dest='mode_check_template',
+            action='store_true'),
+    # TODO: check the validity of the following comment.
     # Option present without DIRECTORY yields True; option absent yields None.
     add_arg(OPTION_CHECK_EXPECTED, metavar='EXPECTED_DIR',
             dest='expected_dir', action='store', nargs='?', const=True)
+    # TODO: should this be called CHECK_DIR?
+    add_arg(OPTION_CHECK_DIRS, metavar=('EXPECTED_DIR', 'ACTUAL_DIR'),
+            dest='check_dir', nargs=2)
     add_arg(OPTION_MODE_DEMO, dest='create_demo_mode', action='store_true')
     # Defaults to the empty list if provided with no names, or else None.
     add_arg(OPTION_MODE_TESTS, metavar='NAME', dest='test_names', nargs='*')
