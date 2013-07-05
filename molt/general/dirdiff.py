@@ -109,7 +109,9 @@ class FileComparer2(object):
 class DirDiffInfo(tuple):
 
     """
-    Encapsulates a command option (e.g. "-h" and "--help", or "--run-tests").
+    Instances wrap a three-tuple of paths (left_only, right_only, diff_files)
+    that describe the high-level differences between two directories.
+    The paths are relative to the directory roots.
 
     """
 
@@ -200,10 +202,7 @@ class DirDiffer(object):
 
         This method raises an OSError if either directory does not exist.
 
-        Returns:
-
-          a three-tuple of paths (left_only, right_only, diff_files).
-            The paths are relative to the directory roots.
+        Returns a DirDiffInfo instance.
 
         """
         info = DirDiffInfo([] for i in range(3))
