@@ -147,14 +147,6 @@ class DirDiffer(object):
     def compare_files(self, path1, path2):
         pass
 
-    def _is_same(self, dcmp, name):
-        """
-        Return whether the file name in dcmp is a "same file."
-
-        """
-        path1, path2 = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
-        return self.compare_func(path1, path2)
-
     def _diff(self, dcmp, results, leading_path=''):
         """
         Recursively compare a filecmp.dircmp instance.
@@ -185,13 +177,17 @@ class DirDiffer(object):
         # dcmp.same_files again to see if they might in fact be different.
         # See also: http://bugs.python.org/issue15250
         diff_files = []
+        # The common_files list includes: same_files, diff_files, funny_files.
         for name in dcmp.common_files:
-            if not self._is_same(dcmp, name):
+            paths = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
+            if not self.compare_func(*paths):
                 diff_files.append(name)
 
         # Process the higher-level paths before recursing so notifications
         # about these paths will occur earlier.
-        # TODO: incorporate common_funny into the result.
+        # TODO: incorporate common_funny into the result, which are names
+        # that may, for example, be a file name in one directory and a
+        # directory name in the other.
         name_lists = [dcmp.left_only, dcmp.right_only, diff_files]
         for result_paths, names in zip(results, name_lists):
             new_paths = [make_rel_path(name) for name in names]
