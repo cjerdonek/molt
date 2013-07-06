@@ -67,7 +67,7 @@ class RememberingStream(object):
     def flush(self):
         self._stream.flush()
 
-class NewlineStreamHandler(logging.StreamHandler):
+class _NewlineStreamHandler(logging.StreamHandler):
 
     """
     A logging handler that begins log messages with a newline if needed.
@@ -84,13 +84,13 @@ class NewlineStreamHandler(logging.StreamHandler):
         if self.stream.last_char() != "\n":
             self.stream.write("\n")
 
-        super(NewlineStreamHandler, self).emit(record)
+        super(_NewlineStreamHandler, self).emit(record)
 
 
 # TODO: make this testable.
 # TODO: finish documenting this method.
 def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None,
-                      test_config=False):
+                      test_config=False, silent=False):
     """
     Configure logging.
 
@@ -100,16 +100,22 @@ def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None
 
       'No handlers could be found for logger...'
 
-    It also prevents the handler from displaying any log messages by
-    configuring it to write to os.devnull instead of sys.stderr.
-
     Arguments:
 
       persistent_loggers: the loggers that should always log.
 
+      silent: whether to suppress the display of all logging.
+
     """
     if stderr_stream is None:
         stderr_stream = sys.stderr
+
+    if silent:
+        # Wrap devnull in a remembering stream since _NewlineStreamHandler
+        # expects an object that defines last_char().
+        stream = RememberingStream(open(os.devnull, 'w'))
+    else:
+        stream = stderr_stream
 
     root_logger = logging.getLogger()  # the root logger.
     root_logger.setLevel(logging_level)
@@ -130,7 +136,7 @@ def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None
     format_string = "log: %(name)s: [%(levelname)s] %(message)s"
     formatter = logging.Formatter(format_string)
 
-    handler = NewlineStreamHandler(stderr_stream)
+    handler = _NewlineStreamHandler(stream)
     handler.setFormatter(formatter)
 
     for logger in visible_loggers:

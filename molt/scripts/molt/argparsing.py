@@ -63,6 +63,7 @@ OPTION_MODE_VISUALIZE = Option(('--visualize', ))
 OPTION_SOURCE_DIR = Option(('--dev-source-dir', ))
 OPTION_WITH_VISUALIZE = Option(('--with-visualize', ))
 OPTION_VERBOSE = Option(('-v', '--verbose'))
+OPTION_SUPPRESS_LOGGING = Option(('-s', '--log-silently', ))
 
 # We escape the leading "%" so that the leading "%" is not interpreted as a
 # Python string formatting conversion specifier.  The argparse.ArgumentParser
@@ -296,6 +297,8 @@ def _create_parser(chooser, suppress_help_exit=False, usage=None):
             help='print version info to stdout.')
     add_arg(OPTION_VERBOSE, dest='verbose', action='store_true',
             help='log verbosely.')
+    add_arg(OPTION_SUPPRESS_LOGGING, dest='suppress_logging',
+            action='store_true', help='suppress logging.')
     # We add help manually for more control.
     help_action = "store_true" if suppress_help_exit else "help"
     add_arg(OPTION_HELP, action=help_action,

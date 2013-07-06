@@ -93,7 +93,8 @@ def _configure_logging(sys_argv, sys_stderr=None):
     persistent_loggers = [_app_log, test_logger]
 
     logconfig.configure_logging(logging_level, persistent_loggers=persistent_loggers,
-                                stderr_stream=stderr_stream, test_config=is_running_tests)
+                                stderr_stream=stderr_stream, test_config=is_running_tests,
+                                silent=ns.suppress_logging)
 
     return verbose, stderr_stream
 
