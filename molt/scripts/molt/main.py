@@ -72,10 +72,6 @@ def _configure_logging(sys_argv, sys_stderr=None):
     is_running_tests = False
     verbose = False
 
-    # We pass a newline as last_text to prevent a newline from being added
-    # before the first log message.
-    stderr_stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
-
     # TODO: follow all of the recommendations here:
     # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
@@ -91,6 +87,10 @@ def _configure_logging(sys_argv, sys_stderr=None):
             is_running_tests = True
 
     persistent_loggers = [_app_log, test_logger]
+
+    # We pass a newline as last_text to prevent a newline from being added
+    # before the first log message.
+    stderr_stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
 
     logconfig.configure_logging(logging_level, persistent_loggers=persistent_loggers,
                                 stderr_stream=stderr_stream, test_config=is_running_tests,
