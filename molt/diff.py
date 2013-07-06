@@ -47,7 +47,7 @@ import sys
 import molt.defaults as defaults
 import molt.general.dirdiff as dirdiff
 # TODO: remove these from ... imports.
-from molt.general.dirdiff import compare_files, DirDiffer
+from molt.general.dirdiff import compare_files, DirComparer
 import molt.general.io as molt_io
 
 
@@ -399,7 +399,7 @@ class Customizer(object):
         self.fcomparer = fcomparer
 
     def files_same(self, path1, path2):
-        _log.info("comparing: %s and %s" % (path1, path2))
+        _log.debug("comparing: %s and %s" % (path1, path2))
         info = self.fcomparer.compare_files((path1, path2))
         if not info:
             # Then the files are the same.
@@ -463,7 +463,7 @@ class Comparer(object):
         scomparer = _StringComparer(fuzz=self.fuzz, context=self.context)
         fcomparer = _FileComparer(scomparer=scomparer)
         customizer = Customizer(fcomparer=fcomparer)
-        return dirdiff.DirDiffer(custom=customizer)
+        return dirdiff.DirComparer(custom=customizer)
 
     def compare_strings(self, strs):
         """

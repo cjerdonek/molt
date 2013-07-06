@@ -105,7 +105,7 @@ class Customizer(object):
 
     """Customizes DirComparer behavior."""
 
-    def compare_files(self, path1, path2):
+    def files_same(self, path1, path2):
         return compare_files(path1, path2)
 
     def on_diff_file(self, rel_path, result):
@@ -122,8 +122,7 @@ class Customizer(object):
 
 
 # TODO: change this in the same way that FileComparer2 differs from FileComparer.
-# TODO: rename this to DirComparer.
-class DirDiffer(object):
+class DirComparer(object):
 
     # TODO: add a "max differences" argument that causes the function
     #   to terminate when that many differences are encountered.
@@ -143,7 +142,7 @@ class DirDiffer(object):
         """
         if compare is not None:
             custom = Customizer()
-            custom.compare_files = compare
+            custom.files_same = compare
         elif custom is None:
             custom = Customizer()
 
