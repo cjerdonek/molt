@@ -36,18 +36,23 @@ import codecs
 from datetime import datetime
 import logging
 import os
+import shutil
 from StringIO import StringIO
 import sys
+import tempfile
 
 import molt
 from molt.general.error import Error
 from molt import constants
 from molt import defaults
-from molt.dirutil import make_available_dir, stage_template_dir, DirectoryChooser
+import molt.diff as diff
+import molt.dirutil as dirutil
+# TODO: eliminate these from ... imports.
+from molt.dirutil import stage_template_dir, DirectoryChooser
 from molt.molter import Molter
 from molt.projectmap import Locator
 from molt.scripts.molt import argparsing
-from molt.scripts.molt.general.optionparser import UsageError
+import molt.scripts.molt.general.optionparser as optionparser
 from molt.test.harness import test_logger as tlog
 from molt.test.harness.main import run_molt_tests
 from molt import visualizer
@@ -64,13 +69,16 @@ def visualize(dir_path):
 
 
 # TODO: consider whether we can have argparse handle this logic.
-def _get_input_dir(ns, mode_description):
+def _get_input_dir(ns, desc):
     input_dir = ns.input_directory
 
     if input_dir is None:
-        raise UsageError("Argument %s not provided.\n"
-                         "  Input directory needed for %s." %
-                         (METAVAR_INPUT_DIR, mode_description))
+        if isinstance(desc, optionparser.Option):
+            desc = "when using %s" % desc.display("/")
+        msg = ("Argument %s not provided.\n"
+               " You must specify an input directory %s." %
+               (METAVAR_INPUT_DIR, desc))
+        raise optionparser.UsageError(msg)
 
     if not os.path.exists(input_dir):
         raise Error("Input directory not found: %s" % input_dir)
@@ -109,7 +117,7 @@ def _make_output_directory(ns, default_output_dir):
     if output_dir is None:
         output_dir = default_output_dir
 
-    return make_available_dir(output_dir)
+    return dirutil.make_available_dir(output_dir)
 
 
 def run_mode_create_demo(ns):
@@ -119,6 +127,7 @@ def run_mode_create_demo(ns):
 
     output_dir = _make_output_directory(ns, defaults.DEMO_OUTPUT_DIR)
 
+    # TODO: add a comment explaining why we call os.rmdir().
     os.rmdir(output_dir)
     stage_template_dir(demo_template_dir, output_dir)
 
@@ -132,15 +141,13 @@ def run_mode_create_demo(ns):
 
 def run_mode_render(ns, chooser):
     """Returns the output directory."""
-    template_dir = _get_input_dir(ns, 'template rendering')
-
+    template_dir = _get_input_dir(ns, 'when rendering a template')
     config_path = ns.config_path
     output_dir = _make_output_directory(ns, defaults.OUTPUT_DIR)
 
-    molter = Molter(chooser=chooser)
-    molter.molt(template_dir=template_dir,
-                output_dir=output_dir,
-                config_path=config_path)
+    renderer = TemplateRenderer(chooser=chooser, template_dir=template_dir,
+                                output_dir=output_dir, config_path=config_path)
+    renderer.render()
 
     if ns.with_visualize:
         visualize(output_dir)
@@ -149,12 +156,16 @@ def run_mode_render(ns, chooser):
 
 
 def run_mode_visualize(ns):
-    target_dir = _get_input_dir(ns, '%s option' % argparsing.OPTION_MODE_VISUALIZE)
+    target_dir = _get_input_dir(ns, argparsing.OPTION_MODE_VISUALIZE)
     visualize(target_dir)
 
     return None  # no need to print anything more.
 
 
+# TODO: check-output should support checking a rendered directory.
+# In other words, to check an output directory, it shouldn't be
+# necessary to have to render each time.  As a side benefit, this
+# resolves the stdout/stderr question for this case.
 def check_output(output_dir, expected_dir):
     """Return whether the output directory matches the expected."""
     print("output: %s\nexpected: %s" % (output_dir, expected_dir))
@@ -163,12 +174,16 @@ def check_output(output_dir, expected_dir):
 
 
 # TODO: rename this to process() or process_args().
-def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False):
+# TODO: incorporate this method into the ArgProcessor class.
+def run_args(sys_argv, chooser=None, test_runner_stream=None,
+             from_source=False, stdout=None):
     exit_status = constants.EXIT_STATUS_SUCCESS  # return value
     if chooser is None:
         chooser = DirectoryChooser()
     if test_runner_stream is None:
         test_runner_stream = sys.stderr
+    if stdout is None:
+        stdout = sys.stdout
 
     ns = argparsing.parse_args(sys_argv, chooser)
 
@@ -178,27 +193,127 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None, from_source=False)
         return run_mode_tests(ns, test_names=test_names, test_runner_stream=test_runner_stream,
                              from_source=from_source)
 
+    processor = ArgProcessor(chooser=chooser)
+    run = processor.make_runner(ns)
+
     # TODO: consider using add_mutually_exclusive_group() for these.
     # TODO: file an issue in Python's tracker to add to
     # add_mutually_exclusive_group support for title, etc.
     # TODO: rename the functions for running each mode to run_mode_*().
-    if ns.create_demo_mode:
-        result = run_mode_create_demo(ns)
+    # TODO: change the mode attribute names to "mode_*".
+    # TODO: use "run" for all modes to avoid any if logic below.
+    if run is not None:
+        did_succeed, output = run()
+        if not did_succeed:
+            exit_status = constants.EXIT_STATUS_FAIL
+    elif ns.create_demo_mode:
+        output = run_mode_create_demo(ns)
+    # TODO: add a check-dirs mode.
     elif ns.visualize_mode:
-        result = run_mode_visualize(ns)
+        output = run_mode_visualize(ns)
     elif ns.version_mode:
-        result = argparsing.get_version_string()
+        output = argparsing.get_version_string()
     elif ns.license_mode:
-        result = argparsing.get_license_string()
+        output = argparsing.get_license_string()
     else:
-        result = run_mode_render(ns, chooser)
+        output = run_mode_render(ns, chooser)
 
     # TODO: ensure that check_output raises an error if running in
     # a mode that doesn't create an ouput directory.
-    if ns.check_output and not check_output(result, ns.expected_dir):
+    if ns.check_output and not check_output(output, ns.expected_dir):
         exit_status = constants.EXIT_STATUS_FAIL
 
-    if result is not None:
-        print result
+    if output is not None:
+        stdout.write(output)
+        if not output.endswith("\n"):
+            stdout.write("\n")
 
     return exit_status
+
+
+class ArgProcessor(object):
+
+    def __init__(self, chooser):
+        self.chooser = chooser
+
+    def make_runner(self, ns):
+        if ns.mode_check_template:
+            template_dir = _get_input_dir(ns, argparsing.OPTION_CHECK_TEMPLATE)
+            output_dir = ns.output_directory
+            checker = TemplateChecker(chooser=self.chooser,
+                                      template_dir=template_dir,
+                                      output_dir=output_dir)
+            return checker.check
+        return None
+
+
+# This class should not depend on the Namespace returned by parse_args().
+class TemplateRenderer(object):
+
+    def __init__(self, chooser, template_dir, output_dir, config_path=None):
+        self.chooser = chooser
+        self.config_path = config_path
+        self.output_dir = output_dir
+        self.template_dir = template_dir
+
+    def render(self):
+        molter = Molter(chooser=self.chooser)
+        molter.molt(template_dir=self.template_dir,
+                    output_dir=self.output_dir,
+                    config_path=self.config_path)
+
+
+# This class should not depend on the Namespace returned by parse_args().
+class TemplateChecker(object):
+
+    def __init__(self, chooser, template_dir, output_dir):
+        self.chooser = chooser
+        self.output_dir = output_dir
+        self.template_dir = template_dir
+
+    # TODO: extract this into a separate helper function or class?
+    # A helper would be useful for the --compare-dirs option that has
+    # not yet been implemented.
+    def _compare(self, actual_dir, expected_dir):
+        comparer = diff.Comparer()
+        return comparer.compare_dirs((actual_dir, expected_dir))
+
+    def _check(self, output_dir):
+        """Render and return whether the directories match."""
+        chooser = self.chooser
+        template_dir = self.template_dir
+        renderer = TemplateRenderer(chooser=chooser, template_dir=template_dir,
+                                    output_dir=output_dir)
+        renderer.render()
+        expected_dir = chooser.get_expected_dir(template_dir)
+        does_match = self._compare(output_dir, expected_dir)
+        return does_match
+
+    def check(self):
+        """
+        Returns a (does_check, output_dir) pair.
+
+        """
+        output_dir = None
+        does_match = True
+        _given_output_dir = self.output_dir
+        try:
+            if _given_output_dir is None:
+                output_dir = tempfile.mkdtemp()
+            else:
+                # Increment the output directory if necessary.
+                output_dir = dirutil.make_available_dir(_given_output_dir)
+            _log.debug("created output dir: %s" % output_dir)
+            does_match = self._check(output_dir)
+            _log.info("template checks out: %s" % does_match)
+        finally:
+            if output_dir is None:
+                # Then directory creation failed.
+                pass
+            elif _given_output_dir is None or does_match:
+                _log.debug("deleting output dir: %s" % output_dir)
+                shutil.rmtree(output_dir)
+                output_dir = None
+            else:
+                _log.debug("leaving output dir: %s" % output_dir)
+        return does_match, output_dir

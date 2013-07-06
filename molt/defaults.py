@@ -61,7 +61,10 @@ CONFIG_CONTEXT_KEY = 'context'
 DIRCMP_IGNORE = ['.DS_Store', '__pycache__']
 
 # For fuzzy equality testing in molt.diff.
+# TODO: remove FUZZY_MARKER.
 FUZZY_MARKER = "..."
+DIFF_CONTEXT = 3
+DIFF_FUZZ = "..."
 
 FORMAT_NEW_DIR = lambda dir_path, index: "%s_%s" % (dir_path, index)
 

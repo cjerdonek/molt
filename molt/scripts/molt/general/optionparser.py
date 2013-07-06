@@ -46,11 +46,21 @@ class UsageError(Exception):
 
 
 class Option(tuple):
+
     """
     Encapsulates a command option (e.g. "-h" and "--help", or "--run-tests").
 
     """
-    def display(self, glue):
+
+    # TODO: add tests for this.
+    @property
+    def long_name(self):
+        for name in self:
+            if name.startswith("--"):
+                return name
+        raise "option %r has no long name"
+
+    def display(self, glue=None):
         return glue.join(self)
 
 

@@ -40,7 +40,7 @@ import unittest
 # TODO: remove the molt.defaults and molt.diff import dependencies.
 from molt.defaults import DIRCMP_IGNORE
 from molt.diff import match_fuzzy
-from molt.general.dirdiff import compare_files, DirDiffer
+from molt.general.dirdiff import compare_files, DirComparer
 import molt.general.dirdiff as dirdiff
 from molt.test.harness import config_load_tests
 
@@ -98,7 +98,7 @@ File contents %smatch:
         self._assert_fuzzy('has_marker.txt', 'abc.txt', False)
 
 
-class DirDifferTestCase(unittest.TestCase):
+class DirComparerTestCase(unittest.TestCase):
 
     @property
     def _data_dir(self):
@@ -114,7 +114,7 @@ class DirDifferTestCase(unittest.TestCase):
         self.assertEquals(actual, expected)
 
     def _assert_diff(self, expected, compare=None):
-        differ = DirDiffer(compare=compare, ignore=DIRCMP_IGNORE)
+        differ = DirComparer(compare=compare, ignore=DIRCMP_IGNORE)
         dir1, dir2 = (os.path.join(self._data_dir, name) for name in ('dir1', 'dir2'))
         actual = differ.diff(dir1, dir2)
 
@@ -158,6 +158,6 @@ class DirDifferTestCase(unittest.TestCase):
         self._assert_diff(expected=expected, compare=compare)
 
     def test_diff__directory_not_existing(self):
-        differ = DirDiffer()
+        differ = DirComparer()
         dir1, dir2 = (os.path.join(self._data_dir, name) for name in ('dir1', 'not_exist'))
         self.assertRaises(OSError, differ.diff, dir1, dir2)

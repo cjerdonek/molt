@@ -40,6 +40,7 @@ import filecmp
 import os
 import sys
 
+# TODO: remove the dependency on molt.defaults.
 import molt.defaults as molt_defaults
 import molt.general.io as molt_io
 
@@ -55,6 +56,7 @@ def compare_files(path1, path2):
     return filecmp.cmp(path1, path2, shallow=False)
 
 
+# TODO: replace uses of this class with FileComparer2.
 class FileComparer(object):
 
     # TODO: this class should instead accept a function that returns None
@@ -62,7 +64,7 @@ class FileComparer(object):
     # describes the difference.
     def __init__(self, match=None):
         """
-        Arguments:
+        Parameters:
 
           match: a function that accepts two unicode strings, and returns
             whether they should be considered equal.  Defaults to the
@@ -82,33 +84,73 @@ class FileComparer(object):
         return self.match_func(self.left, self.right)
 
 
-class DirDiffer(object):
+class DirDiffInfo(tuple):
+
+    """
+    Instances wrap a three-tuple of paths (left_only, right_only, diff_files)
+    that describe the high-level differences between two directories.
+    The paths are relative to the directory roots.
+
+    """
+
+    def does_match(self):
+        for seq in self:
+            if len(seq) > 0:
+                # Then there was a difference.
+                return False
+        return True
+
+
+class Customizer(object):
+
+    """Customizes DirComparer behavior."""
+
+    def files_same(self, path1, path2):
+        return compare_files(path1, path2)
+
+    def on_diff_file(self, rel_path, result):
+        """
+        Parameters:
+
+          rel_path: the path of the differing files relative to the
+            top-level directories of the directories being compared.
+
+          result: the return value of compare_files.
+
+        """
+        pass
+
+
+# TODO: change this in the same way that FileComparer2 differs from FileComparer.
+class DirComparer(object):
 
     # TODO: add a "max differences" argument that causes the function
     #   to terminate when that many differences are encountered.
     # TODO: add support for ignoring files matching a certain pattern, etc.
-    def __init__(self, compare=None, ignore=None):
+    # TODO: remove the compare parameter.
+    def __init__(self, compare=None, ignore=None, custom=None):
         """
-        Arguments:
+        Parameters:
 
-          match: a function that accepts two paths and returns whether
-            the files at those paths should be considered the same.
-            Defaults to compare_files.
+          compare: [deprecated] a function that accepts two paths and
+            returns whether the files at those paths should be considered
+            the same.  Defaults to compare_files.  If provided, the
+            custom argument is ignored.
+
+          custom: an instance of a subclass of Customizer.
 
         """
+        if compare is not None:
+            custom = Customizer()
+            custom.files_same = compare
+        elif custom is None:
+            custom = Customizer()
+
         compare_func = compare_files if compare is None else compare
 
         self.ignore = ignore
-        self.match = compare
         self.compare_func = compare_func
-
-    def _is_same(self, dcmp, name):
-        """
-        Return whether the file name in dcmp is a "same file."
-
-        """
-        path1, path2 = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
-        return self.compare_func(path1, path2)
+        self.custom = custom
 
     def _diff(self, dcmp, results, leading_path=''):
         """
@@ -116,63 +158,69 @@ class DirDiffer(object):
 
         This method modifies the results container in place.
 
-        Arguments:
+        Parameters:
 
           dcmp: a filecmp.dircmp instance.
 
           results: a three-tuple of (left_only, right_only, diff_files).
 
-          leading_path: a path to prepend to each path added to the
-            results container.
+          leading_path: the path at which the directory comparison
+            is taking place.  The path is relative to the top-level
+            directories passed to the initial call to diff().
 
         """
-        is_different = lambda name: not self._is_same(dcmp, name)
-        make_path = lambda name: os.path.join(leading_path, name)
+        # TODO: simplify the implementation of this method if possible.
+        # For example, eliminate the use of on-the-fly lambdas.
+        make_rel_path = lambda name: os.path.join(leading_path, name)
 
-        diff_files = list(dcmp.diff_files)  # make a copy
-
-        if self.match is not None:
-            # Then we are using a custom file comparer, which may be more
-            # forgiving than the default.  Thus we need to check the
-            # different files again to see if any might be the same
-            # under the looser condition.
-            diff_files[:] = filter(is_different, diff_files)
-
+        # Since the file comparer being used may be more forgiving than the
+        # exact-match default, we need to check the names in dcmp.diff_files
+        # again to see if any are the same under the looser condition.
+        #
         # Since dircmp only does "shallow" file comparisons (i.e. doesn't
-        # look at file contents), we need to check the files that look
-        # the same manually to see if they might in fact be different.
+        # look at file contents), we need to check the files in
+        # dcmp.same_files again to see if they might in fact be different.
         # See also: http://bugs.python.org/issue15250
-        new_diff_files = filter(is_different, dcmp.same_files)
-        diff_files.extend(new_diff_files)
+        diff_files = []
+        # The common_files list includes: same_files, diff_files, funny_files.
+        for name in dcmp.common_files:
+            paths = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
+            result = self.custom.files_same(*paths)
+            if not result is True:
+                rel_path = make_rel_path(name)
+                self.custom.on_diff_file(rel_path, result)
+                diff_files.append(name)
 
-        for dir_name, sub_dcmp in dcmp.subdirs.iteritems():
-            path = make_path(dir_name)
-            self._diff(sub_dcmp, results, leading_path=path)
-
+        # Process the higher-level paths before recursing so notifications
+        # about these paths will occur earlier.
+        # TODO: incorporate common_funny into the result, which are names
+        # that may, for example, be a file name in one directory and a
+        # directory name in the other.
         name_lists = [dcmp.left_only, dcmp.right_only, diff_files]
         for result_paths, names in zip(results, name_lists):
-            paths = [make_path(name) for name in names]
-            result_paths.extend(paths)
+            new_paths = [make_rel_path(name) for name in names]
+            result_paths.extend(new_paths)
 
+        for dir_name, sub_dcmp in dcmp.subdirs.iteritems():
+            path = make_rel_path(dir_name)
+            self._diff(sub_dcmp, results, leading_path=path)
+
+
+    # TODO: reimplement this method without using filecmp.dircmp because
+    # this might be more straightforward and easier to understand given
+    # filecmp.dircmp's use of shallow comparisons, etc.
     def diff(self, dir1, dir2):
         """
         Compare the directories at the given paths.
 
         This method raises an OSError if either directory does not exist.
 
-        Returns:
-
-          a three-tuple of paths (left_only, right_only, diff_files).
-            The paths are relative to the directory roots.
+        Returns a DirDiffInfo instance.
 
         """
-        results = tuple([] for i in range(3))
-
+        info = DirDiffInfo([] for i in range(3))
         dcmp = filecmp.dircmp(dir1, dir2, ignore=self.ignore)
-
-        self._diff(dcmp, results)
-
-        # Normalize the results sequences for testing and display purposes.
-        map(lambda seq: seq.sort(), results)
-
-        return results
+        self._diff(dcmp, info)
+        # Normalize the result sequences for testing and display purposes.
+        map(lambda seq: seq.sort(), info)
+        return info

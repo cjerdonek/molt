@@ -154,7 +154,7 @@ class Molter(object):
 
         context = self.get_context(template_dir, config_path)
 
-        _log.info("""\
+        _log.debug("""\
 Rendering:
 
   Structure directory:   %s
@@ -172,7 +172,7 @@ Rendering:
         renderer = _Renderer(pystache_renderer)
 
         renderer.render(structure_dir=project_dir, context=context, output_dir=output_dir)
-        _log.info("Wrote new project to: %s" % repr(output_dir))
+        _log.debug("Wrote new project to: %s" % repr(output_dir))
 
 
 # TODO: combine this class with the Molter class.
