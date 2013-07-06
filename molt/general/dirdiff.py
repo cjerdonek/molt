@@ -124,6 +124,7 @@ class DirDiffInfo(tuple):
 
 
 # TODO: change this in the same way that FileComparer2 differs from FileComparer.
+# TODO: rename this to DirComparer.
 class DirDiffer(object):
 
     # TODO: add a "max differences" argument that causes the function
@@ -143,6 +144,9 @@ class DirDiffer(object):
         self.ignore = ignore
         self.match = compare
         self.compare_func = compare_func
+
+    def compare_files(self, path1, path2):
+        pass
 
     def _is_same(self, dcmp, name):
         """
@@ -164,15 +168,21 @@ class DirDiffer(object):
 
           results: a three-tuple of (left_only, right_only, diff_files).
 
-          leading_path: a path to prepend to each path added to the
-            results container.
+          leading_path: the path at which the directory comparison
+            is taking place.  The path is relative to the top-level
+            directories passed to the initial call to diff().
 
         """
+        # TODO: make the implementation of this method more naive.
         is_different = lambda name: not self._is_same(dcmp, name)
-        make_path = lambda name: os.path.join(leading_path, name)
+        make_rel_path = lambda name: os.path.join(leading_path, name)
 
         diff_files = list(dcmp.diff_files)  # make a copy
 
+        # TODO: apply the comparision to "common_files" and then add
+        # common_funny.
+        # TODO: combine the lists to which to apply is_different.
+        # This way we will not need to define an is_different lambda.
         if self.match is not None:
             # Then we are using a custom file comparer, which may be more
             # forgiving than the default.  Thus we need to check the
@@ -187,15 +197,22 @@ class DirDiffer(object):
         new_diff_files = filter(is_different, dcmp.same_files)
         diff_files.extend(new_diff_files)
 
-        for dir_name, sub_dcmp in dcmp.subdirs.iteritems():
-            path = make_path(dir_name)
-            self._diff(sub_dcmp, results, leading_path=path)
-
+        # TODO: put the block below before the recursion to subdirectories.
+        # This ensures that "higher-level" paths gets processed first.
+        # TODO: incorporate common_funny and funny_files into the result.
         name_lists = [dcmp.left_only, dcmp.right_only, diff_files]
         for result_paths, names in zip(results, name_lists):
-            paths = [make_path(name) for name in names]
-            result_paths.extend(paths)
+            new_paths = [make_rel_path(name) for name in names]
+            result_paths.extend(new_paths)
 
+        for dir_name, sub_dcmp in dcmp.subdirs.iteritems():
+            path = make_rel_path(dir_name)
+            self._diff(sub_dcmp, results, leading_path=path)
+
+
+    # TODO: reimplement this method without using filecmp.dircmp because
+    # this might be more straightforward and easier to understand given
+    # filecmp.dircmp's use of shallow comparisons, etc.
     def diff(self, dir1, dir2):
         """
         Compare the directories at the given paths.

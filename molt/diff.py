@@ -329,6 +329,15 @@ class _LineComparer(object):
         return _DiffInfo(line_index=line_index, char_indices=char_indices)
 
 
+class DirFileComparer(object):
+
+    """For use with DirDiffer."""
+
+    def compare_files(self, path1, path2):
+        _log.info("comparing: %s and %s" % (path1, path2))
+        return True
+
+
 # TODO: this class should accept a stream for displaying difference info.
 class Comparer(object):
 
@@ -378,7 +387,8 @@ class Comparer(object):
         return dirdiff.FileComparer2(compare=self.compare_strings)
 
     def _dir_comparer(self):
-        return dirdiff.DirDiffer()
+        file_comparer = DirFileComparer()
+        return dirdiff.DirDiffer(compare=file_comparer.compare_files)
 
     def _describe(self, info, seqs):
         describer = self._describer()
