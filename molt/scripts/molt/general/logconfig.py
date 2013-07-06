@@ -111,6 +111,7 @@ def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None
         stderr_stream = sys.stderr
 
     if silent:
+        stderr_stream.write("molt: logging suppressed\n")
         # Wrap devnull in a remembering stream since _NewlineStreamHandler
         # expects an object that defines last_char().
         stream = RememberingStream(open(os.devnull, 'w'))
