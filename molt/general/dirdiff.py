@@ -142,7 +142,6 @@ class DirDiffer(object):
         compare_func = compare_files if compare is None else compare
 
         self.ignore = ignore
-        self.match = compare
         self.compare_func = compare_func
 
     def compare_files(self, path1, path2):
@@ -173,33 +172,26 @@ class DirDiffer(object):
             directories passed to the initial call to diff().
 
         """
-        # TODO: make the implementation of this method more naive.
-        is_different = lambda name: not self._is_same(dcmp, name)
+        # TODO: simplify the implementation of this method if possible.
+        # For example, eliminate the use of on-the-fly lambdas.
         make_rel_path = lambda name: os.path.join(leading_path, name)
 
-        diff_files = list(dcmp.diff_files)  # make a copy
-
-        # TODO: apply the comparision to "common_files" and then add
-        # common_funny.
-        # TODO: combine the lists to which to apply is_different.
-        # This way we will not need to define an is_different lambda.
-        if self.match is not None:
-            # Then we are using a custom file comparer, which may be more
-            # forgiving than the default.  Thus we need to check the
-            # different files again to see if any might be the same
-            # under the looser condition.
-            diff_files[:] = filter(is_different, diff_files)
-
+        # Since the file comparer being used may be more forgiving than the
+        # exact-match default, we need to check the names in dcmp.diff_files
+        # again to see if any are the same under the looser condition.
+        #
         # Since dircmp only does "shallow" file comparisons (i.e. doesn't
-        # look at file contents), we need to check the files that look
-        # the same manually to see if they might in fact be different.
+        # look at file contents), we need to check the files in
+        # dcmp.same_files again to see if they might in fact be different.
         # See also: http://bugs.python.org/issue15250
-        new_diff_files = filter(is_different, dcmp.same_files)
-        diff_files.extend(new_diff_files)
+        diff_files = []
+        for name in dcmp.common_files:
+            if not self._is_same(dcmp, name):
+                diff_files.append(name)
 
-        # TODO: put the block below before the recursion to subdirectories.
-        # This ensures that "higher-level" paths gets processed first.
-        # TODO: incorporate common_funny and funny_files into the result.
+        # Process the higher-level paths before recursing so notifications
+        # about these paths will occur earlier.
+        # TODO: incorporate common_funny into the result.
         name_lists = [dcmp.left_only, dcmp.right_only, diff_files]
         for result_paths, names in zip(results, name_lists):
             new_paths = [make_rel_path(name) for name in names]
