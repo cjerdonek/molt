@@ -497,56 +497,10 @@ class Comparer(object):
         Return whether two directories match.
 
         """
+        _log.info("comparing directories: %s to %s" % dirs)
         dir_comparer = self._dir_comparer()
         info = dir_comparer.diff(*dirs)
         does_match = info.does_match()
         if not does_match:
             print(repr(info))
         return does_match
-
-
-if __name__ == "__main__":
-    seq1 = ["abc", "x", "abc", "x", "bcd", "c", "d", "e"]
-    #seq2 = ["abc", "x", "abc", "x",  "b...e", "e", "g"]
-    seq2 = ["abc", "x", "abc", "x"]
-    seqs = (seq1, seq2)
-    strs = tuple("\n".join(seq) for seq in seqs)
-
-    c = Comparer()
-    lines = c.compare_strings(strs)
-    print repr("".join(lines))
-    exit()
-
-
-    differ = _LineComparer(fuzz=".")
-    info = differ.compare_seqs(seq1, seq2)
-    #info = differ._compare_lines_exact(("abc", "abcde"))
-    print info.__dict__
-    exit()
-
-    # abckxy
-    # abc.xyz
-    #
-    line1 = "abkvvx"
-    line2 = "ab.xkkk"
-    print line1
-    print line2
-    char_indices = differ._compare_lines(line1, line2)
-    info = differ.compare_sequences(["a"], ["b"])
-    #info = differ.compare_sequences(["a", line1], ["b", line2])
-    print info.__dict__
-
-    formatter = _DiffDescriber()
-    info = _DiffInfo()
-    info.line_index = 3
-    info.char_indices = (0, 1)
-    report = formatter.describe(info, [seq1, seq2])
-    print "\n".join(report)
-    exit()
-
-
-
-    print char_indices
-    exit()
-    formatted = printer.format_line(info, actual, expected)
-    print("\n".join(formatted))
