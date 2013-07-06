@@ -335,7 +335,7 @@ class DirFileComparer(object):
 
     def compare_files(self, path1, path2):
         _log.info("comparing: %s and %s" % (path1, path2))
-        return True
+        return False
 
 
 # TODO: this class should accept a stream for displaying difference info.

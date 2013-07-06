@@ -123,6 +123,26 @@ class DirDiffInfo(tuple):
         return True
 
 
+class Customizer(object):
+
+    """Customizes DirComparer behavior."""
+
+    def compare_files(self, path1, path2):
+        return compare_files(path1, path2)
+
+    def on_diff_file(self, rel_path, result):
+        """
+        Params:
+
+          rel_path: the path of the differing files relative to the
+            top-level directories of the directories being compared.
+
+          result: the return value of compare_files.
+
+        """
+        pass
+
+
 # TODO: change this in the same way that FileComparer2 differs from FileComparer.
 # TODO: rename this to DirComparer.
 class DirDiffer(object):
@@ -130,22 +150,32 @@ class DirDiffer(object):
     # TODO: add a "max differences" argument that causes the function
     #   to terminate when that many differences are encountered.
     # TODO: add support for ignoring files matching a certain pattern, etc.
-    def __init__(self, compare=None, ignore=None):
+    def __init__(self, compare=None, ignore=None, custom=None):
         """
         Params:
 
-          compare: a function that accepts two paths and returns whether
-            the files at those paths should be considered the same.
-            Defaults to compare_files.
+          compare: [deprecated] a function that accepts two paths and
+            returns whether the files at those paths should be considered
+            the same.  Defaults to compare_files.  If provided, the
+            custom argument is ignored.
+
+          custom: an instance of a subclass of Customizer.
 
         """
+        if compare is not None:
+            custom = Customizer()
+            custom.compare_files = compare
+        elif custom is None:
+            custom = Customizer()
+
         compare_func = compare_files if compare is None else compare
 
         self.ignore = ignore
         self.compare_func = compare_func
+        self.custom = custom
 
-    def compare_files(self, path1, path2):
-        pass
+    def _compare_files(self, paths):
+        return self.custom.compare_files(*paths)
 
     def _diff(self, dcmp, results, leading_path=''):
         """
@@ -180,7 +210,8 @@ class DirDiffer(object):
         # The common_files list includes: same_files, diff_files, funny_files.
         for name in dcmp.common_files:
             paths = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
-            if not self.compare_func(*paths):
+            result = self._compare_files(paths)
+            if not result is True:
                 diff_files.append(name)
 
         # Process the higher-level paths before recursing so notifications
