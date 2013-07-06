@@ -64,7 +64,7 @@ class FileComparer(object):
     # describes the difference.
     def __init__(self, match=None):
         """
-        Params:
+        Parameters:
 
           match: a function that accepts two unicode strings, and returns
             whether they should be considered equal.  Defaults to the
@@ -82,28 +82,6 @@ class FileComparer(object):
         self.left, self.right = map(_read, (path1, path2))
 
         return self.match_func(self.left, self.right)
-
-
-# TODO: rename this class to FileComparer.
-class FileComparer2(object):
-
-    # TODO: provide a default argument value based on simple string equality.
-    def __init__(self, compare):
-        """
-        Params:
-
-          compare: a function that accepts a pair of unicode strings and
-            returns an empty list if they match and a list of strings
-            describing the difference otherwise.
-
-        """
-        self._compare = compare
-
-    def compare(self, paths):
-        """Compare two text files."""
-        strs = (molt_io.read(path, encoding=_ENCODING, errors=_ENCODING) for
-                path in paths)
-        return self._compare(strs)
 
 
 class DirDiffInfo(tuple):
@@ -132,7 +110,7 @@ class Customizer(object):
 
     def on_diff_file(self, rel_path, result):
         """
-        Params:
+        Parameters:
 
           rel_path: the path of the differing files relative to the
             top-level directories of the directories being compared.
@@ -150,9 +128,10 @@ class DirDiffer(object):
     # TODO: add a "max differences" argument that causes the function
     #   to terminate when that many differences are encountered.
     # TODO: add support for ignoring files matching a certain pattern, etc.
+    # TODO: remove the compare parameter.
     def __init__(self, compare=None, ignore=None, custom=None):
         """
-        Params:
+        Parameters:
 
           compare: [deprecated] a function that accepts two paths and
             returns whether the files at those paths should be considered
@@ -174,16 +153,13 @@ class DirDiffer(object):
         self.compare_func = compare_func
         self.custom = custom
 
-    def _compare_files(self, paths):
-        return self.custom.compare_files(*paths)
-
     def _diff(self, dcmp, results, leading_path=''):
         """
         Recursively compare a filecmp.dircmp instance.
 
         This method modifies the results container in place.
 
-        Params:
+        Parameters:
 
           dcmp: a filecmp.dircmp instance.
 
@@ -210,8 +186,10 @@ class DirDiffer(object):
         # The common_files list includes: same_files, diff_files, funny_files.
         for name in dcmp.common_files:
             paths = (os.path.join(path, name) for path in (dcmp.left, dcmp.right))
-            result = self._compare_files(paths)
+            result = self.custom.files_same(*paths)
             if not result is True:
+                rel_path = make_rel_path(name)
+                self.custom.on_diff_file(rel_path, result)
                 diff_files.append(name)
 
         # Process the higher-level paths before recursing so notifications

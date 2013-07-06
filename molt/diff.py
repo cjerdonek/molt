@@ -48,7 +48,10 @@ import molt.defaults as defaults
 import molt.general.dirdiff as dirdiff
 # TODO: remove these from ... imports.
 from molt.general.dirdiff import compare_files, DirDiffer
+import molt.general.io as molt_io
 
+
+_ENCODING = defaults.FILE_ENCODING
 
 _log = logging.getLogger(__name__)
 
@@ -171,9 +174,7 @@ def match_fuzzy(u1, u2, marker=None):
     return True
 
 
-# TODO: Finish this class.  It should internally call dirdiff.Differ.diff().
-#   The function can return the line number and character number at
-#   the first difference.
+# TODO: remove this class.
 class DirComparer(object):
 
     def __init__(self, fuzzy=False):
@@ -329,14 +330,95 @@ class _LineComparer(object):
         return _DiffInfo(line_index=line_index, char_indices=char_indices)
 
 
-class DirFileComparer(object):
+class _StringComparer(object):
 
-    """For use with DirDiffer."""
+    def __init__(self, fuzz=None, context=None):
+        if context is None:
+            context = defaults.DIFF_CONTEXT
+        if fuzz is None:
+            fuzz = defaults.DIFF_FUZZ
+        self.context = context
+        self.fuzz = fuzz
 
-    def compare_files(self, path1, path2):
+    def _describe(self, info, seqs):
+        describer = _DiffDescriber(context=self.context)
+        info = describer.describe(info, seqs)
+        return info
+
+    def compare_strings(self, strs):
+        """
+        Compare whether two unicode strings match.
+
+        Returns a list of strings describing the difference between
+        the two strings, or an empty list if they match.
+
+        Parameters:
+
+          strs: a pair of unicode strings.
+
+        """
+        seqs = tuple(u.splitlines(True) for u in strs)
+        comparer = _LineComparer(fuzz=self.fuzz)
+        info = comparer.compare_seqs(seqs)
+        if info is None:
+            return []
+        return self._describe(info, seqs)
+
+
+class _FileComparer(object):
+
+    def __init__(self, scomparer):
+        """
+        Parameters:
+
+          scomparer: an object with a compare_strings(strs) method.
+
+        """
+        self.scomparer = scomparer
+
+    # TODO: handle binary files differently.
+    # TODO: handle alternate encodings.
+    def compare_files(self, paths):
+        """Compare two text files."""
+        strs = (molt_io.read(path, encoding=_ENCODING, errors=_ENCODING) for
+                path in paths)
+        return self.scomparer.compare_strings(strs)
+
+
+class Customizer(object):
+
+    """Customizes DirComparer behavior."""
+
+    def __init__(self, fcomparer):
+        """
+        Parameters:
+
+          comparer: an object with a compare_files(paths) method.
+
+        """
+        self.fcomparer = fcomparer
+
+    def files_same(self, path1, path2):
         _log.info("comparing: %s and %s" % (path1, path2))
-        return False
+        info = self.fcomparer.compare_files((path1, path2))
+        if not info:
+            # Then the files are the same.
+            return True
+        return info
 
+    def on_diff_file(self, rel_path, result):
+        """
+        Params:
+
+          rel_path: the path of the differing files relative to the
+            top-level directories of the directories being compared.
+
+          result: the return value of compare_files.
+
+        """
+        _log.info("found different file: %s" % (rel_path, ))
+        # Otherwise we have a list of strings describing the difference.
+        print("".join(result))
 
 # TODO: this class should accept a stream for displaying difference info.
 class Comparer(object):
@@ -377,22 +459,11 @@ class Comparer(object):
         self.context = context
         self.fuzz = fuzz
 
-    def _describer(self):
-        return _DiffDescriber(context=self.context)
-
-    def _line_comparer(self):
-        return _LineComparer(fuzz=self.fuzz)
-
-    def _file_comparer(self):
-        return dirdiff.FileComparer2(compare=self.compare_strings)
-
     def _dir_comparer(self):
-        file_comparer = DirFileComparer()
-        return dirdiff.DirDiffer(compare=file_comparer.compare_files)
-
-    def _describe(self, info, seqs):
-        describer = self._describer()
-        return describer.describe(info, seqs)
+        scomparer = _StringComparer(fuzz=self.fuzz, context=self.context)
+        fcomparer = _FileComparer(scomparer=scomparer)
+        customizer = Customizer(fcomparer=fcomparer)
+        return dirdiff.DirDiffer(custom=customizer)
 
     def compare_strings(self, strs):
         """
@@ -406,15 +477,9 @@ class Comparer(object):
           strs: a pair of unicode strings.
 
         """
-        seqs = tuple(u.splitlines(True) for u in strs)
-        comparer = self._line_comparer()
-        info = comparer.compare_seqs(seqs)
-        if info is None:
-            return info
-        return self._describe(info, seqs)
+        comparer = self._string_comparer()
+        return comparer.compare_strings(strs)
 
-    # TODO: handle binary files differently.
-    # TODO: handle alternate encodings.
     def compare_files(self, paths):
         """
         Compare whether two files match.
@@ -433,12 +498,10 @@ class Comparer(object):
 
         """
         dir_comparer = self._dir_comparer()
-        # diff() should return some sort of Info instance with a
-        # did_match() method and various display functions.
-        result = dir_comparer.diff(*dirs)
-        does_match = result.does_match()
+        info = dir_comparer.diff(*dirs)
+        does_match = info.does_match()
         if not does_match:
-            print(repr(result))
+            print(repr(info))
         return does_match
 
 
