@@ -60,6 +60,17 @@ _app_log = logging.getLogger("molt.app")
 _log = logging.getLogger(__name__)
 
 
+def _configure_output_logger(stream):
+    """Configure a special logger for non-diagnostic application output."""
+    configurer = logconfig.LogConfigurer(stream=stream)
+    handler = configurer.make_handler("molt: %(message)s")
+    # TODO: put this string constant somewhere else.
+    log = logging.getLogger("molt.output")
+    log.propagate = False
+    log.setLevel(logging.INFO)
+    log.addHandler(handler)
+    return log
+
 def _configure_logging(sys_argv, sys_stderr=None):
     """
     Configure logging and return whether to run in verbose mode.
@@ -70,6 +81,7 @@ def _configure_logging(sys_argv, sys_stderr=None):
 
     logging_level = LOGGING_LEVEL_DEFAULT
     is_running_tests = False
+    succinct_logging = False
     verbose = False
 
     # TODO: follow all of the recommendations here:
@@ -85,18 +97,38 @@ def _configure_logging(sys_argv, sys_stderr=None):
             logging_level = logging.DEBUG
         if ns.run_test_mode:
             is_running_tests = True
+        if ns.succinct_logging:
+            succinct_logging = True
 
-    persistent_loggers = [_app_log, test_logger]
+    # Do not use ns below this block in case of argparsing errors above.
 
     # We pass a newline as last_text to prevent a newline from being added
     # before the first log message.
-    stderr_stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
+    stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
 
-    logconfig.configure_logging(logging_level, persistent_loggers=persistent_loggers,
-                                stderr_stream=stderr_stream, test_config=is_running_tests,
-                                silent=ns.suppress_logging)
+    output_log = _configure_output_logger(stream=stream)
 
-    return verbose, stderr_stream
+    # Set the loggers to display during test runs.
+    if is_running_tests:
+        # TODO: tighten the list of names to allow.
+        names = [_log.name, logconfig.__name__, _app_log.name, test_logger.name]
+    elif succinct_logging:
+        # Let the error-catching logger log.
+        # TODO: add a test for this.
+        names = [_log.name]
+    else:
+        names = ['']
+
+    logconfig.configure_logging(logging_level, stderr=stream, names=names)
+
+    if is_running_tests:
+        output_log.info("allowed logs: %s" % ", ".join(names))
+    elif succinct_logging:
+        output_log.info("diagnostic logs suppressed")
+    else:
+        names = ['']
+
+    return verbose, stream
 
 
 def log_error(details, verbose):

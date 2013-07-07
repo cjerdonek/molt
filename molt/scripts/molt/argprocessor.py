@@ -176,7 +176,7 @@ def check_output(output_dir, expected_dir):
 # TODO: rename this to process() or process_args().
 # TODO: incorporate this method into the ArgProcessor class.
 def run_args(sys_argv, chooser=None, test_runner_stream=None,
-             from_source=False, stdout=None):
+             from_source=False, stdout=None, stderr=None):
     exit_status = constants.EXIT_STATUS_SUCCESS  # return value
     if chooser is None:
         chooser = DirectoryChooser()
@@ -184,6 +184,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None,
         test_runner_stream = sys.stderr
     if stdout is None:
         stdout = sys.stdout
+    if stderr is None:
+        stderr = sys.stderr
+
 
     ns = argparsing.parse_args(sys_argv, chooser)
 
@@ -193,7 +196,7 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None,
         return run_mode_tests(ns, test_names=test_names, test_runner_stream=test_runner_stream,
                              from_source=from_source)
 
-    processor = ArgProcessor(chooser=chooser)
+    processor = ArgProcessor(chooser=chooser, stderr=stderr)
     run = processor.make_runner(ns)
 
     # TODO: consider using add_mutually_exclusive_group() for these.
@@ -233,8 +236,9 @@ def run_args(sys_argv, chooser=None, test_runner_stream=None,
 
 class ArgProcessor(object):
 
-    def __init__(self, chooser):
+    def __init__(self, chooser, stderr):
         self.chooser = chooser
+        self.stderr = stderr
 
     def make_runner(self, ns):
         if ns.mode_check_template:
@@ -242,7 +246,8 @@ class ArgProcessor(object):
             output_dir = ns.output_directory
             checker = TemplateChecker(chooser=self.chooser,
                                       template_dir=template_dir,
-                                      output_dir=output_dir)
+                                      output_dir=output_dir,
+                                      stream=self.stderr)
             return checker.check
         return None
 
@@ -266,10 +271,15 @@ class TemplateRenderer(object):
 # This class should not depend on the Namespace returned by parse_args().
 class TemplateChecker(object):
 
-    def __init__(self, chooser, template_dir, output_dir):
+    def __init__(self, chooser, template_dir, output_dir, stream):
         self.chooser = chooser
         self.output_dir = output_dir
         self.template_dir = template_dir
+        self.stream = stream
+
+    def _write(self, msg):
+        # TODO: use the output log.
+        self.stream.write("molt: %s\n" % msg)
 
     # TODO: extract this into a separate helper function or class?
     # A helper would be useful for the --compare-dirs option that has
@@ -305,7 +315,11 @@ class TemplateChecker(object):
                 output_dir = dirutil.make_available_dir(_given_output_dir)
             _log.debug("created output dir: %s" % output_dir)
             does_match = self._check(output_dir)
-            _log.info("template checks out: %s" % does_match)
+            if does_match:
+                msg = "template okay!"
+            else:
+                msg = "template not okay :("
+            self._write(msg)
         finally:
             if output_dir is None:
                 # Then directory creation failed.

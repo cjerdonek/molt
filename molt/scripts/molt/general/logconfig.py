@@ -89,8 +89,7 @@ class _NewlineStreamHandler(logging.StreamHandler):
 
 # TODO: make this testable.
 # TODO: finish documenting this method.
-def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None,
-                      test_config=False, silent=False):
+def configure_logging(logging_level, stderr=None, names=None):
     """
     Configure logging.
 
@@ -102,46 +101,49 @@ def configure_logging(logging_level, persistent_loggers=None, stderr_stream=None
 
     Arguments:
 
-      persistent_loggers: the loggers that should always log.
-
-      silent: whether to suppress the display of all logging.
+      names: logger name prefixes to allow through the root logger.  The
+        empty string allows all names.
 
     """
-    if stderr_stream is None:
-        stderr_stream = sys.stderr
+    if stderr is None:
+        stderr = sys.stderr
 
-    if silent:
-        stderr_stream.write("molt: logging suppressed\n")
-        # Wrap devnull in a remembering stream since _NewlineStreamHandler
-        # expects an object that defines last_char().
-        stream = RememberingStream(open(os.devnull, 'w'))
-    else:
-        stream = stderr_stream
+    configurer = LogConfigurer(stream=stderr)
 
-    root_logger = logging.getLogger()  # the root logger.
-    root_logger.setLevel(logging_level)
+    format = "%(name)s: [%(levelname)s] %(message)s"
+    handler = configurer.make_handler(format)
+    _filter = configurer.make_names_filter(names)
+    handler.addFilter(_filter)
 
-    if test_config:
-        # Then configure log messages to be swallowed by default.
-        # TODO: is this necessary?
-        handler = logging.NullHandler()
-        root_logger.addHandler(handler)
-
-        # Set the loggers to display during test runs.
-        visible_loggers = [_log] + persistent_loggers
-    else:
-        visible_loggers = [root_logger]
-
-    # Prefix log messages unobtrusively with "log" to distinguish log
-    # messages more obviously from other text sent to the error stream.
-    format_string = "log: %(name)s: [%(levelname)s] %(message)s"
-    formatter = logging.Formatter(format_string)
-
-    handler = _NewlineStreamHandler(stream)
-    handler.setFormatter(formatter)
-
-    for logger in visible_loggers:
-        logger.addHandler(handler)
+    root_log = logging.getLogger()
+    root_log.setLevel(logging_level)
+    root_log.addHandler(handler)
 
     _log.debug("Debug logging enabled.")
-    _log.debug("Visible loggers: %s" % repr([logger.name for logger in visible_loggers]))
+
+
+class _Filter(object):
+
+    def __init__(self, func):
+        self.filter = func
+
+
+class LogConfigurer(object):
+
+    def __init__(self, stream):
+        self.stream = stream
+
+    def make_handler(self, format_string):
+        formatter = logging.Formatter(format_string)
+        handler = _NewlineStreamHandler(self.stream)
+        handler.setFormatter(formatter)
+        return handler
+
+    def make_names_filter(self, names):
+        filters = [logging.Filter(name) for name in names]
+        def filter_func(record):
+            for filt in filters:
+                if filt.filter(record) != 0:
+                    return 1
+            return 0
+        return _Filter(filter_func)

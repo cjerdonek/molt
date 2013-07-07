@@ -4,8 +4,8 @@ History
 0.1.2 (TBD)
 -----------
 
-- Add --check-template option.
-- Add --log-silently option.
+- Add option to check a template.
+- Add option to suppress diagnostic logs.
 - Switch from using optparse to argparse.
 
 0.1.1 (2012-07-01)
