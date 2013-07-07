@@ -60,6 +60,17 @@ _app_log = logging.getLogger("molt.app")
 _log = logging.getLogger(__name__)
 
 
+class _Writer(object):
+
+    def __init__(self, write):
+        self.write = write
+
+
+def _make_writer(output_log):
+    write = lambda msg: output_log.info(msg)
+    return _Writer(write)
+
+
 def _configure_output_logger(stream):
     """Configure a special logger for non-diagnostic application output."""
     configurer = logconfig.LogConfigurer(stream=stream)
@@ -70,6 +81,7 @@ def _configure_output_logger(stream):
     log.setLevel(logging.INFO)
     log.addHandler(handler)
     return log
+
 
 def _configure_logging(sys_argv, sys_stderr=None):
     """
@@ -104,14 +116,14 @@ def _configure_logging(sys_argv, sys_stderr=None):
 
     # We pass a newline as last_text to prevent a newline from being added
     # before the first log message.
-    stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
+    log_stream = logconfig.RememberingStream(sys_stderr, last_text='\n')
 
-    output_log = _configure_output_logger(stream=stream)
+    output_log = _configure_output_logger(stream=log_stream)
 
     # Set the loggers to display during test runs.
     if is_running_tests:
         # TODO: tighten the list of names to allow.
-        names = [_log.name, logconfig.__name__, _app_log.name, test_logger.name]
+        names = [logconfig.__name__, _app_log.name, test_logger.name]
     elif succinct_logging:
         # Let the error-catching logger log.
         # TODO: add a test for this.
@@ -119,7 +131,7 @@ def _configure_logging(sys_argv, sys_stderr=None):
     else:
         names = ['']
 
-    logconfig.configure_logging(logging_level, stderr=stream, names=names)
+    logconfig.configure_logging(logging_level, stderr=log_stream, names=names)
 
     if is_running_tests:
         output_log.info("allowed logs: %s" % ", ".join(names))
@@ -128,7 +140,9 @@ def _configure_logging(sys_argv, sys_stderr=None):
     else:
         names = ['']
 
-    return verbose, stream
+    writer = _make_writer(output_log)
+
+    return verbose, log_stream, writer
 
 
 def log_error(details, verbose):
@@ -160,7 +174,7 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
         more easily.
 
     """
-    verbose, stderr_stream = configure_logging(sys_argv)
+    verbose, log_stream, writer = configure_logging(sys_argv)
 
     _app_log.debug("sys.argv: %s" % repr(sys_argv))
     _app_log.debug("kwargs: %s" % repr(kwargs))
@@ -172,7 +186,8 @@ def run_molt(sys_argv, from_source=False, configure_logging=_configure_logging,
             # TODO: we should not need to do this import here?
             from molt.scripts.molt.argprocessor import run_args
             process_args = run_args
-        status = process_args(sys_argv, test_runner_stream=stderr_stream,
+        status = process_args(sys_argv, writer=writer,
+                              test_runner_stream=log_stream,
                               from_source=from_source)
     # TODO: include KeyboardInterrupt in the template version of this file.
     except UsageError as err:

@@ -48,7 +48,7 @@ class MockLogging(object):
 
     def configure_logging(self, sys_argv):
         self.argv = sys_argv
-        return None, None
+        return None, None, None
 
 
 class CreateDemoTestCase(unittest.TestCase, SandBoxDirMixin):
