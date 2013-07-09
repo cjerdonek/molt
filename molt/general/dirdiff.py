@@ -84,14 +84,22 @@ class FileComparer(object):
         return self.match_func(self.left, self.right)
 
 
+#
 class DirDiffInfo(tuple):
 
-    """
-    Instances wrap a three-tuple of paths (left_only, right_only, diff_files)
-    that describe the high-level differences between two directories.
-    The paths are relative to the directory roots.
+    """The return value of a call to DirComparer.diff().
+
+    The paths returned by the properties of this class are relative to the
+    directories that were compared.
 
     """
+
+    def __new__(cls, dirs):
+        tup = tuple([] for i in range(4))
+        return super(DirDiffInfo, cls).__new__(cls, tup)
+
+    def __init__(self, dirs):
+        self.dirs = dirs
 
     def does_match(self):
         for seq in self:
@@ -99,6 +107,30 @@ class DirDiffInfo(tuple):
                 # Then there was a difference.
                 return False
         return True
+
+    @property
+    def attr_names(self):
+        return ["left_only", "right_only", "common_funny", "diff_files"]
+
+    @property
+    def left_only(self):
+        return self[0]
+
+    @property
+    def right_only(self):
+        return self[1]
+
+    @property
+    def common_funny(self):
+        """
+        Paths that are files in one directory and directories in the other.
+
+        """
+        return self[2]
+
+    @property
+    def diff_files(self):
+        return self[3]
 
 
 class Customizer(object):
@@ -193,10 +225,7 @@ class DirComparer(object):
 
         # Process the higher-level paths before recursing so notifications
         # about these paths will occur earlier.
-        # TODO: incorporate common_funny into the result, which are names
-        # that may, for example, be a file name in one directory and a
-        # directory name in the other.
-        name_lists = [dcmp.left_only, dcmp.right_only, diff_files]
+        name_lists = (dcmp.left_only, dcmp.right_only, dcmp.common_funny, diff_files)
         for result_paths, names in zip(results, name_lists):
             new_paths = [make_rel_path(name) for name in names]
             result_paths.extend(new_paths)
@@ -218,7 +247,7 @@ class DirComparer(object):
         Returns a DirDiffInfo instance.
 
         """
-        info = DirDiffInfo([] for i in range(3))
+        info = DirDiffInfo((dir1, dir2))
         dcmp = filecmp.dircmp(dir1, dir2, ignore=self.ignore)
         self._diff(dcmp, info)
         # Normalize the result sequences for testing and display purposes.

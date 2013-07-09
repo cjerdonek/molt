@@ -139,9 +139,9 @@ class _DiffDescriber(object):
         min_index = max(0, max_index - self.context)
         chars = info.char_indices
         char_desc = ("" if chars[0] is None else
-                     ", characters %d and %d, resp" %
+                     " at characters %d and %d, resp" %
                      tuple(i + 1 for i in chars))
-        header = ("first difference found at line %d%s.\n" %
+        header = ("first difference in string found in line %d%s.\n" %
                   (max_index + 1, char_desc))
         report = [header]
         labels = ('actual', 'expected')
@@ -420,7 +420,7 @@ class Customizer(object):
         # Otherwise we have a list of strings describing the difference.
         print("".join(result))
 
-# TODO: this class should accept a stream for displaying difference info.
+
 class Comparer(object):
 
     # TODO: update this docstring.
@@ -451,19 +451,58 @@ class Comparer(object):
 
     """
 
-    def __init__(self, fuzz=None, context=None):
+    def __init__(self, writer=None, fuzz=None, context=None):
+        """
+        Parameters:
+
+          writer: an object with a write() method.
+
+        """
         if context is None:
             context = defaults.DIFF_CONTEXT
         if fuzz is None:
             fuzz = defaults.DIFF_FUZZ
+        if writer is None:
+            writer = sys.stderr
         self.context = context
         self.fuzz = fuzz
+        self.writer = writer
+
+    def _write(self, msg):
+        self.writer.write(msg)
 
     def _dir_comparer(self):
         scomparer = _StringComparer(fuzz=self.fuzz, context=self.context)
         fcomparer = _FileComparer(scomparer=scomparer)
         customizer = Customizer(fcomparer=fcomparer)
         return dirdiff.DirComparer(custom=customizer)
+
+    def _lines_to_string(self, lines, indent='  '):
+        glue = "\n%s" % indent
+        return glue.join(lines)
+
+    def _make_attr_summary(self, info, header, attr_name, indent):
+        """Return a list of """
+        lines = getattr(info, attr_name)
+        first_line = "%s:%s" % (header, " none" if not lines else "")
+        lines.insert(0, first_line)
+        return self._lines_to_string(lines, indent=indent)
+
+    def _make_summary(self, info):
+        s = """\
+summarizing differences between actual and expected:
++++ %r
+--- %r""" % info.dirs
+        chunks = [s]
+        headers = ["only in actual",
+                   "only in expected",
+                   "non-comparable in both",
+                   "differing files in both"]
+        for attr, header in zip(info.attr_names, headers):
+            chunk = self._make_attr_summary(info, header, attr, indent='  ')
+            chunks.append(chunk)
+        chunks.append("***")
+        return "\n".join(chunks)
 
     def compare_strings(self, strs):
         """
@@ -494,13 +533,15 @@ class Comparer(object):
     # TODO: this method should display detailed compare info.
     def compare_dirs(self, dirs):
         """
+        Compare two directories.
+
+        Writes
         Return whether two directories match.
 
         """
-        _log.info("comparing directories: %s to %s" % dirs)
         dir_comparer = self._dir_comparer()
         info = dir_comparer.diff(*dirs)
         does_match = info.does_match()
         if not does_match:
-            print(repr(info))
+            self._write(self._make_summary(info))
         return does_match

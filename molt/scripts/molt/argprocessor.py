@@ -269,20 +269,26 @@ class TemplateRenderer(object):
 class TemplateChecker(object):
 
     def __init__(self, chooser, template_dir, output_dir, writer):
+        """
+        Parameters:
+
+          writer: an object with a write() method.
+
+        """
         self.chooser = chooser
         self.output_dir = output_dir
         self.template_dir = template_dir
         self.writer = writer
 
     def _write(self, msg):
-        # TODO: use the output log.
         self.writer.write(msg)
 
     # TODO: extract this into a separate helper function or class?
     # A helper would be useful for the --compare-dirs option that has
     # not yet been implemented.
     def _compare(self, actual_dir, expected_dir):
-        comparer = diff.Comparer()
+        # TODO: pass fuzz and context to the constructor.
+        comparer = diff.Comparer(writer=self.writer)
         return comparer.compare_dirs((actual_dir, expected_dir))
 
     def _check(self, output_dir):
