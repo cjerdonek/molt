@@ -84,7 +84,6 @@ class FileComparer(object):
         return self.match_func(self.left, self.right)
 
 
-#
 class DirDiffInfo(tuple):
 
     """The return value of a call to DirComparer.diff().

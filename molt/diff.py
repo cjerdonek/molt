@@ -59,6 +59,11 @@ _log = logging.getLogger(__name__)
 class _DiffInfo(object):
 
     def __init__(self, line_index=None, char_indices=None):
+        """
+        TODO: document the attributes.  In particular, is line_index a
+        valid line for both sequences?
+
+        """
         if char_indices is None:
             char_indices = (None, None)
         self.line_index = line_index
@@ -69,17 +74,70 @@ class _DiffInfo(object):
 class _DiffDescriber(object):
 
     """
-    Describes the difference between two strings in human-readable form.
+    Responsible for the string describing the difference between two strings.
 
     """
 
-    def __init__(self, context=2):
+    # TODO: remove this.
+    leading_chars = "+-"
+
+    def __init__(self, indent, context=2):
         """
 
         context: the number of lines of context to include.
 
         """
         self.context = context
+        self.indent = indent
+
+    def _make_header_line(self, info):
+        """
+        Return the header line ending in a newline.
+
+        """
+        chars = info.char_indices
+        char_desc = ("" if chars[0] is None else
+                     ", chars %d and %d" %
+                     tuple(i + 1 for i in chars))
+        return ("first difference at line %d%s\n" %
+                (info.line_index + 1, char_desc))
+
+    def _make_view_header_line(self, label):
+        return "%s view:\n" % label
+
+    # TODO: address justification in transition from 9 to 10, for example.
+    def _format_line2(self, contents, line_number, sep=None):
+        if sep is None:
+            sep = " "
+        # Add one to the index for 1-based line numbers.
+        return "%d:%s%s" % (line_number, sep, contents)
+
+    # TODO: define a method that takes a generates the display view for one
+    # of the two strings.
+    def _format_with_line_numbers(self, seq, start_index):
+        lines = []
+        for i, line in enumerate(seq, start=start_index):
+            line = "%s%d:%s" % (i, line)
+            lines.append(line)
+        return lines
+
+    def _seq_to_display_view(self, seq, min_index, max_index, indent):
+        """
+        Return the rendered view of a sequence.
+
+        Returns a sequence of lines.  Each ends in a newline.
+
+        """
+        lines = []
+        # The sequence may or may not contain the final index (slicing does
+        # not error out even if it does not).
+        for i, line in enumerate(seq[min_index:max_index + 1], start=min_index):
+            line = "%s%d:%s" % (indent, i, line)
+            lines.append(line)
+        # Make sure final line ends in a newline.
+        if lines and lines[-1] and lines[-1][-1] != "\n":
+            lines[-1] += "\n"
+        return lines
 
     def _format_line_raw(self, line_index, contents):
         return "%d:%s" % (line_index + 1, contents)
@@ -108,12 +166,9 @@ class _DiffDescriber(object):
         contents = "%d %r" % (char_index + 1, (line[:char_index], line[char_index:]))
         return self._format_line_raw(line_index, contents)
 
-    def _format_seq(self, seq, report, min_index, max_index, char_index):
-        for line in seq[min_index:max_index + 1]:
-            report.append("+%s" % line)
-        # Make sure the last line ends in a newline.
-        if report[-1][-1] != "\n":
-            report[-1] += "\n"
+    def _format_seq(self, seq, report, min_index, max_index, char_index, lead_char):
+        view = self._seq_to_display_view(seq, min_index, max_index, lead_char)
+        report.extend(view)
         for i, line in enumerate(seq[min_index:max_index], start=min_index):
             line = self._format_line(line, i)
             report.append(" %s\n" % line)
@@ -126,28 +181,78 @@ class _DiffDescriber(object):
             line = self._format_line(line, max_index)
         else:
             line = self._format_line_with_char(line, max_index, char_index)
-        report.append("*%s\n" % line)
+        report.append("*%s" % line)
+
+    # TODO: add tests for the edge cases mentioned in the code comments.
+    def _make_seq_display_view(self, seq, index1, index2):
+        seq = seq[index1:index2 + 1]
+        # Handle the last line of seq not ending in a newline.
+        if seq and (not seq[-1] or seq[-1][-1] != "\n"):
+            seq[-1] += "\n"
+        sep = ' '
+        lines = []
+        # Make sure the index is defined in case of any empty loop.
+        i = None
+        # TODO: cover case of not looping at all.
+        max_index = index2 - index1
+        for i, line in enumerate(seq[:max_index], start=index1):
+            # Add one for 1-based line numbers.
+            line = self._format_line2(line, i + 1)
+            lines.append("  " + line)
+        # Special case the final index (the line with the difference) to
+        # prefix it with a symbol and handle the case of the last line not
+        # existing.
+        try:
+            line = seq[max_index]
+        except IndexError:
+            line = "<no line>"
+            sep = ''
+        # Add one for 1-based line numbers.
+        line = self._format_line2(line, index2 + 1, sep=sep)
+        lines.append(" *" + line)
+        return lines
+
+    def _make_display_view(self, seqs, index1, index2):
+        header = self._make_view_header_line('display')
+        lines = [header]
+        for seq in seqs:
+            new_lines = self._make_seq_display_view(seq, index1, index2)
+            lines.extend(new_lines)
+            lines.append("----\n")
+        # Only add the separator between the two.
+        lines.pop()
+        return lines
 
     def describe(self, info, seqs):
         """
-        Describe the difference between the two sequences of lines.
+        Describe the difference between two sequences of lines.
 
-        Returns a sequence of strings.
+        Returns a sequence of strings describing the difference.  Each
+        string ends in a newline except for the last.
 
         """
-        max_index = info.line_index
-        min_index = max(0, max_index - self.context)
-        chars = info.char_indices
-        char_desc = ("" if chars[0] is None else
-                     " at characters %d and %d, resp" %
-                     tuple(i + 1 for i in chars))
-        header = ("first difference in string found in line %d%s.\n" %
-                  (max_index + 1, char_desc))
+        # The line at which the first difference occurs.
+        line_index2 = info.line_index
+        line_index1 = max(0, line_index2 - self.context)
+        char_indices = info.char_indices
+
+        header = self._make_header_line(info)
         report = [header]
+        display_view = self._make_display_view(seqs, line_index1, line_index2)
+        report.extend(display_view)
+
+        # TODO: want a method that takes a sequence of lines ending in
+        # newlines or not, and then formats it with line numbers.
+        # This way it can be used against the sequence of as-is lines
+        # as in the display view.  In this way, the detail view will
+        # require building the lines ending in newlines (except for the
+        # last one) using repr().
+        indent = "  "
+        report.append(self._make_view_header_line('detail'))
         labels = ('actual', 'expected')
-        for label, char_index, seq in zip(labels, chars, seqs):
+        for label, char_index, seq in zip(labels, char_indices, seqs):
             report.append("--- %s:\n" % label)
-            self._format_seq(seq, report, min_index, max_index, char_index)
+            self._format_seq(seq, report, line_index1, line_index2, char_index, "+")
         return report
 
 
@@ -332,16 +437,17 @@ class _LineComparer(object):
 
 class _StringComparer(object):
 
-    def __init__(self, fuzz=None, context=None):
+    def __init__(self, indent, fuzz=None, context=None):
         if context is None:
             context = defaults.DIFF_CONTEXT
         if fuzz is None:
             fuzz = defaults.DIFF_FUZZ
         self.context = context
         self.fuzz = fuzz
+        self.indent = indent
 
     def _describe(self, info, seqs):
-        describer = _DiffDescriber(context=self.context)
+        describer = _DiffDescriber(context=self.context, indent=self.indent)
         info = describer.describe(info, seqs)
         return info
 
@@ -349,8 +455,9 @@ class _StringComparer(object):
         """
         Compare whether two unicode strings match.
 
-        Returns a list of strings describing the difference between
-        the two strings, or an empty list if they match.
+        Returns an empty list if the strings match, otherwise a list of
+        strings describing the difference.  Each string in the list ends
+        in a newline.
 
         Parameters:
 
@@ -379,7 +486,14 @@ class _FileComparer(object):
     # TODO: handle binary files differently.
     # TODO: handle alternate encodings.
     def compare_files(self, paths):
-        """Compare two text files."""
+        """
+        Compare two text files.
+
+        Returns an empty list if the strings match, otherwise a list of
+        strings describing the difference.  Each string in the list ends
+        in a newline.
+
+        """
         strs = (molt_io.read(path, encoding=_ENCODING, errors=_ENCODING) for
                 path in paths)
         return self.scomparer.compare_strings(strs)
@@ -396,6 +510,7 @@ class Customizer(object):
           comparer: an object with a compare_files(paths) method.
 
         """
+        self.diff_files = {}
         self.fcomparer = fcomparer
 
     def files_same(self, path1, path2):
@@ -418,7 +533,7 @@ class Customizer(object):
         """
         _log.info("found different file: %s" % (rel_path, ))
         # Otherwise we have a list of strings describing the difference.
-        print("".join(result))
+        self.diff_files[rel_path] = result
 
 
 class Comparer(object):
@@ -451,6 +566,8 @@ class Comparer(object):
 
     """
 
+    indent = "  "
+
     def __init__(self, writer=None, fuzz=None, context=None):
         """
         Parameters:
@@ -471,38 +588,62 @@ class Comparer(object):
     def _write(self, msg):
         self.writer.write(msg)
 
-    def _dir_comparer(self):
-        scomparer = _StringComparer(fuzz=self.fuzz, context=self.context)
+    def _customizer(self):
+        scomparer = _StringComparer(fuzz=self.fuzz, context=self.context,
+                                    indent=self.indent)
         fcomparer = _FileComparer(scomparer=scomparer)
-        customizer = Customizer(fcomparer=fcomparer)
+        return Customizer(fcomparer=fcomparer)
+
+    def _dir_comparer(self, customizer):
         return dirdiff.DirComparer(custom=customizer)
 
-    def _lines_to_string(self, lines, indent='  '):
+    def _lines_to_string(self, lines, indent=''):
         glue = "\n%s" % indent
         return glue.join(lines)
 
     def _make_attr_summary(self, info, header, attr_name, indent):
-        """Return a list of """
-        lines = getattr(info, attr_name)
-        first_line = "%s:%s" % (header, " none" if not lines else "")
-        lines.insert(0, first_line)
+        """Return a multi-line string that does not end in a newline."""
+        rel_paths = getattr(info, attr_name)
+        lines = ["%s:%s" % (header, " none" if not rel_paths else "")]
+        lines.extend(rel_paths)
         return self._lines_to_string(lines, indent=indent)
 
-    def _make_summary(self, info):
+    def _make_file_summary(self, rel_path, desc):
+        """Return a multi-line string that does not end in a newline."""
+        header = "%s%s:\n" % (self.indent, rel_path)
+        indent = 2 * self.indent
+        lines = [header] + desc
+        return indent.join(lines)
+
+    def _make_summary(self, info, customizer):
+        """
+        Return a string suitable for displaying to the console.
+
+        The string does not end in a newline.
+
+        """
+        if info.does_match():
+            return "directories match."
         s = """\
-summarizing differences between actual and expected:
+directories don't match. showing differences between actual and expected:
 +++ %r
 --- %r""" % info.dirs
-        chunks = [s]
-        headers = ["only in actual",
-                   "only in expected",
-                   "non-comparable in both",
-                   "differing files in both"]
+        sections = [s]
+        headers = ["paths only in actual",
+                   "paths only in expected",
+                   "paths non-comparable in both",
+                   "files differing in both"]
         for attr, header in zip(info.attr_names, headers):
-            chunk = self._make_attr_summary(info, header, attr, indent='  ')
-            chunks.append(chunk)
-        chunks.append("***")
-        return "\n".join(chunks)
+            section = self._make_attr_summary(info, header, attr, indent='  ')
+            sections.append(section)
+        if info.diff_files:
+            sections.append("file differences:")
+        diff_results = customizer.diff_files
+        for rel_path in info.diff_files:
+            desc = diff_results[rel_path]
+            section = self._make_file_summary(rel_path, desc)
+            sections.append(section)
+        return "\n".join(sections)
 
     def compare_strings(self, strs):
         """
@@ -539,9 +680,8 @@ summarizing differences between actual and expected:
         Return whether two directories match.
 
         """
-        dir_comparer = self._dir_comparer()
+        customizer = self._customizer()
+        dir_comparer = self._dir_comparer(customizer)
         info = dir_comparer.diff(*dirs)
-        does_match = info.does_match()
-        if not does_match:
-            self._write(self._make_summary(info))
-        return does_match
+        self._write(self._make_summary(info, customizer))
+        return info.does_match()
